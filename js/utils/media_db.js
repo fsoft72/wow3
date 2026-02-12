@@ -340,4 +340,3 @@ const MediaDB = {
 
 // Make available globally
 window.MediaDB = MediaDB;
-export default MediaDB;

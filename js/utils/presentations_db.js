@@ -214,6 +214,5 @@ const PresentationsDB = {
   }
 };
 
-// Make available globally and as export
+// Make available globally
 window.PresentationsDB = PresentationsDB;
-export default PresentationsDB;
