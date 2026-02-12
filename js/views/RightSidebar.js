@@ -11,6 +11,7 @@ export class RightSidebar {
     this.slideTab = null;
     this.elementTab = null;
     this.animationTab = null;
+    this.activeTab = null; // Track active panel tab
   }
 
   /**
@@ -35,6 +36,10 @@ export class RightSidebar {
       this.clearProperties();
       return;
     }
+
+    // Save current active tab before re-rendering
+    const currentTab = document.querySelector('.panel-tab.active');
+    const savedTab = currentTab ? currentTab.dataset.tab : null;
 
     this.elementTab.innerHTML = '';
 
@@ -86,9 +91,41 @@ export class RightSidebar {
 
       // Bind panel events
       if (panel) {
-        setTimeout(() => panel.bindEvents(element), 0);
+        setTimeout(() => {
+          panel.bindEvents(element);
+
+          // Restore previously active tab
+          if (savedTab) {
+            this.restoreActiveTab(savedTab);
+          }
+        }, 0);
       }
     }
+  }
+
+  /**
+   * Restore the active tab after panel re-render
+   * @param {string} tabName - Name of tab to activate
+   */
+  restoreActiveTab(tabName) {
+    const tabs = document.querySelectorAll('.panel-tab');
+    const contents = document.querySelectorAll('.panel-tab-content');
+
+    tabs.forEach(tab => {
+      if (tab.dataset.tab === tabName) {
+        tab.classList.add('active');
+      } else {
+        tab.classList.remove('active');
+      }
+    });
+
+    contents.forEach(content => {
+      if (content.dataset.tabContent === tabName) {
+        content.classList.add('active');
+      } else {
+        content.classList.remove('active');
+      }
+    });
   }
 
   /**
