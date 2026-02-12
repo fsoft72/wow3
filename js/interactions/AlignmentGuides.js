@@ -16,7 +16,8 @@ export class AlignmentGuides {
    * @param {HTMLElement} canvas - Canvas element
    */
   ensureContainer(canvas) {
-    if (this.container) return;
+    // Check if existing reference is still in the DOM (renderCurrentSlide clears canvas)
+    if (this.container && this.container.isConnected) return;
 
     this.container = document.getElementById('alignment-guides');
     if (!this.container) {

@@ -27,6 +27,10 @@ export class DragHandler {
    * @param {Element} element - Element model
    */
   attach(elementDOM, element) {
+    // Prevent duplicate listeners from accumulating on re-selection
+    if (elementDOM._dragHandlerAttached) return;
+    elementDOM._dragHandlerAttached = true;
+
     elementDOM.addEventListener('mousedown', (e) => {
       // Don't drag if clicking on handles
       if (
@@ -123,6 +127,10 @@ export class DragHandler {
     };
 
     const onMouseUp = () => {
+      // Always clean up listeners to prevent leaks
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+
       if (!this.isDragging) return;
 
       this.isDragging = false;
@@ -133,9 +141,6 @@ export class DragHandler {
 
       // Record history
       this.elementController.editor.recordHistory();
-
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
     };
 
     document.addEventListener('mousemove', onMouseMove);
