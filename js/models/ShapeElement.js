@@ -67,10 +67,17 @@ export class ShapeElement extends Element {
         break;
     }
 
-    // Apply styles
-    shape.setAttribute('fill', this.properties.fillColor);
-    shape.setAttribute('stroke', this.properties.strokeColor);
-    shape.setAttribute('stroke-width', this.properties.strokeWidth);
+    // Apply styles — lines have no fill area, so use fillColor as stroke
+    if (this.properties.shapeType === 'line') {
+      shape.setAttribute('fill', 'none');
+      shape.setAttribute('stroke', this.properties.fillColor);
+      shape.setAttribute('stroke-width', Math.max(this.properties.strokeWidth, 2));
+      shape.setAttribute('vector-effect', 'non-scaling-stroke');
+    } else {
+      shape.setAttribute('fill', this.properties.fillColor);
+      shape.setAttribute('stroke', this.properties.strokeColor);
+      shape.setAttribute('stroke-width', this.properties.strokeWidth);
+    }
 
     svg.appendChild(shape);
     el.appendChild(svg);
