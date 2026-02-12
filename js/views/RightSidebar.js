@@ -4,6 +4,7 @@
  */
 
 import { FONT_FAMILIES, TEXT_ALIGNMENTS } from '../utils/constants.js';
+import { TextPanel, ImagePanel, VideoPanel, AudioPanel } from '../panels/index.js';
 
 export class RightSidebar {
   constructor() {
@@ -37,31 +38,56 @@ export class RightSidebar {
 
     this.elementTab.innerHTML = '';
 
-    // Add position properties
+    // Add position properties (always show these)
     this.addPositionProperties(element);
 
-    // Add type-specific properties
+    // Add type-specific panel
+    let panelHTML = '';
+    let panel = null;
+
     switch (element.type) {
       case 'text':
-        this.addTextProperties(element);
+        panel = TextPanel;
+        panelHTML = TextPanel.render(element);
         break;
 
       case 'image':
+        panel = ImagePanel;
+        panelHTML = ImagePanel.render(element);
+        break;
+
       case 'video':
-        this.addMediaProperties(element);
+        panel = VideoPanel;
+        panelHTML = VideoPanel.render(element);
+        break;
+
+      case 'audio':
+        panel = AudioPanel;
+        panelHTML = AudioPanel.render(element);
         break;
 
       case 'shape':
         this.addShapeProperties(element);
-        break;
+        return;
 
       case 'link':
         this.addLinkProperties(element);
-        break;
+        return;
 
       case 'list':
         this.addListProperties(element);
-        break;
+        return;
+    }
+
+    if (panelHTML) {
+      const section = this.createSection(element.type.charAt(0).toUpperCase() + element.type.slice(1));
+      section.innerHTML = panelHTML;
+      this.elementTab.appendChild(section);
+
+      // Bind panel events
+      if (panel) {
+        setTimeout(() => panel.bindEvents(element), 0);
+      }
     }
   }
 
