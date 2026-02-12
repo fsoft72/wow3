@@ -237,6 +237,11 @@ export class SlideController {
    * @param {number} index - Slide index
    */
   selectSlide(index) {
+    // Clear stale element selection on slide change
+    if (this.editor.elementController) {
+      this.editor.elementController.deselectAll();
+    }
+
     this.editor.presentation.setCurrentSlide(index);
     this.renderCurrentSlide();
     this.renderSlides(); // Update active state

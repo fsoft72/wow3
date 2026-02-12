@@ -347,12 +347,11 @@ export class EditorController {
   }
 
   /**
-   * Delete selected element
+   * Delete selected element(s)
    */
   deleteSelectedElement() {
-    if (this.elementController && this.elementController.selectedElement) {
-      this.elementController.deleteElement(this.elementController.selectedElement.id);
-      this.recordHistory();
+    if (this.elementController) {
+      this.elementController.deleteSelectedElements();
     }
   }
 

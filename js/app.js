@@ -14,7 +14,8 @@ import {
 import {
   DragHandler,
   ResizeHandler,
-  RotateHandler
+  RotateHandler,
+  MarqueeHandler
 } from './interactions/index.js';
 
 class WOW3App {
@@ -57,6 +58,10 @@ class WOW3App {
       this.editor.elementController.dragHandler = new DragHandler(this.editor.elementController);
       this.editor.elementController.resizeHandler = new ResizeHandler(this.editor.elementController);
       this.editor.elementController.rotateHandler = new RotateHandler(this.editor.elementController);
+
+      // Initialize marquee handler
+      const marqueeHandler = new MarqueeHandler(this.editor.elementController);
+      marqueeHandler.init();
 
       // Load or create presentation
       await this.loadPresentation();
@@ -171,13 +176,7 @@ class WOW3App {
       }
     });
 
-    // Click outside to deselect
-    document.addEventListener('click', (e) => {
-      const canvas = document.getElementById('slide-canvas');
-      if (e.target === canvas && this.editor && this.editor.elementController) {
-        this.editor.elementController.deselectElement();
-      }
-    });
+    // Click outside to deselect is handled by MarqueeHandler
   }
 
   /**
@@ -226,8 +225,8 @@ class WOW3App {
       // Delete: Delete or Backspace
       else if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
-        if (this.editor && this.editor.deleteSelectedElement) {
-          this.editor.deleteSelectedElement();
+        if (this.editor && this.editor.elementController) {
+          this.editor.elementController.deleteSelectedElements();
         }
       }
       // Copy: Ctrl+C

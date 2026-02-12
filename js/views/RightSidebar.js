@@ -139,6 +139,23 @@ export class RightSidebar {
   }
 
   /**
+   * Show info panel for multi-element selection
+   * @param {number} count - Number of selected elements
+   */
+  showMultiSelectionInfo(count) {
+    this.currentElementId = null;
+    if (this.elementTab) {
+      this.elementTab.innerHTML = `
+        <div style="padding: 20px; text-align: center;">
+          <i class="material-icons grey-text" style="font-size: 48px;">select_all</i>
+          <p class="grey-text">${count} elements selected</p>
+          <p class="grey-text" style="font-size: 12px;">Press <kbd>Delete</kbd> to remove, or drag to move together</p>
+        </div>
+      `;
+    }
+  }
+
+  /**
    * Clear properties panel
    */
   clearProperties() {

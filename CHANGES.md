@@ -750,3 +750,26 @@ Help diagnose why animations are not working by showing:
 - `DragHandler.js`: Integrated magnetic snapping into drag flow
 - `AlignmentGuides.js`: Rewritten to support typed guides (element vs canvas) with `showGuides()` method
 - `editor.css`: Added orange styling for canvas snap guides
+
+---
+
+## Multi-Element Selection
+
+### Feature: Marquee selection, Ctrl+Click, multi-drag, multi-delete
+- ✓ **Marquee selection**: Click-drag on canvas background draws a blue dashed rectangle; all elements within it become selected
+- ✓ **Ctrl+Click toggle**: Hold Ctrl/Cmd and click individual elements to add/remove them from selection
+- ✓ **Multi-element drag**: When multiple elements are selected, dragging one moves all of them together
+- ✓ **Multi-element delete**: Press Delete/Backspace to remove all selected elements at once
+- ✓ **Selection UI**: Multi-selected elements show blue outline but no resize/rotate handles; single selection retains full handles
+- ✓ **Right sidebar info**: Shows "N elements selected" message when multiple elements are selected
+- ✓ **Slide change cleanup**: Changing slides deselects all elements
+
+**Updated Files:**
+- `ElementController.js`: Replaced `selectedElement` with `Set`-based `_selectedElements`, added multi-selection methods (`addToSelection`, `removeFromSelection`, `toggleSelection`, `deselectAll`, `deleteSelectedElements`, `_updateSelectionUI`), backward-compatible getter/setter
+- `DragHandler.js`: Multi-element drag support with `_multiDragStarts` Map; single drag retains snap+guides, multi drag uses raw dx/dy
+- `MarqueeHandler.js`: New file — rubber-band rectangle selection on canvas background using `rectsIntersect()`
+- `interactions/index.js`: Export `MarqueeHandler`
+- `app.js`: Import and init `MarqueeHandler`, remove click-to-deselect listener, route Delete key to `deleteSelectedElements()`
+- `RightSidebar.js`: Added `showMultiSelectionInfo(count)` method
+- `SlideController.js`: Call `deselectAll()` at start of `selectSlide()`
+- `EditorController.js`: Updated `deleteSelectedElement()` to delegate to `deleteSelectedElements()`

@@ -1,6 +1,6 @@
 /**
  * WOW3 Drag Handler
- * Handles element dragging with alignment guides
+ * Handles element dragging with alignment guides and multi-element drag
  */
 
 import { AlignmentGuides } from './AlignmentGuides.js';
@@ -19,6 +19,9 @@ export class DragHandler {
     this.dragStart = { x: 0, y: 0 };
     this.elementStart = { x: 0, y: 0 };
     this.currentElement = null;
+
+    /** @type {Map<string, {x: number, y: number}>} Start positions for multi-drag */
+    this._multiDragStarts = new Map();
   }
 
   /**
@@ -50,7 +53,7 @@ export class DragHandler {
   }
 
   /**
-   * Start dragging element
+   * Start dragging element(s)
    * @param {MouseEvent} e - Mouse event
    * @param {HTMLElement} elementDOM - Element DOM
    * @param {Element} element - Element model
@@ -59,21 +62,36 @@ export class DragHandler {
     e.preventDefault();
     e.stopPropagation();
 
+    const ec = this.elementController;
+
+    // If dragged element is NOT in selection, select it first (single drag)
+    if (!ec.isSelected(element)) {
+      ec.selectElement(element);
+    }
+
     this.isDragging = true;
     this.currentElement = element;
-
-    elementDOM.classList.add('dragging');
-
     this.dragStart = { x: e.clientX, y: e.clientY };
     this.elementStart = { x: element.position.x, y: element.position.y };
 
-    const canvas = document.getElementById('slide-canvas');
-    const canvasRect = canvas.getBoundingClientRect();
+    // Capture start positions for ALL selected elements
+    this._multiDragStarts.clear();
+    const selectedElements = ec.selectedElements;
+    const isMulti = selectedElements.length > 1;
 
-    // Get all other elements for alignment
-    const currentSlide = this.elementController.editor.presentation.getCurrentSlide();
+    selectedElements.forEach((el) => {
+      this._multiDragStarts.set(el.id, { x: el.position.x, y: el.position.y });
+      const dom = document.getElementById(el.id);
+      if (dom) dom.classList.add('dragging');
+    });
+
+    const canvas = document.getElementById('slide-canvas');
+
+    // Get other elements for alignment (exclude ALL selected elements)
+    const currentSlide = ec.editor.presentation.getCurrentSlide();
+    const selectedIds = new Set(selectedElements.map((el) => el.id));
     const otherElements = currentSlide.elements
-      .filter((el) => el.id !== element.id)
+      .filter((el) => !selectedIds.has(el.id))
       .map((el) => el.position);
 
     const onMouseMove = (e) => {
@@ -82,52 +100,66 @@ export class DragHandler {
       const dx = e.clientX - this.dragStart.x;
       const dy = e.clientY - this.dragStart.y;
 
-      // Calculate new position
-      let newX = this.elementStart.x + dx;
-      let newY = this.elementStart.y + dy;
+      if (isMulti) {
+        // Multi-drag: apply raw dx/dy to all selected elements (no snap)
+        selectedElements.forEach((el) => {
+          const start = this._multiDragStarts.get(el.id);
+          if (!start) return;
 
-      // Apply magnetic snapping to other elements and canvas borders
-      const snapped = snapPosition(
-        { x: newX, y: newY, width: element.position.width, height: element.position.height },
-        otherElements
-      );
+          const newX = start.x + dx;
+          const newY = start.y + dy;
 
-      // Constrain to canvas
-      const constrained = constrainToCanvas({
-        x: snapped.x,
-        y: snapped.y,
-        width: element.position.width,
-        height: element.position.height,
-        rotation: element.position.rotation
-      });
+          el.updatePosition({ x: newX, y: newY });
+          const dom = document.getElementById(el.id);
+          if (dom) {
+            dom.style.left = newX + 'px';
+            dom.style.top = newY + 'px';
+          }
+        });
 
-      newX = constrained.x;
-      newY = constrained.y;
+        this.alignmentGuides.hide();
+      } else {
+        // Single drag: snap + constrain + guides (existing behavior)
+        let newX = this.elementStart.x + dx;
+        let newY = this.elementStart.y + dy;
 
-      // Only show guides if constraint didn't override snap
-      const guidesToShow = {
-        horizontal: Math.abs(newY - snapped.y) < 1 ? snapped.guides.horizontal : [],
-        vertical: Math.abs(newX - snapped.x) < 1 ? snapped.guides.vertical : []
-      };
+        const snapped = snapPosition(
+          { x: newX, y: newY, width: element.position.width, height: element.position.height },
+          otherElements
+        );
 
-      // Update position
-      element.updatePosition({ x: newX, y: newY });
-      elementDOM.style.left = newX + 'px';
-      elementDOM.style.top = newY + 'px';
+        const constrained = constrainToCanvas({
+          x: snapped.x,
+          y: snapped.y,
+          width: element.position.width,
+          height: element.position.height,
+          rotation: element.position.rotation
+        });
 
-      // Update position values in properties panel
-      if (this.elementController.editor.uiManager && this.elementController.editor.uiManager.rightSidebar) {
-        this.elementController.editor.uiManager.rightSidebar.updatePositionValues(element);
+        newX = constrained.x;
+        newY = constrained.y;
+
+        const guidesToShow = {
+          horizontal: Math.abs(newY - snapped.y) < 1 ? snapped.guides.horizontal : [],
+          vertical: Math.abs(newX - snapped.x) < 1 ? snapped.guides.vertical : []
+        };
+
+        element.updatePosition({ x: newX, y: newY });
+        elementDOM.style.left = newX + 'px';
+        elementDOM.style.top = newY + 'px';
+
+        // Update position values in properties panel
+        if (ec.editor.uiManager && ec.editor.uiManager.rightSidebar) {
+          ec.editor.uiManager.rightSidebar.updatePositionValues(element);
+        }
+
+        this.alignmentGuides.showGuides(canvas, guidesToShow);
       }
-
-      // Show snap guides
-      this.alignmentGuides.showGuides(canvas, guidesToShow);
 
       appEvents.emit(AppEvents.ELEMENT_MOVED, element);
     };
 
     const onMouseUp = () => {
-      // Always clean up listeners to prevent leaks
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
 
@@ -136,11 +168,17 @@ export class DragHandler {
       this.isDragging = false;
       this.currentElement = null;
 
-      elementDOM.classList.remove('dragging');
+      // Remove dragging class from all selected elements
+      selectedElements.forEach((el) => {
+        const dom = document.getElementById(el.id);
+        if (dom) dom.classList.remove('dragging');
+      });
+
+      this._multiDragStarts.clear();
       this.alignmentGuides.hide();
 
       // Record history
-      this.elementController.editor.recordHistory();
+      ec.editor.recordHistory();
     };
 
     document.addEventListener('mousemove', onMouseMove);

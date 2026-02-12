@@ -22,7 +22,9 @@ export class ElementController {
    */
   constructor(editorController) {
     this.editor = editorController;
-    this.selectedElement = null;
+
+    /** @type {Set<Element>} */
+    this._selectedElements = new Set();
 
     // Interaction handlers (will be set externally)
     this.dragHandler = null;
@@ -31,6 +33,49 @@ export class ElementController {
 
     // Clipboard
     this.clipboard = null;
+  }
+
+  /**
+   * Backward-compatible getter: returns first selected element or null
+   * @returns {Element|null}
+   */
+  get selectedElement() {
+    if (this._selectedElements.size === 0) return null;
+    return this._selectedElements.values().next().value;
+  }
+
+  /**
+   * Backward-compatible setter: clears selection and selects one element
+   * @param {Element|null} el
+   */
+  set selectedElement(el) {
+    this._selectedElements.clear();
+    if (el) this._selectedElements.add(el);
+  }
+
+  /**
+   * Get all selected elements as an array
+   * @returns {Element[]}
+   */
+  get selectedElements() {
+    return Array.from(this._selectedElements);
+  }
+
+  /**
+   * Check if multiple elements are selected
+   * @returns {boolean}
+   */
+  get hasMultiSelection() {
+    return this._selectedElements.size > 1;
+  }
+
+  /**
+   * Check if a specific element is currently selected
+   * @param {Element} element - Element to check
+   * @returns {boolean}
+   */
+  isSelected(element) {
+    return this._selectedElements.has(element);
   }
 
   /**
@@ -98,8 +143,12 @@ export class ElementController {
     const success = currentSlide.removeElement(elementId);
 
     if (success) {
-      if (this.selectedElement && this.selectedElement.id === elementId) {
-        this.selectedElement = null;
+      // Remove from selection set
+      for (const el of this._selectedElements) {
+        if (el.id === elementId) {
+          this._selectedElements.delete(el);
+          break;
+        }
       }
 
       this.editor.slideController.renderCurrentSlide();
@@ -110,21 +159,39 @@ export class ElementController {
   }
 
   /**
-   * Select element
+   * Delete all currently selected elements
+   */
+  deleteSelectedElements() {
+    if (this._selectedElements.size === 0) return;
+
+    const currentSlide = this.editor.presentation.getCurrentSlide();
+    const ids = this.selectedElements.map((el) => el.id);
+
+    ids.forEach((id) => {
+      currentSlide.removeElement(id);
+      appEvents.emit(AppEvents.ELEMENT_REMOVED, id);
+    });
+
+    this._selectedElements.clear();
+
+    this.editor.slideController.renderCurrentSlide();
+    this._updateSelectionUI();
+    this.editor.recordHistory();
+
+    const label = ids.length === 1 ? 'Element deleted' : `${ids.length} elements deleted`;
+    M.toast({ html: label, classes: 'green' });
+  }
+
+  /**
+   * Select a single element (clears previous selection)
    * @param {Element} element - Element to select
    */
   selectElement(element) {
-    // Deselect previous
-    if (this.selectedElement) {
-      const prevDOM = document.getElementById(this.selectedElement.id);
-      if (prevDOM) {
-        prevDOM.classList.remove('selected');
-        this.removeHandles(prevDOM);
-      }
-    }
+    // Deselect all previous
+    this.deselectAll();
 
     // Select new
-    this.selectedElement = element;
+    this._selectedElements.add(element);
     const elementDOM = document.getElementById(element.id);
 
     if (elementDOM) {
@@ -144,6 +211,125 @@ export class ElementController {
   }
 
   /**
+   * Add element to current selection (no handles, just outline)
+   * @param {Element} element - Element to add
+   */
+  addToSelection(element) {
+    if (this._selectedElements.has(element)) return;
+
+    this._selectedElements.add(element);
+    const elementDOM = document.getElementById(element.id);
+
+    if (elementDOM) {
+      elementDOM.classList.add('selected');
+    }
+
+    this._updateSelectionUI();
+  }
+
+  /**
+   * Remove element from current selection
+   * @param {Element} element - Element to remove
+   */
+  removeFromSelection(element) {
+    if (!this._selectedElements.has(element)) return;
+
+    this._selectedElements.delete(element);
+    const elementDOM = document.getElementById(element.id);
+
+    if (elementDOM) {
+      elementDOM.classList.remove('selected');
+      this.removeHandles(elementDOM);
+    }
+
+    this._updateSelectionUI();
+  }
+
+  /**
+   * Toggle element selection (Ctrl+Click behavior)
+   * @param {Element} element - Element to toggle
+   */
+  toggleSelection(element) {
+    if (this._selectedElements.has(element)) {
+      this.removeFromSelection(element);
+    } else {
+      this.addToSelection(element);
+    }
+  }
+
+  /**
+   * Deselect all elements
+   */
+  deselectAll() {
+    for (const el of this._selectedElements) {
+      const dom = document.getElementById(el.id);
+      if (dom) {
+        dom.classList.remove('selected');
+        this.removeHandles(dom);
+      }
+    }
+
+    this._selectedElements.clear();
+
+    // Clear properties panel
+    if (this.editor.uiManager && this.editor.uiManager.rightSidebar) {
+      this.editor.uiManager.rightSidebar.clearProperties();
+    }
+
+    appEvents.emit(AppEvents.ELEMENT_DESELECTED);
+  }
+
+  /**
+   * Alias for backward compatibility
+   */
+  deselectElement() {
+    this.deselectAll();
+  }
+
+  /**
+   * Update UI after selection changes (handles, properties panel)
+   */
+  _updateSelectionUI() {
+    const size = this._selectedElements.size;
+
+    if (size === 0) {
+      // Clear properties
+      if (this.editor.uiManager && this.editor.uiManager.rightSidebar) {
+        this.editor.uiManager.rightSidebar.clearProperties();
+      }
+    } else if (size === 1) {
+      const el = this.selectedElement;
+      const dom = document.getElementById(el.id);
+
+      if (dom) {
+        // Ensure handles are present for single selection
+        this.removeHandles(dom);
+        this.addHandles(dom);
+      }
+
+      this.switchToElementTab();
+
+      if (this.editor.uiManager && this.editor.uiManager.rightSidebar) {
+        this.editor.uiManager.rightSidebar.updateProperties(el, true);
+      }
+    } else {
+      // Multi-selection: remove all handles, show multi-info
+      for (const el of this._selectedElements) {
+        const dom = document.getElementById(el.id);
+        if (dom) {
+          this.removeHandles(dom);
+        }
+      }
+
+      this.switchToElementTab();
+
+      if (this.editor.uiManager && this.editor.uiManager.rightSidebar) {
+        this.editor.uiManager.rightSidebar.showMultiSelectionInfo(size);
+      }
+    }
+  }
+
+  /**
    * Switch to the Element tab in the right sidebar
    */
   switchToElementTab() {
@@ -157,37 +343,20 @@ export class ElementController {
   }
 
   /**
-   * Deselect current element
-   */
-  deselectElement() {
-    if (this.selectedElement) {
-      const elementDOM = document.getElementById(this.selectedElement.id);
-      if (elementDOM) {
-        elementDOM.classList.remove('selected');
-        this.removeHandles(elementDOM);
-      }
-
-      this.selectedElement = null;
-
-      // Clear properties panel
-      if (this.editor.uiManager && this.editor.uiManager.rightSidebar) {
-        this.editor.uiManager.rightSidebar.clearProperties();
-      }
-
-      appEvents.emit(AppEvents.ELEMENT_DESELECTED);
-    }
-  }
-
-  /**
    * Attach event handlers to element DOM
    * @param {HTMLElement} elementDOM - Element DOM
    * @param {Element} element - Element model
    */
   attachHandlers(elementDOM, element) {
-    // Click to select
+    // Click to select (with Ctrl+Click support)
     elementDOM.addEventListener('click', (e) => {
       e.stopPropagation();
-      this.selectElement(element);
+
+      if (e.ctrlKey || e.metaKey) {
+        this.toggleSelection(element);
+      } else {
+        this.selectElement(element);
+      }
     });
 
     // Double-click to edit text
