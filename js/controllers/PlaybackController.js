@@ -264,14 +264,31 @@ export class PlaybackController {
    * @param {number} slideIndex - Current slide index
    */
   _replacePlaceholders(container, slideIndex) {
+    const slide = this.editor.presentation.slides[slideIndex];
+    const visibleSlides = this.editor.presentation.slides.filter(s => s.visible);
+    const visiblePos = visibleSlides.indexOf(slide);
+
     const nextIdx = this._findVisibleSlide(slideIndex + 1);
     const nextTitle = nextIdx !== -1
       ? this.editor.presentation.slides[nextIdx].title
       : '';
 
+    const replacements = {
+      '#NEXT_SLIDE#': nextTitle,
+      '#SLIDE_TITLE#': slide.title,
+      '#SLIDE_NUMBER#': String(visiblePos !== -1 ? visiblePos + 1 : slideIndex + 1),
+      '#SLIDE_TOTAL#': String(visibleSlides.length)
+    };
+
     container.querySelectorAll('.text-content').forEach((node) => {
-      if (node.textContent.includes('#NEXT_SLIDE#')) {
-        node.textContent = node.textContent.replaceAll('#NEXT_SLIDE#', nextTitle);
+      let text = node.textContent;
+      for (const [placeholder, value] of Object.entries(replacements)) {
+        if (text.includes(placeholder)) {
+          text = text.replaceAll(placeholder, value);
+        }
+      }
+      if (text !== node.textContent) {
+        node.textContent = text;
       }
     });
   }
