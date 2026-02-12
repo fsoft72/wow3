@@ -177,8 +177,8 @@ export class SlideController {
     `;
 
     // Render simplified version of elements
-    slide.elements.forEach((element) => {
-      const elementPreview = this.createElementPreview(element);
+    slide.elements.forEach((element, idx) => {
+      const elementPreview = this.createElementPreview(element, idx);
       if (elementPreview) {
         preview.appendChild(elementPreview);
       }
@@ -203,9 +203,10 @@ export class SlideController {
   /**
    * Create simplified element preview for thumbnail
    * @param {Element} element - Element object
+   * @param {number} zIndex - Z-index for layering
    * @returns {HTMLElement|null} Preview element
    */
-  createElementPreview(element) {
+  createElementPreview(element, zIndex = 0) {
     const scale = 0.15; // Scale down for thumbnail
     const preview = document.createElement('div');
     preview.style.cssText = `
@@ -219,6 +220,7 @@ export class SlideController {
       border: 1px solid #999;
       overflow: hidden;
       font-size: ${(element.properties.font?.size || 16) * scale}px;
+      z-index: ${zIndex};
     `;
 
     // Add type indicator
