@@ -651,3 +651,27 @@ Help diagnose why animations are not working by showing:
 
 **Updated Files:**
 - `animations.js`: Enhanced animation completion handlers and removeAnimation()
+
+---
+
+## Fix: Force Element Visibility with !important
+
+### Critical Fix: Use !important to prevent style override
+- ✓ **!important flag**: Opacity and visibility now set with !important priority
+- ✓ **Prevents override**: Something was reverting opacity back to 0 after animation
+- ✓ **All code paths**: Applied to initial visibility, animationend, and timeout handlers
+- ✓ **Guaranteed visibility**: Inline styles can no longer be overridden
+
+**Root Cause Found:**
+- Debug showed element had `opacity: 0; visibility: hidden` in DOM
+- Even though code set `opacity: 1; visibility: visible`
+- Something was overriding the inline styles after animation
+- Solution: Use `setProperty(property, value, 'important')`
+
+**Fix Applied to:**
+1. Initial element visibility (when animation starts)
+2. animationend event handler
+3. Timeout fallback handler
+
+**Updated Files:**
+- `animations.js`: Changed all opacity/visibility sets to use setProperty with !important

@@ -54,10 +54,10 @@ export const applyAnimation = (element, animation, options = {}) => {
     console.log('🎨 [applyAnimation] Animation classes:', animationClasses);
     animationClasses.forEach(cls => element.classList.add(cls));
 
-    // Make element visible
-    element.style.opacity = '1';
-    element.style.visibility = 'visible';
-    console.log('🎨 [applyAnimation] Element made visible');
+    // Make element visible (with !important to prevent override)
+    element.style.setProperty('opacity', '1', 'important');
+    element.style.setProperty('visibility', 'visible', 'important');
+    console.log('🎨 [applyAnimation] Element made visible with !important');
 
     console.log('🎨 [applyAnimation] Final element classes:', Array.from(element.classList));
     console.log('🎨 [applyAnimation] Final element styles:', {
@@ -71,14 +71,14 @@ export const applyAnimation = (element, animation, options = {}) => {
     const handler = () => {
       console.log('🎨 [applyAnimation] ✓ animationend event fired for:', element.id);
 
-      // Ensure element stays visible after animation
-      element.style.opacity = '1';
-      element.style.visibility = 'visible';
+      // Ensure element stays visible after animation (with !important)
+      element.style.setProperty('opacity', '1', 'important');
+      element.style.setProperty('visibility', 'visible', 'important');
 
       // Clean up animation classes but keep element visible
       removeAnimation(element);
-      element.style.opacity = '1';
-      element.style.visibility = 'visible';
+      element.style.setProperty('opacity', '1', 'important');
+      element.style.setProperty('visibility', 'visible', 'important');
 
       // DEBUG: Comprehensive element state
       const computedStyle = window.getComputedStyle(element);
@@ -161,14 +161,14 @@ export const applyAnimation = (element, animation, options = {}) => {
     setTimeout(() => {
       console.log('🎨 [applyAnimation] ⏱️ Timeout fallback triggered for:', element.id);
 
-      // Ensure element stays visible
-      element.style.opacity = '1';
-      element.style.visibility = 'visible';
+      // Ensure element stays visible (with !important)
+      element.style.setProperty('opacity', '1', 'important');
+      element.style.setProperty('visibility', 'visible', 'important');
 
       // Clean up
       removeAnimation(element);
-      element.style.opacity = '1';
-      element.style.visibility = 'visible';
+      element.style.setProperty('opacity', '1', 'important');
+      element.style.setProperty('visibility', 'visible', 'important');
 
       element.removeEventListener('animationend', handler);
       resolve();
