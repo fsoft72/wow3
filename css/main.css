@@ -92,8 +92,6 @@ body {
 
 #right-sidebar {
   border-left: 1px solid var(--border-color);
-  position: relative;
-  padding-bottom: 80px; /* Space for media manager button */
 }
 
 .sidebar-header {
