@@ -219,6 +219,9 @@ export class PlaybackController {
       });
     });
 
+    // Replace text placeholders in rendered DOM
+    this._replacePlaceholders(slideContainer, index);
+
     this.presentationView.appendChild(slideContainer);
 
     // Add slide number indicator
@@ -245,6 +248,24 @@ export class PlaybackController {
     }
 
     appEvents.emit(AppEvents.SLIDE_SELECTED, index);
+  }
+
+  /**
+   * Replace text placeholders inside rendered DOM nodes
+   * @param {HTMLElement} container - Slide container
+   * @param {number} slideIndex - Current slide index
+   */
+  _replacePlaceholders(container, slideIndex) {
+    const nextIdx = this._findVisibleSlide(slideIndex + 1);
+    const nextTitle = nextIdx !== -1
+      ? this.editor.presentation.slides[nextIdx].title
+      : '';
+
+    container.querySelectorAll('.text-content').forEach((node) => {
+      if (node.textContent.includes('#NEXT_SLIDE#')) {
+        node.textContent = node.textContent.replaceAll('#NEXT_SLIDE#', nextTitle);
+      }
+    });
   }
 
   /**
