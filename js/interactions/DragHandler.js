@@ -99,6 +99,11 @@ export class DragHandler {
       elementDOM.style.left = newX + 'px';
       elementDOM.style.top = newY + 'px';
 
+      // Update position values in properties panel
+      if (this.elementController.editor.uiManager && this.elementController.editor.uiManager.rightSidebar) {
+        this.elementController.editor.uiManager.rightSidebar.updatePositionValues(element);
+      }
+
       // Show alignment guides
       this.alignmentGuides.update(element, canvas, otherElements);
 

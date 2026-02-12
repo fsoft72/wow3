@@ -156,6 +156,11 @@ export class ResizeHandler {
       elementDOM.style.width = newWidth + 'px';
       elementDOM.style.height = newHeight + 'px';
 
+      // Update position values in properties panel
+      if (this.elementController.editor.uiManager && this.elementController.editor.uiManager.rightSidebar) {
+        this.elementController.editor.uiManager.rightSidebar.updatePositionValues(element);
+      }
+
       appEvents.emit(AppEvents.ELEMENT_RESIZED, element);
     };
 

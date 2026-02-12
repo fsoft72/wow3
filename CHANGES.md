@@ -475,3 +475,26 @@ The Presentation Manager now provides a dedicated "New Presentation" button, mak
 **Updated Files:**
 - `index.html`: Removed new-btn from toolbar
 - `EditorController.js`: Removed new-btn event listener
+
+---
+
+## Real-Time Property Updates
+
+### Feature: Live position updates while dragging, resizing, and rotating
+- ✓ **Real-time coordinates**: X, Y values update live while dragging elements
+- ✓ **Real-time dimensions**: Width, Height update live while resizing
+- ✓ **Real-time rotation**: Rotation angle updates live while rotating
+- ✓ **No panel flicker**: Updates only the input values without re-rendering the entire panel
+- ✓ **Better feedback**: Users can see exact values while transforming elements
+
+**How It Works:**
+1. Added `updatePositionValues()` method to RightSidebar
+2. Method updates only the position input fields without full panel re-render
+3. Called during drag, resize, and rotate operations
+4. Values are rounded to nearest integer for clean display
+
+**Updated Files:**
+- `RightSidebar.js`: Added `updatePositionValues()` method
+- `DragHandler.js`: Calls updatePositionValues during drag
+- `ResizeHandler.js`: Calls updatePositionValues during resize
+- `RotateHandler.js`: Calls updatePositionValues during rotate

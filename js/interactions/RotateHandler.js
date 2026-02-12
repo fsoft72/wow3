@@ -74,6 +74,11 @@ export class RotateHandler {
       // Apply to DOM
       elementDOM.style.transform = `rotate(${newRotation}deg)`;
 
+      // Update position values in properties panel
+      if (this.elementController.editor.uiManager && this.elementController.editor.uiManager.rightSidebar) {
+        this.elementController.editor.uiManager.rightSidebar.updatePositionValues(element);
+      }
+
       appEvents.emit(AppEvents.ELEMENT_ROTATED, element);
     };
 

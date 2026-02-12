@@ -149,6 +149,27 @@ export class RightSidebar {
   }
 
   /**
+   * Update position values in real-time (without re-rendering entire panel)
+   * @param {Element} element - Element with updated position
+   */
+  updatePositionValues(element) {
+    if (!element || this.currentElementId !== element.id) return;
+
+    // Update position inputs
+    const xInput = document.getElementById('prop-x');
+    const yInput = document.getElementById('prop-y');
+    const widthInput = document.getElementById('prop-width');
+    const heightInput = document.getElementById('prop-height');
+    const rotationInput = document.getElementById('prop-rotation');
+
+    if (xInput) xInput.value = Math.round(element.position.x);
+    if (yInput) yInput.value = Math.round(element.position.y);
+    if (widthInput) widthInput.value = Math.round(element.position.width);
+    if (heightInput) heightInput.value = Math.round(element.position.height);
+    if (rotationInput) rotationInput.value = Math.round(element.position.rotation);
+  }
+
+  /**
    * Add position properties
    * @param {Element} element - Element
    */
