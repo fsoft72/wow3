@@ -34,6 +34,10 @@ export class TextElement extends Element {
     textContent.contentEditable = false;
     textContent.innerText = this.properties.text;
 
+    // Map verticalAlign value to flexbox align-items
+    const vAlignMap = { top: 'flex-start', middle: 'center', bottom: 'flex-end' };
+    const vAlign = vAlignMap[this.properties.font.verticalAlign] || 'flex-start';
+
     // Apply text styles
     textContent.style.cssText = `
       font-family: ${this.properties.font.family};
@@ -47,6 +51,8 @@ export class TextElement extends Element {
       height: 100%;
       outline: none;
       overflow: hidden;
+      display: flex;
+      align-items: ${vAlign};
     `;
 
     el.appendChild(textContent);

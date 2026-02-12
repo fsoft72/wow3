@@ -43,7 +43,8 @@ export class Element {
         style: properties.properties?.font?.style || 'normal',
         weight: properties.properties?.font?.weight || 'normal',
         decoration: properties.properties?.font?.decoration || 'none',
-        alignment: properties.properties?.font?.alignment || 'left'
+        alignment: properties.properties?.font?.alignment || 'left',
+        verticalAlign: properties.properties?.font?.verticalAlign || 'top'
       },
       ...properties.properties
     };

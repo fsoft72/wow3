@@ -63,7 +63,7 @@ export class TextPanel {
         </div>
 
         <div class="control-group">
-          <label>Text Alignment</label>
+          <label>Horizontal Alignment</label>
           <div class="icon-toggle-group" id="text-alignment">
             <button class="icon-toggle-btn ${font.alignment === 'left' ? 'active' : ''}" data-value="left">
               <i class="material-icons">format_align_left</i>
@@ -76,6 +76,21 @@ export class TextPanel {
             </button>
             <button class="icon-toggle-btn ${font.alignment === 'justify' ? 'active' : ''}" data-value="justify">
               <i class="material-icons">format_align_justify</i>
+            </button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Vertical Alignment</label>
+          <div class="icon-toggle-group" id="vertical-alignment">
+            <button class="icon-toggle-btn ${font.verticalAlign === 'top' ? 'active' : ''}" data-value="top">
+              <i class="material-icons">vertical_align_top</i>
+            </button>
+            <button class="icon-toggle-btn ${font.verticalAlign === 'middle' ? 'active' : ''}" data-value="middle">
+              <i class="material-icons">vertical_align_center</i>
+            </button>
+            <button class="icon-toggle-btn ${font.verticalAlign === 'bottom' ? 'active' : ''}" data-value="bottom">
+              <i class="material-icons">vertical_align_bottom</i>
             </button>
           </div>
         </div>
@@ -159,6 +174,19 @@ export class TextPanel {
         alignmentGroup.querySelectorAll('.icon-toggle-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         updateProperty('properties.font.alignment', btn.dataset.value);
+      });
+    }
+
+    // Vertical alignment
+    const vAlignGroup = document.getElementById('vertical-alignment');
+    if (vAlignGroup) {
+      vAlignGroup.addEventListener('click', (e) => {
+        const btn = e.target.closest('.icon-toggle-btn');
+        if (!btn) return;
+
+        vAlignGroup.querySelectorAll('.icon-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateProperty('properties.font.verticalAlign', btn.dataset.value);
       });
     }
   }
