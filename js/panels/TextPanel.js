@@ -17,6 +17,9 @@ export class TextPanel {
         <div class="control-group">
           <label>Text Content</label>
           <textarea id="text-content" class="panel-textarea" rows="5">${props.text || ''}</textarea>
+          <div class="placeholder-hint">
+            Placeholders: <code>#SLIDE_TITLE#</code> <code>#SLIDE_NUMBER#</code> <code>#SLIDE_TOTAL#</code> <code>#NEXT_SLIDE#</code>
+          </div>
         </div>
       </div>
 
