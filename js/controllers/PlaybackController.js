@@ -132,9 +132,40 @@ export class PlaybackController {
       box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     `;
 
-    // Render all elements with proper z-index
+    // Create shell and slide layers
+    const shell = this.editor.presentation.shell;
+    const shellMode = this.editor.presentation.shellMode;
+
+    const shellLayer = document.createElement('div');
+    shellLayer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;';
+
+    const slideLayer = document.createElement('div');
+    slideLayer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;';
+
+    // Append layers in correct order based on shellMode
+    if (shellMode === 'below') {
+      slideContainer.appendChild(shellLayer);
+      slideContainer.appendChild(slideLayer);
+    } else {
+      slideContainer.appendChild(slideLayer);
+      slideContainer.appendChild(shellLayer);
+    }
+
+    // Render shell elements (static, no animations)
+    if (shell) {
+      shell.elements.forEach((element, idx) => {
+        const elementDOM = element.render(idx);
+        shellLayer.appendChild(elementDOM);
+
+        element.children.forEach((child, childIndex) => {
+          const childDOM = child.render(idx * 100 + childIndex + 1);
+          elementDOM.appendChild(childDOM);
+        });
+      });
+    }
+
+    // Render slide elements with proper z-index
     slide.elements.forEach((element, index) => {
-      // Use index as z-index to ensure proper stacking
       const elementDOM = element.render(index);
 
       // Initially hide elements with inEffect
@@ -142,7 +173,7 @@ export class PlaybackController {
         prepareElementForAnimation(elementDOM);
       }
 
-      slideContainer.appendChild(elementDOM);
+      slideLayer.appendChild(elementDOM);
 
       // Render children with higher z-index than parent
       element.children.forEach((child, childIndex) => {

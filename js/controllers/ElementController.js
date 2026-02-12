@@ -103,7 +103,7 @@ export class ElementController {
     element.position.y = centered.y;
 
     // Add to current slide
-    const currentSlide = this.editor.presentation.getCurrentSlide();
+    const currentSlide = this.editor.getActiveSlide();
     currentSlide.addElement(element);
 
     // Re-render and select
@@ -139,7 +139,7 @@ export class ElementController {
    * @param {string} elementId - Element ID
    */
   deleteElement(elementId) {
-    const currentSlide = this.editor.presentation.getCurrentSlide();
+    const currentSlide = this.editor.getActiveSlide();
     const success = currentSlide.removeElement(elementId);
 
     if (success) {
@@ -164,7 +164,7 @@ export class ElementController {
   deleteSelectedElements() {
     if (this._selectedElements.size === 0) return;
 
-    const currentSlide = this.editor.presentation.getCurrentSlide();
+    const currentSlide = this.editor.getActiveSlide();
     const ids = this.selectedElements.map((el) => el.id);
 
     ids.forEach((id) => {
@@ -475,8 +475,7 @@ export class ElementController {
     this.editor.slideController.renderCurrentSlide();
 
     // Re-select element to maintain selection
-    const element = this.editor.presentation
-      .getCurrentSlide()
+    const element = this.editor.getActiveSlide()
       .getElement(this.selectedElement.id);
 
     if (element) {
@@ -508,7 +507,7 @@ export class ElementController {
       cloned.position.x += 20;
       cloned.position.y += 20;
 
-      const currentSlide = this.editor.presentation.getCurrentSlide();
+      const currentSlide = this.editor.getActiveSlide();
       currentSlide.addElement(cloned);
 
       this.editor.slideController.renderCurrentSlide();
@@ -531,7 +530,7 @@ export class ElementController {
       cloned.position.x += 20;
       cloned.position.y += 20;
 
-      const currentSlide = this.editor.presentation.getCurrentSlide();
+      const currentSlide = this.editor.getActiveSlide();
       currentSlide.addElement(cloned);
 
       this.editor.slideController.renderCurrentSlide();
@@ -548,7 +547,7 @@ export class ElementController {
    */
   bringToFront() {
     if (this.selectedElement) {
-      const currentSlide = this.editor.presentation.getCurrentSlide();
+      const currentSlide = this.editor.getActiveSlide();
       currentSlide.bringToFront(this.selectedElement.id);
 
       this.editor.slideController.renderCurrentSlide();
@@ -562,7 +561,7 @@ export class ElementController {
    */
   sendToBack() {
     if (this.selectedElement) {
-      const currentSlide = this.editor.presentation.getCurrentSlide();
+      const currentSlide = this.editor.getActiveSlide();
       currentSlide.sendToBack(this.selectedElement.id);
 
       this.editor.slideController.renderCurrentSlide();

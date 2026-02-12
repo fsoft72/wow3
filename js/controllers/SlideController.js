@@ -39,9 +39,9 @@ export class SlideController {
       });
     }
 
-    // Drag and drop for reordering
+    // Drag and drop for reordering (skip shell thumbnail)
     slideList.addEventListener('dragstart', (e) => {
-      if (e.target.classList.contains('slide-thumbnail')) {
+      if (e.target.classList.contains('slide-thumbnail') && !e.target.classList.contains('shell-thumbnail')) {
         this.draggedSlide = e.target;
         e.dataTransfer.effectAllowed = 'move';
         e.target.classList.add('dragging');
@@ -107,7 +107,7 @@ export class SlideController {
    * Handle slide reordering after drag-drop
    */
   handleSlideReorder() {
-    const thumbnails = document.querySelectorAll('.slide-thumbnail');
+    const thumbnails = document.querySelectorAll('.slide-thumbnail:not(.shell-thumbnail)');
     const newOrder = Array.from(thumbnails).map((thumb) =>
       parseInt(thumb.dataset.slideIndex)
     );
@@ -137,6 +137,10 @@ export class SlideController {
     if (!slideList) return;
 
     slideList.innerHTML = '';
+
+    // Shell thumbnail (always shown at the top)
+    const shellThumb = this.createShellThumbnail();
+    slideList.appendChild(shellThumb);
 
     this.editor.presentation.slides.forEach((slide, index) => {
       const thumbnail = this.createSlideThumbnail(slide, index);
@@ -201,6 +205,119 @@ export class SlideController {
   }
 
   /**
+   * Create the shell thumbnail element for the sidebar
+   * @returns {HTMLElement} Shell thumbnail
+   */
+  createShellThumbnail() {
+    const hasShell = this.editor.presentation.hasShell();
+    const div = document.createElement('div');
+    div.className = 'slide-thumbnail shell-thumbnail';
+    if (this.editor.isEditingShell) {
+      div.classList.add('active');
+    }
+    div.draggable = false;
+
+    // Label — layers icon instead of number
+    const label = document.createElement('div');
+    label.className = 'slide-number shell-label';
+    label.innerHTML = '<i class="material-icons" style="font-size:12px;vertical-align:middle;">layers</i>';
+    div.appendChild(label);
+
+    // Preview area
+    const preview = document.createElement('div');
+    preview.className = 'slide-preview';
+
+    if (hasShell) {
+      // Checkerboard background to represent transparency
+      preview.style.cssText = `
+        width: 100%; height: 100%; position: relative; overflow: hidden;
+        background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 16px 16px;
+      `;
+
+      // Render element previews
+      this.editor.presentation.shell.elements.forEach((element, idx) => {
+        const elementPreview = this.createElementPreview(element, idx);
+        if (elementPreview) {
+          preview.appendChild(elementPreview);
+        }
+      });
+    } else {
+      // Empty state — "+" icon to create shell
+      preview.style.cssText = `
+        width: 100%; height: 100%; position: relative; overflow: hidden;
+        background: #f5f5f5;
+        display: flex; align-items: center; justify-content: center;
+      `;
+      const addIcon = document.createElement('i');
+      addIcon.className = 'material-icons';
+      addIcon.style.cssText = 'font-size: 32px; color: #9C27B0; opacity: 0.6;';
+      addIcon.textContent = 'add_circle_outline';
+      preview.appendChild(addIcon);
+    }
+
+    div.appendChild(preview);
+
+    // Click handler
+    div.addEventListener('click', () => {
+      this.editor.editShell();
+    });
+
+    // Right-click context menu (only if shell exists)
+    if (hasShell) {
+      div.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        this.showShellContextMenu(e);
+      });
+    }
+
+    return div;
+  }
+
+  /**
+   * Show context menu for the shell thumbnail
+   * @param {MouseEvent} e - Mouse event
+   */
+  showShellContextMenu(e) {
+    const existingMenu = document.querySelector('.context-menu');
+    if (existingMenu) existingMenu.remove();
+
+    const menu = document.createElement('div');
+    menu.className = 'context-menu';
+    menu.style.cssText = `
+      position: fixed; left: ${e.clientX}px; top: ${e.clientY}px;
+      background: white; border: 1px solid #ccc; border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10000; min-width: 150px;
+    `;
+
+    const item = document.createElement('div');
+    item.className = 'context-menu-item';
+    item.innerHTML = '<i class="material-icons" style="font-size:18px;margin-right:8px;">delete</i><span>Remove Shell</span>';
+    item.style.cssText = 'padding: 8px 16px; cursor: pointer; display: flex; align-items: center;';
+
+    item.addEventListener('mouseenter', () => { item.style.background = '#f5f5f5'; });
+    item.addEventListener('mouseleave', () => { item.style.background = 'white'; });
+    item.addEventListener('click', () => {
+      this.editor.presentation.removeShell();
+      this.editor.exitShellEditing();
+      this.editor.recordHistory();
+      menu.remove();
+    });
+
+    menu.appendChild(item);
+    document.body.appendChild(menu);
+
+    setTimeout(() => {
+      const closeMenu = (ev) => {
+        if (!menu.contains(ev.target)) {
+          menu.remove();
+          document.removeEventListener('click', closeMenu);
+        }
+      };
+      document.addEventListener('click', closeMenu);
+    }, 0);
+  }
+
+  /**
    * Create simplified element preview for thumbnail
    * @param {Element} element - Element object
    * @param {number} zIndex - Z-index for layering
@@ -237,6 +354,9 @@ export class SlideController {
    * @param {number} index - Slide index
    */
   selectSlide(index) {
+    // Exit shell editing when switching to a regular slide
+    this.editor.isEditingShell = false;
+
     // Clear stale element selection on slide change
     if (this.editor.elementController) {
       this.editor.elementController.deselectAll();
@@ -259,11 +379,17 @@ export class SlideController {
 
     canvas.innerHTML = '';
 
-    const currentSlide = this.editor.presentation.getCurrentSlide();
-    canvas.style.background = currentSlide.background;
+    const activeSlide = this.editor.getActiveSlide();
+
+    // Show checkerboard for transparent backgrounds (e.g. shell editing)
+    if (activeSlide.background === 'transparent') {
+      canvas.style.background = 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 24px 24px';
+    } else {
+      canvas.style.background = activeSlide.background;
+    }
 
     // Render all elements with proper z-index
-    currentSlide.elements.forEach((element, index) => {
+    activeSlide.elements.forEach((element, index) => {
       const elementDOM = element.render(index);
       canvas.appendChild(elementDOM);
 
@@ -285,10 +411,10 @@ export class SlideController {
 
     // Update elements tree in right sidebar
     if (this.editor.uiManager && this.editor.uiManager.elementsTree) {
-      this.editor.uiManager.elementsTree.render(currentSlide.elements);
+      this.editor.uiManager.elementsTree.render(activeSlide.elements);
     }
 
-    appEvents.emit(AppEvents.SLIDE_CHANGED, currentSlide);
+    appEvents.emit(AppEvents.SLIDE_CHANGED, activeSlide);
   }
 
   /**

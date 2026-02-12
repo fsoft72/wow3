@@ -820,3 +820,32 @@ Help diagnose why animations are not working by showing:
 - `ImageElement.js`: Same — removed async overrides, added registration
 - `AudioElement.js`: Same — removed async overrides, added registration
 - `TextElement.js`, `ShapeElement.js`, `ListElement.js`, `LinkElement.js`: Added `Element.registerClass()` calls
+
+---
+
+## Shell Page Feature
+
+### Feature: Persistent shell layer rendered on every slide during playback
+- ✓ **Shell slide**: A special Slide stored as `Presentation.shell` (not in `slides[]` array) — avoids polluting slide numbering and navigation
+- ✓ **Shell mode**: Configurable via `shellMode` — `'below'` (background) or `'above'` (overlay)
+- ✓ **Shell editing**: Click the shell thumbnail in the sidebar to enter shell editing mode; canvas shows checkerboard for transparency
+- ✓ **Shell thumbnail**: Purple dashed-border thumbnail at top of slide list; shows "+" icon when no shell exists, element previews when it does
+- ✓ **Context menu**: Right-click shell thumbnail → "Remove Shell"
+- ✓ **Shell settings panel**: Shell Mode dropdown and Remove Shell button in the Slide tab
+- ✓ **Playback rendering**: Shell elements rendered in a separate DOM layer (above or below slide content) on every slide
+- ✓ **Persistence**: Shell serialized in `toJSON()` / `fromJSON()`, backward-compatible (missing shell defaults to `null`)
+- ✓ **Undo/redo**: Shell editing integrates with existing history system; `restoreFromHistory()` resets shell editing mode
+
+**Use Cases:**
+- Persistent branding, logos, watermarks
+- Background decorations across all slides
+- Persistent navigation or UI elements
+
+**Updated Files:**
+- `Presentation.js`: Added `shell`, `shellMode`, `createShell()`, `removeShell()`, `hasShell()`, updated `toJSON()`
+- `EditorController.js`: Added `isEditingShell`, `getActiveSlide()`, `editShell()`, `exitShellEditing()`; updated `setupEventListeners()`, `updateUI()`, `restoreFromHistory()`
+- `ElementController.js`: Replaced all `getCurrentSlide()` calls with `getActiveSlide()`
+- `SlideController.js`: Added `createShellThumbnail()`, `showShellContextMenu()`; updated `renderSlides()`, `selectSlide()`, `renderCurrentSlide()`, drag guard
+- `PlaybackController.js`: Shell/slide layer rendering in `showSlide()` with shellMode ordering
+- `index.html`: Added shell settings section in right sidebar
+- `sidebar.css`: Shell thumbnail styles (purple dashed border, shell label)

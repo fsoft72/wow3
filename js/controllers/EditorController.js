@@ -36,6 +36,9 @@ export class EditorController {
     this.maxHistorySize = 50;
     this.unsavedChanges = false;
 
+    // Shell editing state
+    this.isEditingShell = false;
+
     // Clipboard
     this.clipboard = null;
   }
@@ -126,8 +129,8 @@ export class EditorController {
     const slideBackground = document.getElementById('slide-background');
     if (slideBackground) {
       slideBackground.addEventListener('change', (e) => {
-        const currentSlide = this.presentation.getCurrentSlide();
-        currentSlide.setBackground(e.target.value);
+        const activeSlide = this.getActiveSlide();
+        activeSlide.setBackground(e.target.value);
         this.recordHistory();
         this.render();
       });
@@ -137,8 +140,27 @@ export class EditorController {
     const slideTitle = document.getElementById('slide-title');
     if (slideTitle) {
       slideTitle.addEventListener('change', (e) => {
-        const currentSlide = this.presentation.getCurrentSlide();
-        currentSlide.setTitle(e.target.value);
+        const activeSlide = this.getActiveSlide();
+        activeSlide.setTitle(e.target.value);
+        this.recordHistory();
+      });
+    }
+
+    // Shell mode select
+    const shellModeSelect = document.getElementById('shell-mode-select');
+    if (shellModeSelect) {
+      shellModeSelect.addEventListener('change', (e) => {
+        this.presentation.shellMode = e.target.value;
+        this.recordHistory();
+      });
+    }
+
+    // Remove shell button
+    const removeShellBtn = document.getElementById('remove-shell-btn');
+    if (removeShellBtn) {
+      removeShellBtn.addEventListener('click', () => {
+        this.presentation.removeShell();
+        this.exitShellEditing();
         this.recordHistory();
       });
     }
@@ -324,20 +346,73 @@ export class EditorController {
     // Update status bar
     const slideCounter = document.getElementById('slide-counter');
     if (slideCounter) {
-      slideCounter.textContent = `Slide ${this.presentation.currentSlideIndex + 1} of ${this.presentation.slides.length}`;
+      if (this.isEditingShell) {
+        slideCounter.textContent = 'Editing Shell';
+      } else {
+        slideCounter.textContent = `Slide ${this.presentation.currentSlideIndex + 1} of ${this.presentation.slides.length}`;
+      }
     }
 
-    // Update slide properties panel
-    const currentSlide = this.presentation.getCurrentSlide();
+    // Update slide properties panel using the active slide
+    const activeSlide = this.getActiveSlide();
     const slideTitle = document.getElementById('slide-title');
     if (slideTitle) {
-      slideTitle.value = currentSlide.title;
+      slideTitle.value = activeSlide.title;
     }
 
     const slideBackground = document.getElementById('slide-background');
     if (slideBackground) {
-      slideBackground.value = currentSlide.background;
+      slideBackground.value = activeSlide.background;
     }
+
+    // Shell settings section visibility
+    const shellSection = document.getElementById('shell-settings-section');
+    if (shellSection) {
+      shellSection.style.display = this.presentation.hasShell() ? 'block' : 'none';
+    }
+
+    const shellModeSelect = document.getElementById('shell-mode-select');
+    if (shellModeSelect) {
+      shellModeSelect.value = this.presentation.shellMode;
+    }
+  }
+
+  /**
+   * Get the slide currently being edited (shell or normal slide)
+   * @returns {Slide} Active slide
+   */
+  getActiveSlide() {
+    if (this.isEditingShell && this.presentation.shell) {
+      return this.presentation.shell;
+    }
+    return this.presentation.getCurrentSlide();
+  }
+
+  /**
+   * Enter shell editing mode (creates shell if needed)
+   */
+  editShell() {
+    this.presentation.createShell();
+    this.isEditingShell = true;
+
+    if (this.elementController) {
+      this.elementController.deselectAll();
+    }
+
+    this.render();
+  }
+
+  /**
+   * Exit shell editing mode and return to normal slide editing
+   */
+  exitShellEditing() {
+    this.isEditingShell = false;
+
+    if (this.elementController) {
+      this.elementController.deselectAll();
+    }
+
+    this.render();
   }
 
   /**
@@ -481,6 +556,7 @@ export class EditorController {
     const state = this.history[this.historyIndex];
     const data = JSON.parse(state);
     this.presentation = Presentation.fromJSON(data);
+    this.isEditingShell = false;
     await this.render();
   }
 

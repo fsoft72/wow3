@@ -24,6 +24,10 @@ export class Presentation {
       version: properties.metadata?.version || '1.0.0'
     };
 
+    // Shell — persistent layer rendered on every slide
+    this.shell = properties.shell ? Slide.fromJSON(properties.shell) : null;
+    this.shellMode = properties.shellMode || 'below'; // 'above' | 'below'
+
     // Slides
     this.slides = [];
 
@@ -251,6 +255,32 @@ export class Presentation {
   }
 
   /**
+   * Create the shell slide (persistent layer shown on every slide)
+   * @returns {Slide} The created shell
+   */
+  createShell() {
+    if (!this.shell) {
+      this.shell = new Slide({ title: 'Shell', background: 'transparent' });
+    }
+    return this.shell;
+  }
+
+  /**
+   * Remove the shell slide
+   */
+  removeShell() {
+    this.shell = null;
+  }
+
+  /**
+   * Check whether a shell exists
+   * @returns {boolean}
+   */
+  hasShell() {
+    return this.shell !== null;
+  }
+
+  /**
    * Convert presentation to JSON
    * @returns {Object} JSON representation
    */
@@ -260,7 +290,9 @@ export class Presentation {
       title: this.title,
       currentSlideIndex: this.currentSlideIndex,
       metadata: { ...this.metadata },
-      slides: this.slides.map(slide => slide.toJSON())
+      slides: this.slides.map(slide => slide.toJSON()),
+      shell: this.shell?.toJSON() ?? null,
+      shellMode: this.shellMode
     };
   }
 
