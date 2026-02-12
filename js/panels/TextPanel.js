@@ -18,7 +18,10 @@ export class TextPanel {
           <label>Text Content</label>
           <textarea id="text-content" class="panel-textarea" rows="5">${props.text || ''}</textarea>
           <div class="placeholder-hint">
-            Placeholders: <code>#SLIDE_TITLE#</code> <code>#SLIDE_NUMBER#</code> <code>#SLIDE_TOTAL#</code> <code>#NEXT_SLIDE#</code>
+            <code class="placeholder-tag" data-placeholder="#SLIDE_TITLE#">#SLIDE_TITLE#</code>
+            <code class="placeholder-tag" data-placeholder="#SLIDE_NUMBER#">#SLIDE_NUMBER#</code>
+            <code class="placeholder-tag" data-placeholder="#SLIDE_TOTAL#">#SLIDE_TOTAL#</code>
+            <code class="placeholder-tag" data-placeholder="#NEXT_SLIDE#">#NEXT_SLIDE#</code>
           </div>
         </div>
       </div>
@@ -121,6 +124,22 @@ export class TextPanel {
         updateProperty('properties.text', e.target.value);
       });
     }
+
+    // Clickable placeholder tags — insert at cursor or append
+    document.querySelectorAll('.placeholder-tag').forEach((tag) => {
+      tag.addEventListener('click', () => {
+        if (!textContent) return;
+        const placeholder = tag.dataset.placeholder;
+        const start = textContent.selectionStart;
+        const end = textContent.selectionEnd;
+        const val = textContent.value;
+        textContent.value = val.substring(0, start) + placeholder + val.substring(end);
+        textContent.focus();
+        const cursor = start + placeholder.length;
+        textContent.setSelectionRange(cursor, cursor);
+        textContent.dispatchEvent(new Event('change'));
+      });
+    });
 
     // Font family
     const fontFamily = document.getElementById('font-family');

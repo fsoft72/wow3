@@ -321,12 +321,19 @@
   line-height: 1.6;
 }
 
-.placeholder-hint code {
+.placeholder-tag {
   background: #f0f0f0;
   padding: 1px 4px;
   border-radius: 3px;
   font-size: 10px;
   color: #666;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.placeholder-tag:hover {
+  background: #2196F3;
+  color: white;
 }
 
 /* ==================== SECTION TITLE ==================== */
