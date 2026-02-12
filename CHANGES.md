@@ -724,3 +724,29 @@ Help diagnose why animations are not working by showing:
 - `PlaybackController.js`: Pass slideContainer to animation system
 - `AnimationController.js`: Scoped element lookups to container
 - `animations.js`: Simplified and hardened applyAnimation()
+
+---
+
+## Magnetic Snap Rulers
+
+### Feature: Magnetic snapping with visual snap guides when dragging elements
+- ✓ **Magnetic snapping**: Elements now magnetically snap to alignment targets within 5px threshold
+- ✓ **Canvas border snapping**: Snaps to left (0), right (1280), top (0), bottom (720) canvas edges
+- ✓ **Canvas center snapping**: Snaps to horizontal (640) and vertical (360) canvas center
+- ✓ **Element-to-element snapping**: Snaps to other elements' left, right, center, top, bottom, middle edges
+- ✓ **Visual snap guides**: Blue lines for element alignment, orange lines for canvas border/center guides
+- ✓ **Smart guide display**: Guides only shown when snap is active and not overridden by canvas constraints
+
+**How It Works:**
+1. During drag, `snapPosition()` calculates the closest snap target for each axis
+2. Checks all edge combinations (left, right, center of dragged element vs all targets)
+3. Picks the closest snap within threshold and applies the position adjustment
+4. Shows colored guide lines at snap positions (blue = element, orange = canvas)
+5. Canvas constraint is applied after snap to ensure element stays within bounds
+6. Guides are hidden if the constraint overrides the snap position
+
+**Updated Files:**
+- `positioning.js`: Added `snapPosition()` function with canvas border and element snapping
+- `DragHandler.js`: Integrated magnetic snapping into drag flow
+- `AlignmentGuides.js`: Rewritten to support typed guides (element vs canvas) with `showGuides()` method
+- `editor.css`: Added orange styling for canvas snap guides
