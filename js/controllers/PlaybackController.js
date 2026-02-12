@@ -4,6 +4,7 @@
  */
 
 import { appEvents, AppEvents } from '../utils/events.js';
+import { prepareElementForAnimation } from '../utils/animations.js';
 
 export class PlaybackController {
   /**
@@ -138,8 +139,7 @@ export class PlaybackController {
 
       // Initially hide elements with inEffect
       if (element.inEffect) {
-        elementDOM.style.opacity = '0';
-        elementDOM.style.visibility = 'hidden';
+        prepareElementForAnimation(elementDOM);
       }
 
       slideContainer.appendChild(elementDOM);
@@ -148,8 +148,7 @@ export class PlaybackController {
       element.children.forEach((child, childIndex) => {
         const childDOM = child.render(index * 100 + childIndex + 1);
         if (child.inEffect) {
-          childDOM.style.opacity = '0';
-          childDOM.style.visibility = 'hidden';
+          prepareElementForAnimation(childDOM);
         }
         elementDOM.appendChild(childDOM);
       });

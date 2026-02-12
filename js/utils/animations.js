@@ -43,9 +43,11 @@ export const applyAnimation = (element, animation, options = {}) => {
     const animationClasses = getAnimationClasses(animation.type, animation.direction);
     animationClasses.forEach(cls => element.classList.add(cls));
 
-    // Make element visible (with !important to override initial hidden state)
-    element.style.setProperty('opacity', '1', 'important');
+    // Make element visible (but don't force opacity: 1 yet for fade-in animations)
     element.style.setProperty('visibility', 'visible', 'important');
+    if (!(animation.type & AnimationType.FADE_IN)) {
+      element.style.setProperty('opacity', '1', 'important');
+    }
 
     // Wait for animation to complete
     const handler = () => {
@@ -66,7 +68,7 @@ export const applyAnimation = (element, animation, options = {}) => {
 
     // Fallback timeout in case animationend doesn't fire
     const timeoutDuration = duration + (options.delay || animation.delay || 0) + 100;
-    setTimeout(() => {
+    const fallbackTimeout = setTimeout(() => {
       // Ensure element stays visible (with !important)
       element.style.setProperty('opacity', '1', 'important');
       element.style.setProperty('visibility', 'visible', 'important');
@@ -79,6 +81,9 @@ export const applyAnimation = (element, animation, options = {}) => {
       element.removeEventListener('animationend', handler);
       resolve();
     }, timeoutDuration);
+
+    // We should clear the timeout if the handler fires
+    element.addEventListener('animationend', () => clearTimeout(fallbackTimeout), { once: true });
   });
 };
 

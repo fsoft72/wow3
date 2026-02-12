@@ -289,13 +289,13 @@ export class AnimationController {
       }
     });
 
-    // Separate by trigger type
+    // Separate by trigger type (only for elements that aren't children of another animated element)
     const autoElements = animatedElements.filter(
-      (el) => el.inEffect.trigger === AnimationTrigger.AUTO || el.inEffect.trigger === 'auto'
+      (el) => !animatedElements.includes(el.parent) && (el.inEffect.trigger === AnimationTrigger.AUTO || el.inEffect.trigger === 'auto')
     );
 
     const clickElements = animatedElements.filter(
-      (el) => el.inEffect.trigger === AnimationTrigger.CLICK || el.inEffect.trigger === 'click'
+      (el) => !animatedElements.includes(el.parent) && (el.inEffect.trigger === AnimationTrigger.CLICK || el.inEffect.trigger === 'click')
     );
 
     // Play auto animations
