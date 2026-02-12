@@ -57,3 +57,18 @@
   - Statistics and analytics
 
 **Phase 2 Complete!** All data models ready for controller implementation.
+
+### Phase 3: Controllers (Batch 1 - Core Controllers)
+- ✓ Created EditorController (main coordinator):
+  - Presentation lifecycle management (new, load, save, import, export)
+  - History management with undo/redo (50 state limit)
+  - Event coordination and toolbar handlers
+  - Auto-save functionality
+  - Unsaved changes tracking
+- ✓ Created SlideController:
+  - Slide rendering in sidebar with thumbnails
+  - Drag-drop slide reordering
+  - Current slide canvas rendering
+  - Context menu (duplicate, delete)
+  - Slide selection and navigation
+  - Element preview in thumbnails
