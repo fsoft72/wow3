@@ -625,3 +625,29 @@ Help diagnose why animations are not working by showing:
 
 **Updated Files:**
 - `EditorController.js`: Added saveSnapshot() calls to loadPresentation() and createNewPresentation()
+
+---
+
+## Fix: Elements Stay Visible After Animations
+
+### Fix: Ensure elements remain visible after animation completes
+- ✓ **Explicit visibility preservation**: After animation, explicitly set opacity: 1 and visibility: visible
+- ✓ **Cleanup without hiding**: removeAnimation() no longer clears opacity/visibility
+- ✓ **Both completion paths**: Fixed for both animationend event and timeout fallback
+- ✓ **More logging**: Added logs showing final state after animation cleanup
+
+**Issue:**
+- Elements were prepared with opacity: 0, visibility: hidden
+- Animation would play correctly
+- After animation completed, element would not stay visible
+- Shapes and other elements would disappear after fade-in
+
+**Fix:**
+- After animation completes (both via event and timeout):
+  1. Set opacity: '1' and visibility: 'visible'
+  2. Remove animation classes
+  3. Set opacity and visibility again to ensure they stick
+- removeAnimation() now preserves opacity and visibility
+
+**Updated Files:**
+- `animations.js`: Enhanced animation completion handlers and removeAnimation()

@@ -70,6 +70,21 @@ export const applyAnimation = (element, animation, options = {}) => {
     // Wait for animation to complete
     const handler = () => {
       console.log('🎨 [applyAnimation] ✓ animationend event fired for:', element.id);
+
+      // Ensure element stays visible after animation
+      element.style.opacity = '1';
+      element.style.visibility = 'visible';
+
+      // Clean up animation classes but keep element visible
+      removeAnimation(element);
+      element.style.opacity = '1';
+      element.style.visibility = 'visible';
+
+      console.log('🎨 [applyAnimation] Final state after cleanup:', {
+        opacity: element.style.opacity,
+        visibility: element.style.visibility
+      });
+
       element.removeEventListener('animationend', handler);
       resolve();
     };
@@ -81,6 +96,16 @@ export const applyAnimation = (element, animation, options = {}) => {
     console.log('🎨 [applyAnimation] Setting fallback timeout:', timeoutDuration + 'ms');
     setTimeout(() => {
       console.log('🎨 [applyAnimation] ⏱️ Timeout fallback triggered for:', element.id);
+
+      // Ensure element stays visible
+      element.style.opacity = '1';
+      element.style.visibility = 'visible';
+
+      // Clean up
+      removeAnimation(element);
+      element.style.opacity = '1';
+      element.style.visibility = 'visible';
+
       element.removeEventListener('animationend', handler);
       resolve();
     }, timeoutDuration);
@@ -100,6 +125,8 @@ export const removeAnimation = (element) => {
   element.style.animationDuration = '';
   element.style.animationDelay = '';
   element.style.animationTimingFunction = '';
+  // NOTE: We don't clear opacity or visibility here
+  // as the element should remain visible after animation
 };
 
 /**
