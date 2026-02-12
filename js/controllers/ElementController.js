@@ -259,26 +259,29 @@ export class ElementController {
    */
   enableTextEditing(elementDOM, element) {
     const textContent = elementDOM.querySelector('.text-content');
-    if (textContent) {
-      textContent.focus();
+    if (!textContent) return;
 
-      // Select all text
-      const range = document.createRange();
-      range.selectNodeContents(textContent);
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
+    // Enable editing
+    textContent.contentEditable = true;
+    textContent.focus();
 
-      // Update on blur
-      const updateText = () => {
-        element.updateText(textContent.innerText);
-        this.editor.recordHistory();
-        textContent.removeEventListener('blur', updateText);
-        appEvents.emit(AppEvents.ELEMENT_UPDATED, element);
-      };
+    // Select all text
+    const range = document.createRange();
+    range.selectNodeContents(textContent);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
 
-      textContent.addEventListener('blur', updateText);
-    }
+    // Disable editing and save on blur
+    const updateText = () => {
+      textContent.contentEditable = false;
+      element.updateText(textContent.innerText);
+      this.editor.recordHistory();
+      textContent.removeEventListener('blur', updateText);
+      appEvents.emit(AppEvents.ELEMENT_UPDATED, element);
+    };
+
+    textContent.addEventListener('blur', updateText);
   }
 
   /**

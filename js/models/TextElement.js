@@ -31,7 +31,7 @@ export class TextElement extends Element {
     // Create text content container
     const textContent = document.createElement('div');
     textContent.className = 'text-content';
-    textContent.contentEditable = this.properties.editable;
+    textContent.contentEditable = false;
     textContent.innerText = this.properties.text;
 
     // Apply text styles
