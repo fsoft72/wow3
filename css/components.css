@@ -415,7 +415,7 @@
   position: sticky;
   bottom: 0;
   padding: 16px;
-  background: linear-gradient(to top, white 60%, transparent);
+  background: white;
   border-top: 1px solid #e0e0e0;
   z-index: 2;
 }
