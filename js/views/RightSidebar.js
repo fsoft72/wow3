@@ -1,0 +1,423 @@
+/**
+ * WOW3 Right Sidebar
+ * Property panels for slides and elements
+ */
+
+import { FONT_FAMILIES, TEXT_ALIGNMENTS } from '../utils/constants.js';
+
+export class RightSidebar {
+  constructor() {
+    this.slideTab = null;
+    this.elementTab = null;
+    this.animationTab = null;
+  }
+
+  /**
+   * Initialize right sidebar
+   */
+  async init() {
+    console.log('Initializing RightSidebar...');
+
+    this.slideTab = document.getElementById('tab-slide');
+    this.elementTab = document.getElementById('tab-element');
+    this.animationTab = document.getElementById('tab-animation');
+
+    console.log('RightSidebar initialized');
+  }
+
+  /**
+   * Update properties panel for element
+   * @param {Element} element - Element to show properties for
+   */
+  updateProperties(element) {
+    if (!element || !this.elementTab) {
+      this.clearProperties();
+      return;
+    }
+
+    this.elementTab.innerHTML = '';
+
+    // Add position properties
+    this.addPositionProperties(element);
+
+    // Add type-specific properties
+    switch (element.type) {
+      case 'text':
+        this.addTextProperties(element);
+        break;
+
+      case 'image':
+      case 'video':
+        this.addMediaProperties(element);
+        break;
+
+      case 'shape':
+        this.addShapeProperties(element);
+        break;
+
+      case 'link':
+        this.addLinkProperties(element);
+        break;
+
+      case 'list':
+        this.addListProperties(element);
+        break;
+    }
+  }
+
+  /**
+   * Clear properties panel
+   */
+  clearProperties() {
+    if (this.elementTab) {
+      this.elementTab.innerHTML = '<p class="grey-text center-align" style="padding: 20px;">No element selected</p>';
+    }
+  }
+
+  /**
+   * Add position properties
+   * @param {Element} element - Element
+   */
+  addPositionProperties(element) {
+    const section = this.createSection('Position & Size');
+
+    const grid = document.createElement('div');
+    grid.className = 'property-row two-col';
+
+    grid.appendChild(
+      this.createNumberInput('X', element.position.x, (val) => {
+        window.app.editor.elementController.updateElementProperty('position.x', parseFloat(val));
+      })
+    );
+
+    grid.appendChild(
+      this.createNumberInput('Y', element.position.y, (val) => {
+        window.app.editor.elementController.updateElementProperty('position.y', parseFloat(val));
+      })
+    );
+
+    section.appendChild(grid);
+
+    const grid2 = document.createElement('div');
+    grid2.className = 'property-row two-col';
+
+    grid2.appendChild(
+      this.createNumberInput('Width', element.position.width, (val) => {
+        window.app.editor.elementController.updateElementProperty('position.width', parseFloat(val));
+      })
+    );
+
+    grid2.appendChild(
+      this.createNumberInput('Height', element.position.height, (val) => {
+        window.app.editor.elementController.updateElementProperty('position.height', parseFloat(val));
+      })
+    );
+
+    section.appendChild(grid2);
+
+    section.appendChild(
+      this.createNumberInput('Rotation', element.position.rotation, (val) => {
+        window.app.editor.elementController.updateElementProperty('position.rotation', parseFloat(val));
+      }, { min: 0, max: 360, step: 1 })
+    );
+
+    this.elementTab.appendChild(section);
+  }
+
+  /**
+   * Add text properties
+   * @param {Element} element - Text element
+   */
+  addTextProperties(element) {
+    const section = this.createSection('Text');
+
+    section.appendChild(
+      this.createSelect(
+        'Font',
+        element.properties.font.family,
+        FONT_FAMILIES,
+        (val) => {
+          window.app.editor.elementController.updateElementProperty('properties.font.family', val);
+        }
+      )
+    );
+
+    section.appendChild(
+      this.createNumberInput('Size', element.properties.font.size, (val) => {
+        window.app.editor.elementController.updateElementProperty('properties.font.size', parseInt(val));
+      }, { min: 8, max: 144 })
+    );
+
+    section.appendChild(
+      this.createColorInput('Color', element.properties.font.color, (val) => {
+        window.app.editor.elementController.updateElementProperty('properties.font.color', val);
+      })
+    );
+
+    section.appendChild(
+      this.createSelect(
+        'Alignment',
+        element.properties.font.alignment,
+        TEXT_ALIGNMENTS.map(a => a.value),
+        (val) => {
+          window.app.editor.elementController.updateElementProperty('properties.font.alignment', val);
+        }
+      )
+    );
+
+    this.elementTab.appendChild(section);
+  }
+
+  /**
+   * Add media properties
+   * @param {Element} element - Media element
+   */
+  addMediaProperties(element) {
+    const section = this.createSection('Media');
+
+    section.appendChild(
+      this.createTextInput('URL', element.properties.url, (val) => {
+        window.app.editor.elementController.updateElementProperty('properties.url', val);
+      })
+    );
+
+    this.elementTab.appendChild(section);
+  }
+
+  /**
+   * Add shape properties
+   * @param {Element} element - Shape element
+   */
+  addShapeProperties(element) {
+    const section = this.createSection('Shape');
+
+    section.appendChild(
+      this.createSelect(
+        'Type',
+        element.properties.shapeType,
+        ['rectangle', 'circle', 'triangle'],
+        (val) => {
+          window.app.editor.elementController.updateElementProperty('properties.shapeType', val);
+        }
+      )
+    );
+
+    section.appendChild(
+      this.createColorInput('Fill', element.properties.fillColor, (val) => {
+        window.app.editor.elementController.updateElementProperty('properties.fillColor', val);
+      })
+    );
+
+    section.appendChild(
+      this.createColorInput('Stroke', element.properties.strokeColor, (val) => {
+        window.app.editor.elementController.updateElementProperty('properties.strokeColor', val);
+      })
+    );
+
+    section.appendChild(
+      this.createNumberInput('Stroke Width', element.properties.strokeWidth, (val) => {
+        window.app.editor.elementController.updateElementProperty('properties.strokeWidth', parseFloat(val));
+      }, { min: 0, max: 20 })
+    );
+
+    this.elementTab.appendChild(section);
+  }
+
+  /**
+   * Add link properties
+   * @param {Element} element - Link element
+   */
+  addLinkProperties(element) {
+    const section = this.createSection('Link');
+
+    section.appendChild(
+      this.createTextInput('Text', element.properties.text, (val) => {
+        window.app.editor.elementController.updateElementProperty('properties.text', val);
+      })
+    );
+
+    section.appendChild(
+      this.createTextInput('URL', element.properties.url, (val) => {
+        window.app.editor.elementController.updateElementProperty('properties.url', val);
+      })
+    );
+
+    section.appendChild(
+      this.createColorInput('Background', element.properties.backgroundColor, (val) => {
+        window.app.editor.elementController.updateElementProperty('properties.backgroundColor', val);
+      })
+    );
+
+    this.elementTab.appendChild(section);
+  }
+
+  /**
+   * Add list properties
+   * @param {Element} element - List element
+   */
+  addListProperties(element) {
+    const section = this.createSection('List');
+
+    section.appendChild(
+      this.createSelect(
+        'Type',
+        element.properties.listType,
+        ['ordered', 'unordered'],
+        (val) => {
+          window.app.editor.elementController.updateElementProperty('properties.listType', val);
+        }
+      )
+    );
+
+    this.elementTab.appendChild(section);
+  }
+
+  // ==================== HELPER METHODS ====================
+
+  /**
+   * Create section
+   * @param {string} title - Section title
+   * @returns {HTMLElement} Section element
+   */
+  createSection(title) {
+    const section = document.createElement('div');
+    section.className = 'property-section';
+
+    const heading = document.createElement('h6');
+    heading.textContent = title;
+    section.appendChild(heading);
+
+    return section;
+  }
+
+  /**
+   * Create number input
+   * @param {string} label - Input label
+   * @param {number} value - Input value
+   * @param {Function} onChange - Change handler
+   * @param {Object} options - Input options (min, max, step)
+   * @returns {HTMLElement} Input wrapper
+   */
+  createNumberInput(label, value, onChange, options = {}) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'input-field';
+
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.value = value;
+    input.id = `prop-${label.toLowerCase().replace(/\s+/g, '-')}`;
+
+    if (options.min !== undefined) input.min = options.min;
+    if (options.max !== undefined) input.max = options.max;
+    if (options.step !== undefined) input.step = options.step;
+
+    const labelEl = document.createElement('label');
+    labelEl.setAttribute('for', input.id);
+    labelEl.textContent = label;
+    labelEl.classList.add('active');
+
+    input.addEventListener('change', (e) => onChange(e.target.value));
+
+    wrapper.appendChild(input);
+    wrapper.appendChild(labelEl);
+
+    return wrapper;
+  }
+
+  /**
+   * Create text input
+   * @param {string} label - Input label
+   * @param {string} value - Input value
+   * @param {Function} onChange - Change handler
+   * @returns {HTMLElement} Input wrapper
+   */
+  createTextInput(label, value, onChange) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'input-field';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = value;
+    input.id = `prop-${label.toLowerCase().replace(/\s+/g, '-')}`;
+
+    const labelEl = document.createElement('label');
+    labelEl.setAttribute('for', input.id);
+    labelEl.textContent = label;
+    labelEl.classList.add('active');
+
+    input.addEventListener('change', (e) => onChange(e.target.value));
+
+    wrapper.appendChild(input);
+    wrapper.appendChild(labelEl);
+
+    return wrapper;
+  }
+
+  /**
+   * Create color input
+   * @param {string} label - Input label
+   * @param {string} value - Input value
+   * @param {Function} onChange - Change handler
+   * @returns {HTMLElement} Input wrapper
+   */
+  createColorInput(label, value, onChange) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'input-field';
+
+    const input = document.createElement('input');
+    input.type = 'color';
+    input.value = value;
+    input.id = `prop-${label.toLowerCase().replace(/\s+/g, '-')}`;
+
+    const labelEl = document.createElement('label');
+    labelEl.setAttribute('for', input.id);
+    labelEl.textContent = label;
+    labelEl.classList.add('active');
+
+    input.addEventListener('change', (e) => onChange(e.target.value));
+
+    wrapper.appendChild(input);
+    wrapper.appendChild(labelEl);
+
+    return wrapper;
+  }
+
+  /**
+   * Create select dropdown
+   * @param {string} label - Select label
+   * @param {string} value - Selected value
+   * @param {Array} options - Option values
+   * @param {Function} onChange - Change handler
+   * @returns {HTMLElement} Select wrapper
+   */
+  createSelect(label, value, options, onChange) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'input-field';
+
+    const select = document.createElement('select');
+    select.id = `prop-${label.toLowerCase().replace(/\s+/g, '-')}`;
+
+    options.forEach((opt) => {
+      const option = document.createElement('option');
+      option.value = opt;
+      option.textContent = opt;
+      option.selected = opt === value;
+      select.appendChild(option);
+    });
+
+    const labelEl = document.createElement('label');
+    labelEl.textContent = label;
+
+    select.addEventListener('change', (e) => onChange(e.target.value));
+
+    wrapper.appendChild(select);
+    wrapper.appendChild(labelEl);
+
+    // Initialize Materialize select
+    setTimeout(() => M.FormSelect.init(select), 0);
+
+    return wrapper;
+  }
+}
+
+export default RightSidebar;

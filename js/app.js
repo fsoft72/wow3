@@ -3,8 +3,19 @@
  * Main entry point for the application
  */
 
-// This will be populated as we create the controllers and views
-// For now, we'll create a simple initialization structure
+import { UIManager } from './views/UIManager.js';
+import {
+  EditorController,
+  SlideController,
+  ElementController,
+  AnimationController,
+  PlaybackController
+} from './controllers/index.js';
+import {
+  DragHandler,
+  ResizeHandler,
+  RotateHandler
+} from './interactions/index.js';
 
 class WOW3App {
   constructor() {
@@ -23,16 +34,32 @@ class WOW3App {
       // Initialize MaterializeCSS components
       this.initMaterialize();
 
-      // Initialize UI Manager (will be implemented in Phase 5)
-      // this.uiManager = new UIManager();
-      // await this.uiManager.init();
+      // Initialize UI Manager
+      this.uiManager = new UIManager();
+      await this.uiManager.init();
 
-      // Initialize Editor Controller (will be implemented in Phase 3)
-      // this.editor = new EditorController(this.uiManager);
-      // await this.editor.init();
+      // Initialize Editor Controller
+      this.editor = new EditorController(this.uiManager);
+      await this.editor.init();
+
+      // Initialize sub-controllers
+      this.editor.slideController = new SlideController(this.editor);
+      this.editor.elementController = new ElementController(this.editor);
+      this.editor.animationController = new AnimationController(this.editor);
+      this.editor.playbackController = new PlaybackController(this.editor);
+
+      await this.editor.slideController.init();
+      await this.editor.elementController.init();
+      await this.editor.animationController.init();
+      await this.editor.playbackController.init();
+
+      // Initialize interaction handlers
+      this.editor.elementController.dragHandler = new DragHandler(this.editor.elementController);
+      this.editor.elementController.resizeHandler = new ResizeHandler(this.editor.elementController);
+      this.editor.elementController.rotateHandler = new RotateHandler(this.editor.elementController);
 
       // Load or create presentation
-      // await this.loadPresentation();
+      await this.loadPresentation();
 
       // Setup global event listeners
       this.setupGlobalEvents();
