@@ -441,7 +441,7 @@ export class RightSidebar {
       this.createSelect(
         'Type',
         element.properties.shapeType,
-        ['rectangle', 'circle', 'triangle'],
+        ['rectangle', 'circle', 'triangle', 'line'],
         (val) => {
           window.app.editor.elementController.updateElementProperty('properties.shapeType', val);
         }
