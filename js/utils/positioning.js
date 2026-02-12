@@ -299,6 +299,133 @@ export const alignElements = (elements, alignment) => {
 };
 
 /**
+ * Calculate snapped position and guide lines for a dragged element.
+ * Snaps to other element edges/centers and canvas borders/center.
+ * @param {Object} draggedPosition - Position of dragged element {x, y, width, height}
+ * @param {Array} otherElements - Array of other element positions
+ * @param {number} threshold - Snap threshold in pixels
+ * @returns {Object} { x, y, guides: { horizontal: [], vertical: [] } }
+ */
+export const snapPosition = (draggedPosition, otherElements, threshold = UI.ALIGNMENT_THRESHOLD) => {
+  const result = {
+    x: draggedPosition.x,
+    y: draggedPosition.y,
+    guides: { horizontal: [], vertical: [] }
+  };
+
+  // Collect snap targets per axis
+  const xTargets = [
+    { pos: 0, type: 'canvas' },
+    { pos: CANVAS.WIDTH / 2, type: 'canvas' },
+    { pos: CANVAS.WIDTH, type: 'canvas' }
+  ];
+  const yTargets = [
+    { pos: 0, type: 'canvas' },
+    { pos: CANVAS.HEIGHT / 2, type: 'canvas' },
+    { pos: CANVAS.HEIGHT, type: 'canvas' }
+  ];
+
+  // Add other element edges and centers as targets
+  otherElements.forEach((pos) => {
+    const pts = getAlignmentPoints(pos);
+    xTargets.push(
+      { pos: pts.left, type: 'element' },
+      { pos: pts.right, type: 'element' },
+      { pos: pts.centerX, type: 'element' }
+    );
+    yTargets.push(
+      { pos: pts.top, type: 'element' },
+      { pos: pts.bottom, type: 'element' },
+      { pos: pts.centerY, type: 'element' }
+    );
+  });
+
+  // Dragged element edges
+  const dragLeft = draggedPosition.x;
+  const dragRight = draggedPosition.x + draggedPosition.width;
+  const dragCenterX = draggedPosition.x + draggedPosition.width / 2;
+  const dragTop = draggedPosition.y;
+  const dragBottom = draggedPosition.y + draggedPosition.height;
+  const dragCenterY = draggedPosition.y + draggedPosition.height / 2;
+
+  // Find closest X snap
+  let bestDx = null;
+  let bestDistX = threshold;
+
+  for (const target of xTargets) {
+    for (const edgeVal of [dragLeft, dragRight, dragCenterX]) {
+      const dist = Math.abs(edgeVal - target.pos);
+      if (dist < bestDistX) {
+        bestDistX = dist;
+        bestDx = target.pos - edgeVal;
+      }
+    }
+  }
+
+  // Find closest Y snap
+  let bestDy = null;
+  let bestDistY = threshold;
+
+  for (const target of yTargets) {
+    for (const edgeVal of [dragTop, dragBottom, dragCenterY]) {
+      const dist = Math.abs(edgeVal - target.pos);
+      if (dist < bestDistY) {
+        bestDistY = dist;
+        bestDy = target.pos - edgeVal;
+      }
+    }
+  }
+
+  // Apply snaps
+  if (bestDx !== null) result.x += bestDx;
+  if (bestDy !== null) result.y += bestDy;
+
+  // Collect all matching guides at the snapped position
+  const snappedEdges = {
+    left: result.x,
+    right: result.x + draggedPosition.width,
+    centerX: result.x + draggedPosition.width / 2,
+    top: result.y,
+    bottom: result.y + draggedPosition.height,
+    centerY: result.y + draggedPosition.height / 2
+  };
+
+  const TOLERANCE = 0.5;
+
+  for (const target of xTargets) {
+    if (Math.abs(snappedEdges.left - target.pos) < TOLERANCE ||
+        Math.abs(snappedEdges.right - target.pos) < TOLERANCE ||
+        Math.abs(snappedEdges.centerX - target.pos) < TOLERANCE) {
+      result.guides.vertical.push({ position: target.pos, type: target.type });
+    }
+  }
+
+  for (const target of yTargets) {
+    if (Math.abs(snappedEdges.top - target.pos) < TOLERANCE ||
+        Math.abs(snappedEdges.bottom - target.pos) < TOLERANCE ||
+        Math.abs(snappedEdges.centerY - target.pos) < TOLERANCE) {
+      result.guides.horizontal.push({ position: target.pos, type: target.type });
+    }
+  }
+
+  // Deduplicate guides by position
+  const seen = new Set();
+  result.guides.vertical = result.guides.vertical.filter((g) => {
+    if (seen.has(g.position)) return false;
+    seen.add(g.position);
+    return true;
+  });
+  seen.clear();
+  result.guides.horizontal = result.guides.horizontal.filter((g) => {
+    if (seen.has(g.position)) return false;
+    seen.add(g.position);
+    return true;
+  });
+
+  return result;
+};
+
+/**
  * Center element on canvas
  * @param {Object} elementSize - Element size {width, height}
  * @returns {Object} Centered position {x, y}

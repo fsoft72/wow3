@@ -678,7 +678,29 @@ Help diagnose why animations are not working by showing:
 
 ---
 
-## Fix: Animations Applied to Wrong DOM Elements (Duplicate IDs)
+## Smart Video Source Handling
+
+### Feature: Improved video component with multi-source support
+- ✓ **Smart URL parsing**: Automatically detects YouTube URLs, YouTube IDs, and internal MediaDB links
+- ✓ **YouTube Embed Integration**: Uses `youtube-nocookie.com` for privacy-friendly YouTube embeds
+- ✓ **Automatic iFrame switching**: Switches between `<video>` and `<iframe>` based on source type
+- ✓ **YouTube parameter support**:
+  - Autoplay (with mute for browser compatibility)
+  - Loop (using YouTube playlist parameter)
+  - Show/Hide controls
+- ✓ **Aspect ratio preservation**: Automatically defaults to 16:9 for YouTube videos
+- ✓ **Internal link support**: Handles both `media_` IDs and `local://` prefixed links
+- ✓ **UI Feedback**: Updated properties panel placeholder to reflect new supported formats
+
+**Supported Formats:**
+1. **Complete YouTube URLs**: e.g., `https://youtu.be/u31qwQUeGuM?si=uh--jmUBUlH-6c5P`
+2. **YouTube Video IDs**: e.g., `u31qwQUeGum`
+3. **Internal MediaDB links**: e.g., `media_123456789` or `local://media_123456789`
+4. **Direct Video URLs**: e.g., `https://example.com/video.mp4`
+
+**Updated Files:**
+- `VideoElement.js`: Implemented parsing and rendering logic for multiple sources
+- `VideoPanel.js`: Updated UI placeholder for better user guidance
 
 ### Root Cause: `document.getElementById()` was finding editor elements instead of presentation elements
 

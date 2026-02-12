@@ -4,7 +4,7 @@
  */
 
 import { AlignmentGuides } from './AlignmentGuides.js';
-import { constrainToCanvas } from '../utils/positioning.js';
+import { constrainToCanvas, snapPosition } from '../utils/positioning.js';
 import { appEvents, AppEvents } from '../utils/events.js';
 
 export class DragHandler {
@@ -82,10 +82,16 @@ export class DragHandler {
       let newX = this.elementStart.x + dx;
       let newY = this.elementStart.y + dy;
 
+      // Apply magnetic snapping to other elements and canvas borders
+      const snapped = snapPosition(
+        { x: newX, y: newY, width: element.position.width, height: element.position.height },
+        otherElements
+      );
+
       // Constrain to canvas
       const constrained = constrainToCanvas({
-        x: newX,
-        y: newY,
+        x: snapped.x,
+        y: snapped.y,
         width: element.position.width,
         height: element.position.height,
         rotation: element.position.rotation
@@ -93,6 +99,12 @@ export class DragHandler {
 
       newX = constrained.x;
       newY = constrained.y;
+
+      // Only show guides if constraint didn't override snap
+      const guidesToShow = {
+        horizontal: Math.abs(newY - snapped.y) < 1 ? snapped.guides.horizontal : [],
+        vertical: Math.abs(newX - snapped.x) < 1 ? snapped.guides.vertical : []
+      };
 
       // Update position
       element.updatePosition({ x: newX, y: newY });
@@ -104,8 +116,8 @@ export class DragHandler {
         this.elementController.editor.uiManager.rightSidebar.updatePositionValues(element);
       }
 
-      // Show alignment guides
-      this.alignmentGuides.update(element, canvas, otherElements);
+      // Show snap guides
+      this.alignmentGuides.showGuides(canvas, guidesToShow);
 
       appEvents.emit(AppEvents.ELEMENT_MOVED, element);
     };

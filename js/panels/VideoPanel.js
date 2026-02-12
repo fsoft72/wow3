@@ -16,7 +16,7 @@ export class VideoPanel {
         <div class="control-group">
           <label>Video Source</label>
           <div class="media-input-group">
-            <input type="text" id="video-url" class="panel-input" value="${props.url || ''}" placeholder="Enter URL or media ID">
+            <input type="text" id="video-url" class="panel-input" value="${props.url || ''}" placeholder="YouTube URL/ID or Media ID">
             <button id="btn-select-from-library" class="btn-icon" title="Select from Media Library">
               <i class="material-icons">photo_library</i>
             </button>

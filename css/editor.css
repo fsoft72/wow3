@@ -269,6 +269,12 @@
   top: 0;
 }
 
+/* Canvas border/center snap guides */
+.alignment-guide.canvas {
+  background: #FF5722;
+  opacity: 0.9;
+}
+
 /* ==================== SELECTION BOX ==================== */
 
 .selection-box {

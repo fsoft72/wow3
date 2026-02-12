@@ -1,9 +1,9 @@
 /**
  * WOW3 Alignment Guides
- * Visual guides for aligning elements
+ * Visual snap guides for aligning elements to other elements and canvas borders
  */
 
-import { findAlignmentGuides } from '../utils/positioning.js';
+import { CANVAS } from '../utils/constants.js';
 
 export class AlignmentGuides {
   constructor() {
@@ -12,56 +12,59 @@ export class AlignmentGuides {
   }
 
   /**
-   * Update alignment guides for dragged element
-   * @param {Element} draggedElement - Element being dragged
+   * Ensure the guides container exists inside the canvas
    * @param {HTMLElement} canvas - Canvas element
-   * @param {Array} otherElements - Array of other element positions
    */
-  update(draggedElement, canvas, otherElements) {
-    // Clear existing guides
-    this.hide();
+  ensureContainer(canvas) {
+    if (this.container) return;
 
-    // Get alignment container
+    this.container = document.getElementById('alignment-guides');
     if (!this.container) {
-      this.container = document.getElementById('alignment-guides');
-      if (!this.container) {
-        this.container = document.createElement('div');
-        this.container.id = 'alignment-guides';
-        this.container.className = 'alignment-guides';
-        canvas.appendChild(this.container);
-      }
+      this.container = document.createElement('div');
+      this.container.id = 'alignment-guides';
+      this.container.className = 'alignment-guides';
+      canvas.appendChild(this.container);
     }
+  }
 
-    // Find alignments
-    const alignments = findAlignmentGuides(draggedElement.position, otherElements);
+  /**
+   * Show pre-computed snap guides
+   * @param {HTMLElement} canvas - Canvas element
+   * @param {Object} guides - { horizontal: [{position, type}], vertical: [{position, type}] }
+   */
+  showGuides(canvas, guides) {
+    this.hide();
+    this.ensureContainer(canvas);
 
-    // Show horizontal guides
-    alignments.horizontal.forEach((guide) => {
-      this.showGuide('horizontal', guide.position);
+    guides.horizontal.forEach((guide) => {
+      this.showGuide('horizontal', guide.position, guide.type);
     });
 
-    // Show vertical guides
-    alignments.vertical.forEach((guide) => {
-      this.showGuide('vertical', guide.position);
+    guides.vertical.forEach((guide) => {
+      this.showGuide('vertical', guide.position, guide.type);
     });
   }
 
   /**
-   * Show alignment guide
-   * @param {string} type - 'horizontal' or 'vertical'
+   * Show a single alignment guide line
+   * @param {string} orientation - 'horizontal' or 'vertical'
    * @param {number} position - Position in pixels
+   * @param {string} guideType - 'element' or 'canvas'
    */
-  showGuide(type, position) {
+  showGuide(orientation, position, guideType = 'element') {
     const guide = document.createElement('div');
-    guide.className = `alignment-guide ${type}`;
+    guide.className = `alignment-guide ${orientation} ${guideType}`;
 
-    if (type === 'vertical') {
-      guide.style.left = position + 'px';
+    if (orientation === 'vertical') {
+      // Clamp to visible area so right-edge guides aren't clipped
+      const displayPos = Math.min(position, CANVAS.WIDTH - 1);
+      guide.style.left = displayPos + 'px';
       guide.style.top = '0';
       guide.style.width = '1px';
       guide.style.height = '100%';
     } else {
-      guide.style.top = position + 'px';
+      const displayPos = Math.min(position, CANVAS.HEIGHT - 1);
+      guide.style.top = displayPos + 'px';
       guide.style.left = '0';
       guide.style.width = '100%';
       guide.style.height = '1px';
@@ -82,7 +85,7 @@ export class AlignmentGuides {
   }
 
   /**
-   * Cleanup
+   * Cleanup and remove container
    */
   destroy() {
     this.hide();
