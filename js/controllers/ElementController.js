@@ -583,6 +583,33 @@ export class ElementController {
   }
 
   /**
+   * Nudge all selected elements by a pixel offset
+   * @param {number} dx - Horizontal delta
+   * @param {number} dy - Vertical delta
+   */
+  nudgeSelected(dx, dy) {
+    if (this._selectedElements.size === 0) return;
+
+    for (const el of this._selectedElements) {
+      el.position.x += dx;
+      el.position.y += dy;
+
+      const dom = document.getElementById(el.id);
+      if (dom) {
+        dom.style.left = `${el.position.x}px`;
+        dom.style.top = `${el.position.y}px`;
+      }
+    }
+
+    // Update position values in the right sidebar
+    if (this._selectedElements.size === 1 && this.editor.uiManager?.rightSidebar) {
+      this.editor.uiManager.rightSidebar.updatePositionValues(this.selectedElement);
+    }
+
+    this.editor.recordHistory();
+  }
+
+  /**
    * Update element position from DOM
    * @param {Element} element - Element model
    */

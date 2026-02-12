@@ -229,6 +229,16 @@ class WOW3App {
           this.editor.elementController.deleteSelectedElements();
         }
       }
+      // Arrow keys: move selected element(s)
+      else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        if (this.editor && this.editor.elementController && this.editor.elementController.selectedElement) {
+          e.preventDefault();
+          const step = shift ? 10 : 1;
+          const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
+          const dy = e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
+          this.editor.elementController.nudgeSelected(dx, dy);
+        }
+      }
       // Copy: Ctrl+C
       else if (ctrl && e.key === 'c') {
         e.preventDefault();
