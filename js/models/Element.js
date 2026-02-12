@@ -31,7 +31,7 @@ export class Element {
       y: properties.position?.y ?? 100,
       width: properties.position?.width ?? DEFAULT_SIZE[typeKey]?.width ?? 200,
       height: properties.position?.height ?? DEFAULT_SIZE[typeKey]?.height ?? 100,
-      rotation: properties.position?.rotation ?? 0
+      rotation: Math.round(properties.position?.rotation ?? 0)
     };
 
     // Base properties
@@ -152,6 +152,10 @@ export class Element {
    * @param {Object} updates - Position updates
    */
   updatePosition(updates) {
+    // Ensure rotation is always an integer
+    if (updates.rotation !== undefined) {
+      updates.rotation = Math.round(updates.rotation);
+    }
     this.position = { ...this.position, ...updates };
   }
 

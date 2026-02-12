@@ -498,3 +498,20 @@ The Presentation Manager now provides a dedicated "New Presentation" button, mak
 - `DragHandler.js`: Calls updatePositionValues during drag
 - `ResizeHandler.js`: Calls updatePositionValues during resize
 - `RotateHandler.js`: Calls updatePositionValues during rotate
+
+---
+
+## Fix: Rotation as Integer
+
+### Fix: Ensure rotation values are always integers
+- ✓ **Integer rotation**: Rotation values now always stored and displayed as integers
+- ✓ **Clean values**: No more floating point decimals in rotation
+- ✓ **Consistent**: Applied both on creation and during updates
+
+**Changes:**
+- Rotation values are rounded to nearest integer in constructor
+- Rotation values are rounded when updating position
+- Cleaner display in properties panel
+
+**Updated Files:**
+- `Element.js`: Round rotation values in constructor and updatePosition method
