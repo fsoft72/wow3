@@ -448,24 +448,29 @@ export class RightSidebar {
       )
     );
 
-    section.appendChild(
+    // Fill + Stroke + Stroke Width on one row
+    const row = document.createElement('div');
+    row.className = 'property-row three-col';
+
+    row.appendChild(
       this.createColorInput('Fill', element.properties.fillColor, (val) => {
         window.app.editor.elementController.updateElementProperty('properties.fillColor', val);
       })
     );
 
-    section.appendChild(
+    row.appendChild(
       this.createColorInput('Stroke', element.properties.strokeColor, (val) => {
         window.app.editor.elementController.updateElementProperty('properties.strokeColor', val);
       })
     );
 
-    section.appendChild(
+    row.appendChild(
       this.createNumberInput('Stroke Width', element.properties.strokeWidth, (val) => {
         window.app.editor.elementController.updateElementProperty('properties.strokeWidth', parseFloat(val));
       }, { min: 0, max: 20 })
     );
 
+    section.appendChild(row);
     this.elementTab.appendChild(section);
   }
 
@@ -659,9 +664,6 @@ export class RightSidebar {
 
     wrapper.appendChild(select);
     wrapper.appendChild(labelEl);
-
-    // Initialize Materialize select
-    setTimeout(() => M.FormSelect.init(select), 0);
 
     return wrapper;
   }

@@ -904,3 +904,14 @@ Help diagnose why animations are not working by showing:
 - `js/utils/animations.js`: Added abort signal support to `applyAnimation()` with guard against double-resolve
 - `js/controllers/AnimationController.js`: Added `isAnimating`, `skipCurrentAnimation()`, `cleanup()`, per-element AbortController, `_cancelled` flag for loop termination; removed click/escape handlers from `playClickAnimations` (PlaybackController now drives advancement)
 - `js/controllers/PlaybackController.js`: Added unified `advance()`, ArrowLeft mapped to advance, click handler on presentation view, animation cleanup in `showSlide`/`stop`/`previousSlide`
+
+---
+
+## Shape Panel UI Fix
+
+### Fix: Remove duplicate dropdown and inline color/stroke controls
+- ✓ **Removed duplicate dropdown**: Shape Type `<select>` was rendered twice (native + MaterializeCSS overlay) because sidebar CSS forced `display: block` on native selects; removed `M.FormSelect.init()` from `createSelect()` helper
+- ✓ **Inline Fill/Stroke/Width**: Fill Color, Stroke Color, and Stroke Width now displayed on a single row using `property-row three-col` grid
+
+**Updated Files:**
+- `js/views/RightSidebar.js`: Refactored `addShapeProperties()` to use three-col row; removed MaterializeCSS FormSelect initialization from `createSelect()`
