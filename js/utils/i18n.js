@@ -12,10 +12,12 @@ window.translationsEn = {
   'media_lib': 'Media Library',
   'upload_pc': 'Upload from PC',
 
-  // Common
+  // Dialog
   'ok': 'OK',
   'cancel': 'Cancel',
   'confirm': 'Confirm',
+  'warning': 'Warning',
+  'input': 'Input',
   'remove': 'Remove'
 };
 

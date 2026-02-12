@@ -1,0 +1,125 @@
+.dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000000;
+}
+
+.dialog-box {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 450px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    animation: dialog-pop 0.2s ease-out;
+}
+
+@keyframes dialog-pop {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.dialog-header {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+.dialog-body {
+    font-size: 1rem;
+    color: #444;
+    line-height: 1.5;
+}
+
+.dialog-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    outline: none;
+}
+
+.dialog-input:focus {
+    border-color: #2196F3;
+}
+
+.dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.dialog-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    transition: background 0.2s;
+}
+
+.dialog-btn-primary {
+    background: #2196F3;
+    color: #fff;
+}
+
+.dialog-btn-primary:hover {
+    background: #1976D2;
+}
+
+.dialog-btn-secondary {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.dialog-btn-secondary:hover {
+    background: #bdbdbd;
+}
+
+.dialog-btn-danger {
+    background: #f44336;
+    color: #fff;
+}
+
+.dialog-btn-danger:hover {
+    background: #d32f2f;
+}
+
+.dialog-btn-left {
+    margin-right: auto;
+}
+
+.dialog-box.dialog-wide {
+    max-width: 900px;
+    width: 95%;
+}
+
+.dialog-box.dialog-attributes {
+    width: 900px;
+    height: 800px;
+    max-width: 95vw;
+}
+
+.dialog-box.dialog-attributes .dialog-body {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.dialog-box.dialog-attributes .CodeMirror {
+    height: 200px;
+}
