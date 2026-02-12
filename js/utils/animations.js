@@ -58,6 +58,11 @@ export const applyAnimation = (element, animation, options = {}) => {
     element.style.setProperty('opacity', '1', 'important');
     element.style.setProperty('visibility', 'visible', 'important');
     console.log('🎨 [applyAnimation] Element made visible with !important');
+    console.log('🎨 [applyAnimation] Verify styles after setting:', {
+      opacity: element.style.opacity,
+      visibility: element.style.visibility,
+      cssText: element.style.cssText
+    });
 
     console.log('🎨 [applyAnimation] Final element classes:', Array.from(element.classList));
     console.log('🎨 [applyAnimation] Final element styles:', {
@@ -148,6 +153,17 @@ export const applyAnimation = (element, animation, options = {}) => {
       );
       console.log('🎯 Element at center point:', elementAtPoint?.id || elementAtPoint?.className);
       console.log('🎯 Is our element at that point?', elementAtPoint === element);
+
+      // DEBUG: Check element state after 2 seconds
+      setTimeout(() => {
+        console.log('⏰ [2 SECONDS LATER] Element state for:', element.id);
+        console.log('⏰ Inline styles:', element.style.cssText);
+        console.log('⏰ Opacity:', element.style.opacity);
+        console.log('⏰ Visibility:', element.style.visibility);
+        const computedNow = window.getComputedStyle(element);
+        console.log('⏰ Computed opacity:', computedNow.opacity);
+        console.log('⏰ Computed visibility:', computedNow.visibility);
+      }, 2000);
 
       element.removeEventListener('animationend', handler);
       resolve();
@@ -385,8 +401,10 @@ export const getAnimationTypeName = (type) => {
  */
 export const prepareElementForAnimation = (element) => {
   if (!element) return;
+  console.log('🎬 [prepareElementForAnimation] Hiding element:', element.id);
   element.style.opacity = '0';
   element.style.visibility = 'hidden';
+  console.log('🎬 [prepareElementForAnimation] Element hidden:', element.style.cssText);
 };
 
 /**
