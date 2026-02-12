@@ -175,13 +175,94 @@ export class RightSidebar {
   addMediaProperties(element) {
     const section = this.createSection('Media');
 
-    section.appendChild(
-      this.createTextInput('URL', element.properties.url, (val) => {
-        window.app.editor.elementController.updateElementProperty('properties.url', val);
-      })
-    );
+    // File upload button
+    const uploadBtn = this.createFileUploadButton(element);
+    section.appendChild(uploadBtn);
+
+    // URL input (for external URLs or showing media ID)
+    const urlInput = this.createTextInput('URL or Media ID', element.properties.url, async (val) => {
+      await window.app.editor.elementController.updateMediaUrl(element, val);
+    });
+    section.appendChild(urlInput);
+
+    // Show media info if it's a media ID
+    if (element.properties.url && element.properties.url.startsWith('media_')) {
+      const info = document.createElement('p');
+      info.className = 'grey-text';
+      info.style.fontSize = '12px';
+      info.style.marginTop = '8px';
+      info.innerHTML = `<i class="material-icons tiny">info</i> Stored in IndexedDB`;
+      section.appendChild(info);
+    }
 
     this.elementTab.appendChild(section);
+  }
+
+  /**
+   * Create file upload button
+   * @param {Element} element - Media element
+   * @returns {HTMLElement} Upload button wrapper
+   */
+  createFileUploadButton(element) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'file-field input-field';
+    wrapper.style.marginBottom = '20px';
+
+    const btn = document.createElement('div');
+    btn.className = 'btn waves-effect blue darken-1';
+
+    const btnText = document.createElement('span');
+    btnText.innerHTML = '<i class="material-icons left">cloud_upload</i>Upload File';
+    btn.appendChild(btnText);
+
+    const input = document.createElement('input');
+    input.type = 'file';
+
+    // Set accept based on element type
+    if (element.type === 'image') {
+      input.accept = 'image/*';
+    } else if (element.type === 'video') {
+      input.accept = 'video/*';
+    } else if (element.type === 'audio') {
+      input.accept = 'audio/*';
+    }
+
+    input.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        try {
+          // Show loading state
+          M.toast({ html: `Uploading ${element.type}...`, classes: 'blue' });
+
+          // Upload to MediaDB via element's setUrl method
+          await element.setUrl(file);
+
+          // Update UI
+          await window.app.editor.slideController.renderCurrentSlide();
+          window.app.editor.elementController.selectElement(element);
+          window.app.editor.recordHistory();
+
+          M.toast({ html: `${element.type} uploaded successfully!`, classes: 'green' });
+        } catch (error) {
+          console.error('Upload failed:', error);
+          M.toast({ html: `Failed to upload ${element.type}`, classes: 'red' });
+        }
+      }
+    });
+
+    btn.appendChild(input);
+    wrapper.appendChild(btn);
+
+    const fileInfo = document.createElement('div');
+    fileInfo.className = 'file-path-wrapper';
+    const filePathInput = document.createElement('input');
+    filePathInput.className = 'file-path validate';
+    filePathInput.type = 'text';
+    filePathInput.placeholder = `Upload ${element.type} file or enter URL below`;
+    fileInfo.appendChild(filePathInput);
+    wrapper.appendChild(fileInfo);
+
+    return wrapper;
   }
 
   /**

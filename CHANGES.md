@@ -217,3 +217,54 @@
 - Load priority: snapshot → IndexedDB → new
 - Keeps last 3 snapshots for recovery
 - No more 5-10MB localStorage limit issues!
+
+---
+
+## Media Storage Integration (IndexedDB)
+
+### Complete Media Management System
+- ✓ **MediaDB Integration**: All media elements now use IndexedDB
+- ✓ **File Upload System**: Upload images, videos, audio to IndexedDB
+- ✓ **Binary Storage**: Media stored as Blob objects (not base64)
+- ✓ **Export/Import**: Media exported as data URLs in JSON
+
+**Updated Files:**
+- `index.html`: Added media_db.js script tag
+- `ImageElement.js`: Integrated with MediaDB
+  - Stores media IDs instead of URLs
+  - Loads from IndexedDB when rendering
+  - Exports as data URL for JSON portability
+  - Imports from data URL on JSON import
+- `VideoElement.js`: Same MediaDB integration as images
+- `AudioElement.js`: Same MediaDB integration as images
+- `RightSidebar.js`: Added file upload buttons
+  - Upload button with file picker
+  - Shows IndexedDB storage indicator
+  - Handles image/video/audio uploads
+- `ElementController.js`: Added `updateMediaUrl()` method
+  - Handles File objects and URLs
+  - Updates element and re-renders
+
+**New Documentation:**
+- `STORAGE.md`: Complete storage system guide
+  - Architecture overview with diagrams
+  - IndexedDB schema documentation
+  - Media management workflows
+  - Import/export system explanation
+  - API reference for all storage functions
+  - Code examples and troubleshooting
+
+**How It Works:**
+1. User uploads file via properties panel
+2. File stored in IndexedDB as Blob (binary)
+3. Element stores media ID (`media_123_abc`)
+4. On render, loads from IndexedDB as data URL
+5. On export, embeds data URL in JSON
+6. On import, restores to IndexedDB from data URL
+
+**Benefits:**
+- No localStorage size limits
+- Binary storage (efficient)
+- Portable JSON exports
+- Fast loading from IndexedDB
+- Crash recovery with snapshots

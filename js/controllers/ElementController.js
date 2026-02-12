@@ -393,6 +393,25 @@ export class ElementController {
       element.updateFromDOM(elementDOM);
     }
   }
+
+  /**
+   * Update media element URL (handles both File objects and URLs)
+   * @param {Element} element - Media element (image, video, audio)
+   * @param {string|File} source - URL, media ID, or File object
+   */
+  async updateMediaUrl(element, source) {
+    if (!element || !element.setUrl) return;
+
+    try {
+      await element.setUrl(source);
+      await this.editor.slideController.renderCurrentSlide();
+      this.selectElement(element);
+      this.editor.recordHistory();
+    } catch (error) {
+      console.error('Failed to update media URL:', error);
+      M.toast({ html: 'Failed to update media', classes: 'red' });
+    }
+  }
 }
 
 export default ElementController;
