@@ -579,3 +579,25 @@ Help diagnose why animations are not working by showing:
 - `AnimationController.js`: Added logging to save and play methods
 - `PlaybackController.js`: Added logging to slide display
 - `animations.js`: Added logging to applyAnimation function
+
+---
+
+## UI Reorganization: Animation Controls
+
+### Change: Moved animation controls to Slide tab
+- ✓ **Removed Animation tab**: Simplified right sidebar to 2 tabs (Slide, Element)
+- ✓ **Integrated into Slide tab**: Page Elements & Animations now at bottom of Slide tab
+- ✓ **Better organization**: Animations logically belong with slide content
+- ✓ **Cleaner UI**: Fewer tabs, more focused interface
+
+**Before:**
+- 3 tabs: Slide, Element, Animation
+- Animation tab separate from slide context
+
+**After:**
+- 2 tabs: Slide, Element
+- "Page Elements & Animations" section at bottom of Slide tab
+- All slide-related controls in one place
+
+**Updated Files:**
+- `index.html`: Removed Animation tab, moved elements tree to Slide tab
