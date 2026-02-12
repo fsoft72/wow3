@@ -172,9 +172,9 @@ export class PlaybackController {
     indicator.textContent = `${index + 1} / ${this.editor.presentation.slides.length}`;
     this.presentationView.appendChild(indicator);
 
-    // Play animations
+    // Play animations (pass container so lookups are scoped to the presentation view)
     if (this.editor.animationController) {
-      await this.editor.animationController.playSlideAnimations(slide);
+      await this.editor.animationController.playSlideAnimations(slide, slideContainer);
     }
 
     appEvents.emit(AppEvents.SLIDE_SELECTED, index);

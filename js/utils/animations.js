@@ -22,8 +22,10 @@ export const applyAnimation = (element, animation, options = {}) => {
     // Remove existing animations
     removeAnimation(element);
 
-    // Add base animated class
-    element.classList.add('wow-animated');
+    // Make element visible and clear the inline opacity so CSS keyframes can control it.
+    // All "in" keyframes start from opacity: 0, so fill-mode: both handles the initial state.
+    element.style.removeProperty('opacity');
+    element.style.setProperty('visibility', 'visible', 'important');
 
     // Apply duration
     const duration = animation.duration || 600;
@@ -39,51 +41,32 @@ export const applyAnimation = (element, animation, options = {}) => {
     const easing = options.easing || animation.easing || 'ease-in-out';
     element.style.animationTimingFunction = easing;
 
-    // Apply animation type classes
+    // Add base animated class (sets animation-fill-mode: both)
+    element.classList.add('wow-animated');
+
+    // Force reflow so the browser registers the pre-animation state
+    void element.offsetWidth;
+
+    // Apply animation type classes — this triggers the animation
     const animationClasses = getAnimationClasses(animation.type, animation.direction);
     animationClasses.forEach(cls => element.classList.add(cls));
 
-    // Make element visible (but don't force opacity: 1 yet for fade-in animations)
-    element.style.setProperty('visibility', 'visible', 'important');
-    if (!(animation.type & AnimationType.FADE_IN)) {
-      element.style.setProperty('opacity', '1', 'important');
-    }
-
-    // Wait for animation to complete
-    const handler = () => {
-      // Ensure element stays visible after animation (with !important)
-      element.style.setProperty('opacity', '1', 'important');
-      element.style.setProperty('visibility', 'visible', 'important');
-
-      // Clean up animation classes but keep element visible
+    // Finalise element visibility after animation completes
+    const finalise = () => {
+      element.removeEventListener('animationend', onEnd);
+      clearTimeout(fallbackTimeout);
       removeAnimation(element);
       element.style.setProperty('opacity', '1', 'important');
       element.style.setProperty('visibility', 'visible', 'important');
-
-      element.removeEventListener('animationend', handler);
       resolve();
     };
 
-    element.addEventListener('animationend', handler);
+    const onEnd = () => finalise();
+    element.addEventListener('animationend', onEnd, { once: true });
 
     // Fallback timeout in case animationend doesn't fire
     const timeoutDuration = duration + (options.delay || animation.delay || 0) + 100;
-    const fallbackTimeout = setTimeout(() => {
-      // Ensure element stays visible (with !important)
-      element.style.setProperty('opacity', '1', 'important');
-      element.style.setProperty('visibility', 'visible', 'important');
-
-      // Clean up
-      removeAnimation(element);
-      element.style.setProperty('opacity', '1', 'important');
-      element.style.setProperty('visibility', 'visible', 'important');
-
-      element.removeEventListener('animationend', handler);
-      resolve();
-    }, timeoutDuration);
-
-    // We should clear the timeout if the handler fires
-    element.addEventListener('animationend', () => clearTimeout(fallbackTimeout), { once: true });
+    const fallbackTimeout = setTimeout(finalise, timeoutDuration);
   });
 };
 

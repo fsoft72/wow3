@@ -274,16 +274,17 @@ export class AnimationController {
   /**
    * Play slide animations (for presentation mode)
    * @param {Slide} slide - Slide to play animations for
+   * @param {HTMLElement} container - DOM container to scope element lookups to
    * @returns {Promise} Promise that resolves when animations complete
    */
-  async playSlideAnimations(slide) {
+  async playSlideAnimations(slide, container) {
     // Get all elements with inEffect
     const allElements = slide.getAllElements();
     const animatedElements = allElements.filter((el) => el.inEffect);
 
-    // Prepare elements (hide them initially)
+    // Prepare elements (hide them initially) — scoped to presentation container
     animatedElements.forEach((element) => {
-      const elementDOM = document.getElementById(element.id);
+      const elementDOM = container.querySelector(`#${element.id}`);
       if (elementDOM) {
         prepareElementForAnimation(elementDOM);
       }
@@ -300,27 +301,28 @@ export class AnimationController {
 
     // Play auto animations
     for (const element of autoElements) {
-      await this.playElementAnimation(element, 'in');
+      await this.playElementAnimation(element, 'in', container);
     }
 
     // Setup click handler for click-triggered animations
     if (clickElements.length > 0) {
-      await this.playClickAnimations(clickElements);
+      await this.playClickAnimations(clickElements, container);
     }
   }
 
   /**
    * Play click-triggered animations
    * @param {Array} elements - Elements with click-triggered animations
+   * @param {HTMLElement} container - DOM container to scope element lookups to
    * @returns {Promise} Promise that resolves when all animations complete
    */
-  playClickAnimations(elements) {
+  playClickAnimations(elements, container) {
     return new Promise((resolve) => {
       let currentIndex = 0;
 
       const playNext = async () => {
         if (currentIndex < elements.length) {
-          await this.playElementAnimation(elements[currentIndex], 'in');
+          await this.playElementAnimation(elements[currentIndex], 'in', container);
           currentIndex++;
         } else {
           document.removeEventListener('click', playNext);
@@ -346,25 +348,15 @@ export class AnimationController {
    * Play animation for single element
    * @param {Element} element - Element to animate
    * @param {string} mode - 'in' or 'out'
+   * @param {HTMLElement} container - DOM container to scope element lookups to
    * @returns {Promise} Promise that resolves when animation completes
    */
-  async playElementAnimation(element, mode) {
+  async playElementAnimation(element, mode, container) {
     const animation = mode === 'in' ? element.inEffect : element.outEffect;
-    console.log('🎬 [AnimationController] playElementAnimation:', {
-      elementId: element.id,
-      mode,
-      animation
-    });
+    if (!animation) return;
 
-    if (!animation) {
-      console.log('🎬 [AnimationController] No animation found for element:', element.id);
-      return;
-    }
-
-    const elementDOM = document.getElementById(element.id);
-    if (!elementDOM) {
-      return;
-    }
+    const elementDOM = container.querySelector(`#${element.id}`);
+    if (!elementDOM) return;
 
     appEvents.emit(AppEvents.ANIMATION_STARTED, { element, mode });
 
@@ -373,7 +365,7 @@ export class AnimationController {
 
     // Play children animations
     for (const child of element.children) {
-      await this.playElementAnimation(child, mode);
+      await this.playElementAnimation(child, mode, container);
     }
 
     appEvents.emit(AppEvents.ANIMATION_ENDED, { element, mode });

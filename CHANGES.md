@@ -675,3 +675,30 @@ Help diagnose why animations are not working by showing:
 
 **Updated Files:**
 - `animations.js`: Changed all opacity/visibility sets to use setProperty with !important
+
+---
+
+## Fix: Animations Applied to Wrong DOM Elements (Duplicate IDs)
+
+### Root Cause: `document.getElementById()` was finding editor elements instead of presentation elements
+
+**Problem:**
+- The editor canvas (`#slide-canvas`) and presentation view both render elements using `element.render()`, which creates DOM nodes with `el.id = this.id`
+- Both sets of elements exist in the DOM simultaneously (editor is behind the fullscreen presentation overlay)
+- `AnimationController` used `document.getElementById(element.id)` to find elements to animate
+- `document.getElementById()` returns the **first** match in DOM order — the **editor** element, not the presentation element
+- Animations were applied to the hidden editor elements; presentation elements stayed `opacity: 0; visibility: hidden`
+
+**Fix:**
+- `PlaybackController.showSlide()` now passes the `slideContainer` reference to `playSlideAnimations()`
+- `AnimationController.playSlideAnimations()`, `playElementAnimation()`, and `playClickAnimations()` now accept a `container` parameter
+- All element lookups use `container.querySelector('#id')` instead of `document.getElementById()`, scoping to the presentation container
+- Also simplified `applyAnimation()`:
+  - Removed inline `opacity` before animation starts (let CSS keyframes + fill-mode handle it)
+  - Added `void element.offsetWidth` reflow to ensure animation triggers reliably
+  - Consolidated completion handler into single `finalise()` function
+
+**Updated Files:**
+- `PlaybackController.js`: Pass slideContainer to animation system
+- `AnimationController.js`: Scoped element lookups to container
+- `animations.js`: Simplified and hardened applyAnimation()
