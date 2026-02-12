@@ -360,3 +360,19 @@
 
 **Updated Files:**
 - `EditorController.js`: Enhanced `createNewPresentation()` method with Dialog and complete cleanup
+
+---
+
+## Text Element UI Fix
+
+### Fix: Remove overflow scrollbars from text elements
+- ✓ **No more scrollbars**: Changed text content overflow from `auto` to `hidden`
+- ✓ **Cleaner appearance**: Text elements now display without scrollbars
+- ✓ **Better UX**: Text elements look cleaner and more professional
+
+**Change:**
+- Before: `overflow: auto;` (showed scrollbars when text content exceeded bounds)
+- After: `overflow: hidden;` (hides overflow without scrollbars)
+
+**Updated Files:**
+- `TextElement.js`: Changed overflow style in text content rendering

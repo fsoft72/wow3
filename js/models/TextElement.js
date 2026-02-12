@@ -45,7 +45,7 @@ export class TextElement extends Element {
       width: 100%;
       height: 100%;
       outline: none;
-      overflow: auto;
+      overflow: hidden;
     `;
 
     el.appendChild(textContent);
