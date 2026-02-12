@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="css/editor.css">
   <link rel="stylesheet" href="css/sidebar.css">
   <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/media-manager.css">
 </head>
 <body>
   <!-- Top Menu Bar -->
@@ -209,19 +210,6 @@
     </div>
   </div>
 
-  <!-- Media Manager Modal -->
-  <div id="media-manager-modal" class="modal modal-fixed-footer media-manager-modal">
-    <div class="modal-content">
-      <h4><i class="material-icons left">perm_media</i>Media Library</h4>
-      <div id="media-grid" class="media-grid">
-        <!-- Media items rendered here -->
-      </div>
-    </div>
-    <div class="modal-footer">
-      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Close</a>
-    </div>
-  </div>
-
   <!-- Presentation View (Fullscreen) -->
   <div id="presentation-view" style="display: none;">
     <!-- Presentation slides rendered here during playback -->
@@ -230,9 +218,12 @@
   <!-- MaterializeCSS JavaScript -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
-  <!-- IndexedDB Managers (Must load before modules) -->
+  <!-- Utilities & Managers (Must load before modules) -->
   <script src="js/utils/presentations_db.js"></script>
   <script src="js/utils/media_db.js"></script>
+  <script src="js/utils/dialog.js"></script>
+  <script src="js/utils/i18n.js"></script>
+  <script src="js/utils/media_manager.js"></script>
 
   <!-- Application JavaScript (ES6 Modules) -->
   <script type="module" src="js/app.js"></script>

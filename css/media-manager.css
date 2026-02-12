@@ -1,0 +1,302 @@
+
+/* =========================================
+   7. MEDIA MANAGER
+   ========================================= */
+
+/* Modal Overlay */
+#media-manager-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Roboto', sans-serif;
+}
+#media-manager-overlay.active { display: flex; }
+
+/* Main Window */
+#media-manager-window {
+    width: 90%;
+    max-width: 1200px;
+    height: 85%;
+    background: #111;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+/* Header */
+.mm-header {
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    background: #161616;
+}
+.mm-title-group h2 { margin: 0; font-size: 24px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+.mm-count { background: #007bff; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; vertical-align: middle; }
+.mm-controls { display: flex; gap: 15px; align-items: center; }
+
+/* Buttons */
+.btn-mm-primary {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+.btn-mm-primary:hover { background: #0056b3; }
+.btn-mm-icon { background: transparent; border: none; color: #aaa; cursor: pointer; transition: color 0.2s; padding: 5px; }
+.btn-mm-icon:hover { color: #fff; }
+
+/* Content Area */
+.mm-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Sidebar (Folders) */
+.mm-sidebar {
+    width: 250px;
+    background: #1a1a1a;
+    border-right: 1px solid #333;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+}
+.mm-nav-item {
+    padding: 10px 15px;
+    color: #ccc;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+.mm-nav-item:hover { background: #333; color: #fff; }
+.mm-nav-item.active { background: #2a2a2a; color: #fff; font-weight: 500; }
+.mm-nav-item i { font-size: 18px; color: #777; }
+.mm-nav-item.active i { color: #007bff; }
+
+/* Main Grid */
+.mm-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    background: #000;
+}
+
+/* Date Group */
+.mm-date-group { margin-bottom: 30px; }
+.mm-date-header { font-size: 16px; font-weight: 500; color: #fff; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+.mm-date-header span { color: #d63384; font-weight: normal; font-size: 14px; } /* Pink count */
+
+/* Grid */
+.mm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+/* Media Card */
+.mm-card {
+    background: #1a1a1a;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #333;
+}
+.mm-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); border-color: #555; }
+.mm-card.selected { border-color: #007bff; box-shadow: 0 0 0 2px #007bff; }
+
+.mm-card-preview {
+    height: 140px;
+    width: 100%;
+    background: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+.mm-card-preview img { width: 100%; height: 100%; object-fit: cover; }
+.mm-card-preview i { font-size: 48px; color: #555; }
+.mm-card-preview video { width: 100%; height: 100%; object-fit: cover; }
+
+.mm-card-info { padding: 12px; }
+.mm-card-title { font-size: 13px; font-weight: 500; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mm-card-meta { font-size: 11px; color: #888; }
+
+/* Hover Actions */
+.mm-card-actions {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 140px;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 5;
+}
+.mm-card:hover .mm-card-actions { opacity: 1; }
+.btn-mm-action {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.btn-mm-action:hover { background: #0056b3; }
+.btn-mm-action.preview { background: #444; }
+.btn-mm-action.preview:hover { background: #555; }
+
+.mm-card-delete {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s, background 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.mm-card:hover .mm-card-delete { opacity: 1; }
+.mm-card-delete:hover { background: #c82333; }
+.mm-card-delete i { font-size: 18px; }
+
+/* Drag & Drop to Sidebar */
+.mm-nav-item.drag-over {
+    background: #007bff !important;
+    color: #fff !important;
+}
+
+/* Full Preview */
+#mm-preview-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.9);
+    z-index: 100002;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+}
+#mm-preview-overlay.active { display: flex; }
+#mm-preview-overlay img { max-width: 90%; max-height: 90%; border-radius: 4px; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+
+.mm-audio-player {
+    background: #222;
+    padding: 30px;
+    border-radius: 8px;
+    width: 400px;
+    text-align: center;
+    border: 1px solid #444;
+}
+.mm-audio-player h3 {
+    margin-top: 0;
+    font-size: 16px;
+    margin-bottom: 20px;
+    color: #fff;
+}
+.mm-audio-player audio {
+    width: 100%;
+}
+
+/* Search Bar */
+.mm-search-bar {
+    background: #222;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    width: 300px;
+}
+.mm-search-bar input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    width: 100%;
+    margin: 0;
+    padding: 5px;
+    font-size: 14px;
+    outline: none;
+}
+.mm-search-bar i { color: #666; }
+
+/* Context Menu */
+#mm-context-menu {
+    position: fixed;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 4px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    z-index: 100000;
+    display: none;
+    min-width: 150px;
+}
+.mm-context-item {
+    padding: 10px 15px;
+    color: #eee;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.mm-context-item:hover { background: #007bff; color: white; }
+.mm-context-item i { font-size: 16px; }
+.mm-context-separator { border-top: 1px solid #444; margin: 2px 0; }
+
+/* Create Folder Modal (Inner) */
+.mm-modal-inner {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); z-index: 100001;
+    display: flex; align-items: center; justify-content: center;
+}
+.mm-dialog {
+    background: #222; padding: 20px; border-radius: 5px; width: 400px;
+    border: 1px solid #444; color: #fff;
+}
+.mm-dialog h3 { margin-top: 0; font-size: 18px; }
+.mm-dialog input { width: 100%; padding: 10px; background: #333; border: 1px solid #555; color: white; margin: 15px 0; border-radius: 3px; }
+.mm-dialog-buttons { display: flex; justify-content: flex-end; gap: 10px; }
+.btn-mm-secondary { background: #444; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+.btn-mm-secondary:hover { background: #555; }

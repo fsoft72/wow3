@@ -7,4 +7,3 @@ export { UIManager } from './UIManager.js';
 export { RightSidebar } from './RightSidebar.js';
 export { StatusBar } from './StatusBar.js';
 export { ElementsTree } from './ElementsTree.js';
-export { MediaManager } from './MediaManager.js';

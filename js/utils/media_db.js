@@ -1,11 +1,12 @@
 /**
- * WOW3 MediaDB: IndexedDB manager for media files (images, videos, audio)
+ * WOW3 MediaDB: IndexedDB manager for media files with folder support
  * Handles binary file storage to avoid data URL bloat in presentations
  */
 
 const MEDIA_DB_NAME = 'wow3_media';
-const MEDIA_DB_VERSION = 1;
+const MEDIA_DB_VERSION = 2;
 const STORE_MEDIA = 'media_items';
+const STORE_FOLDERS = 'media_folders';
 
 let mediaDbPromise = null;
 
@@ -24,13 +25,28 @@ const MediaDB = {
         const db = event.target.result;
 
         // Media Items Store
+        let mediaStore;
         if (!db.objectStoreNames.contains(STORE_MEDIA)) {
-          const mediaStore = db.createObjectStore(STORE_MEDIA, { keyPath: 'id' });
+          mediaStore = db.createObjectStore(STORE_MEDIA, { keyPath: 'id' });
+        } else {
+          mediaStore = event.target.transaction.objectStore(STORE_MEDIA);
+        }
 
-          // Create indexes
+        // Ensure indexes exist
+        if (!mediaStore.indexNames.contains('folderId')) {
+          mediaStore.createIndex('folderId', 'folderId', { unique: false });
+        }
+        if (!mediaStore.indexNames.contains('type')) {
           mediaStore.createIndex('type', 'type', { unique: false });
+        }
+        if (!mediaStore.indexNames.contains('createdAt')) {
           mediaStore.createIndex('createdAt', 'createdAt', { unique: false });
-          mediaStore.createIndex('name', 'name', { unique: false });
+        }
+
+        // Folders Store
+        if (!db.objectStoreNames.contains(STORE_FOLDERS)) {
+          const folderStore = db.createObjectStore(STORE_FOLDERS, { keyPath: 'id' });
+          folderStore.createIndex('name', 'name', { unique: false });
         }
 
         console.log('MediaDB initialized:', MEDIA_DB_NAME);
@@ -51,12 +67,76 @@ const MediaDB = {
   },
 
   /**
+   * Create folder/album
+   */
+  async createFolder(name) {
+    const db = await this.init();
+    const id = 'folder_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    const folder = { id, name, createdAt: Date.now() };
+    await new Promise((resolve) => {
+      const tx = db.transaction([STORE_FOLDERS], 'readwrite');
+      tx.objectStore(STORE_FOLDERS).add(folder).onsuccess = () => resolve();
+    });
+    return folder;
+  },
+
+  /**
+   * Get all folders
+   */
+  async getFolders() {
+    const db = await this.init();
+    return new Promise((resolve) => {
+      const request = db.transaction([STORE_FOLDERS], 'readonly').objectStore(STORE_FOLDERS).getAll();
+      request.onsuccess = () => resolve(request.result);
+    });
+  },
+
+  /**
+   * Delete folder (moves items to root)
+   */
+  async deleteFolder(id) {
+    const db = await this.init();
+    const tx = db.transaction([STORE_FOLDERS, STORE_MEDIA], 'readwrite');
+    tx.objectStore(STORE_FOLDERS).delete(id);
+
+    const mediaStore = tx.objectStore(STORE_MEDIA);
+    const index = mediaStore.index('folderId');
+    index.openCursor(IDBKeyRange.only(id)).onsuccess = (event) => {
+      const cursor = event.target.result;
+      if (cursor) {
+        const item = cursor.value;
+        item.folderId = null;
+        cursor.update(item);
+        cursor.continue();
+      }
+    };
+
+    return new Promise((resolve) => tx.oncomplete = () => resolve());
+  },
+
+  /**
+   * Rename folder
+   */
+  async renameFolder(id, newName) {
+    const db = await this.init();
+    const tx = db.transaction([STORE_FOLDERS], 'readwrite');
+    const store = tx.objectStore(STORE_FOLDERS);
+    const folder = await new Promise(res => store.get(id).onsuccess = e => res(e.target.result));
+    if (folder) {
+      folder.name = newName;
+      store.put(folder);
+    }
+    return new Promise(resolve => tx.oncomplete = resolve);
+  },
+
+  /**
    * Add media file to IndexedDB
    * @param {File|Blob} file - File or Blob object
+   * @param {string|null} folderId - Folder ID or null for root
    * @param {Object} metadata - Additional metadata
    * @returns {Promise<Object>} Media item with id
    */
-  async addMedia(file, metadata = {}) {
+  async addMedia(file, folderId = null, metadata = {}) {
     const db = await this.init();
     const id = 'media_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
@@ -66,6 +146,7 @@ const MediaDB = {
       type: file.type || 'application/octet-stream',
       size: file.size,
       blob: file,
+      folderId: folderId || null,
       createdAt: Date.now(),
       metadata: metadata
     };
@@ -83,20 +164,29 @@ const MediaDB = {
   },
 
   /**
-   * Get media item by ID
-   * @param {string} id - Media ID
-   * @returns {Promise<Object|null>} Media item or null
+   * Get media items (filtered by folder)
+   * @param {string|null} folderId - 'all', null (root), or folder ID
    */
-  async getMedia(id) {
+  async getMedia(folderId = null) {
     const db = await this.init();
+    const tx = db.transaction([STORE_MEDIA], 'readonly');
+    const store = tx.objectStore(STORE_MEDIA);
 
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction([STORE_MEDIA], 'readonly');
-      const request = tx.objectStore(STORE_MEDIA).get(id);
+    if (folderId === 'all') {
+      return new Promise(resolve => store.getAll().onsuccess = e => resolve(e.target.result));
+    }
 
-      request.onsuccess = () => resolve(request.result || null);
-      request.onerror = () => reject(request.error);
-    });
+    // Use index for specific folders
+    const index = store.index('folderId');
+    return new Promise(resolve => index.getAll(IDBKeyRange.only(folderId)).onsuccess = e => resolve(e.target.result));
+  },
+
+  /**
+   * Get single media item by ID
+   */
+  async getMediaItem(id) {
+    const db = await this.init();
+    return new Promise(resolve => db.transaction([STORE_MEDIA], 'readonly').objectStore(STORE_MEDIA).get(id).onsuccess = e => resolve(e.target.result));
   },
 
   /**
@@ -113,6 +203,24 @@ const MediaDB = {
       request.onsuccess = () => resolve(request.result || []);
       request.onerror = () => reject(request.error);
     });
+  },
+
+  /**
+   * Update media item
+   */
+  async updateMedia(item) {
+    const db = await this.init();
+    await new Promise(resolve => db.transaction([STORE_MEDIA], 'readwrite').objectStore(STORE_MEDIA).put(item).onsuccess = () => resolve());
+  },
+
+  /**
+   * Search media by name
+   */
+  async searchMedia(query) {
+    const all = await this.getAllMedia();
+    if (!query) return all;
+    const lowerQ = query.toLowerCase();
+    return all.filter(item => item.name.toLowerCase().includes(lowerQ));
   },
 
   /**
@@ -140,7 +248,7 @@ const MediaDB = {
    * @returns {Promise<string|null>} Data URL or null
    */
   async getMediaDataURL(id) {
-    const item = await this.getMedia(id);
+    const item = await this.getMediaItem(id);
     if (!item || !item.blob) return null;
 
     return new Promise((resolve) => {
@@ -180,7 +288,7 @@ const MediaDB = {
     const dataURL = await this.getMediaDataURL(id);
     if (!dataURL) return null;
 
-    const item = await this.getMedia(id);
+    const item = await this.getMediaItem(id);
     return {
       id,
       name: item.name,
@@ -201,7 +309,7 @@ const MediaDB = {
 
     // If it's an indexed media ID, check if it exists
     if (exportData.id && exportData.id.startsWith('media_')) {
-      const existing = await this.getMedia(exportData.id);
+      const existing = await this.getMediaItem(exportData.id);
       if (existing) {
         return exportData.id; // Already exists
       }
