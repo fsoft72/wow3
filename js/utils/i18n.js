@@ -12,6 +12,11 @@ window.translationsEn = {
   'media_lib': 'Media Library',
   'upload_pc': 'Upload from PC',
 
+  // Presentation Manager
+  'presentations': 'Presentations',
+  'search_presentations': 'Search presentations...',
+  'new_presentation': 'New Presentation',
+
   // Dialog
   'ok': 'OK',
   'cancel': 'Cancel',

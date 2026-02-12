@@ -13,14 +13,87 @@ const PresentationsDB = window.PresentationsDB;
 // ==================== INDEXEDDB (PERMANENT STORAGE) ====================
 
 /**
+ * Generate thumbnail from first slide
+ * @param {Object} presentation - Presentation object
+ * @returns {Promise<string|null>} Data URL of thumbnail or null
+ */
+export const generateThumbnail = async (presentation) => {
+  try {
+    // Get the first slide
+    if (!presentation.slides || presentation.slides.length === 0) {
+      return null;
+    }
+
+    const canvas = document.getElementById('slide-canvas');
+    if (!canvas) return null;
+
+    // Create a temporary canvas for thumbnail
+    const thumbCanvas = document.createElement('canvas');
+    const thumbWidth = 400;
+    const thumbHeight = 300;
+    thumbCanvas.width = thumbWidth;
+    thumbCanvas.height = thumbHeight;
+    const ctx = thumbCanvas.getContext('2d');
+
+    // Fill with white background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, thumbWidth, thumbHeight);
+
+    // Clone the current canvas content
+    const mainCanvasRect = canvas.getBoundingClientRect();
+    const scaleX = thumbWidth / mainCanvasRect.width;
+    const scaleY = thumbHeight / mainCanvasRect.height;
+    const scale = Math.min(scaleX, scaleY);
+
+    // Use html2canvas if available, otherwise use simpler method
+    if (typeof html2canvas !== 'undefined') {
+      try {
+        const capturedCanvas = await html2canvas(canvas, {
+          backgroundColor: '#ffffff',
+          scale: 1,
+          logging: false
+        });
+        ctx.drawImage(capturedCanvas, 0, 0, thumbWidth, thumbHeight);
+      } catch (e) {
+        console.warn('html2canvas failed, using simple rendering:', e);
+        // Fallback: just use background color
+        ctx.fillStyle = presentation.slides[0].background || '#ffffff';
+        ctx.fillRect(0, 0, thumbWidth, thumbHeight);
+      }
+    } else {
+      // Simple fallback: use slide background color
+      ctx.fillStyle = presentation.slides[0].background || '#ffffff';
+      ctx.fillRect(0, 0, thumbWidth, thumbHeight);
+    }
+
+    return thumbCanvas.toDataURL('image/png');
+  } catch (e) {
+    console.error('Failed to generate thumbnail:', e);
+    return null;
+  }
+};
+
+/**
  * Save presentation to IndexedDB (permanent storage)
  * This is called when user explicitly clicks "Save"
  * @param {Object} presentation - Presentation object
+ * @param {string} thumbnail - Optional thumbnail data URL
  * @returns {Promise<boolean>} Success status
  */
-export const savePresentation = async (presentation) => {
+export const savePresentation = async (presentation, thumbnail = null) => {
   try {
-    await PresentationsDB.savePresentation(presentation);
+    // Generate thumbnail if not provided
+    if (!thumbnail) {
+      thumbnail = await generateThumbnail(presentation);
+    }
+
+    // Add thumbnail to presentation data
+    const data = presentation.toJSON ? presentation.toJSON() : presentation;
+    if (thumbnail) {
+      data.thumbnail = thumbnail;
+    }
+
+    await PresentationsDB.savePresentation(data);
 
     // Also update the snapshot after successful save
     await saveSnapshot(presentation);

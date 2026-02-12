@@ -1,0 +1,281 @@
+/* =========================================
+   PRESENTATION MANAGER
+   ========================================= */
+
+/* Modal Overlay */
+#presentation-manager-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Roboto', sans-serif;
+}
+#presentation-manager-overlay.active { display: flex; }
+
+/* Main Window */
+#presentation-manager-window {
+    width: 90%;
+    max-width: 1200px;
+    height: 85%;
+    background: #111;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+/* Header */
+.pm-header {
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    background: #161616;
+}
+.pm-title-group h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.pm-count {
+    background: #2196F3;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    vertical-align: middle;
+}
+.pm-controls { display: flex; gap: 15px; align-items: center; }
+
+/* Buttons */
+.btn-pm-primary {
+    background: #2196F3;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+.btn-pm-primary:hover { background: #1976D2; }
+.btn-pm-icon {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 5px;
+}
+.btn-pm-icon:hover { color: #fff; }
+
+/* Content Area */
+.pm-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Main Grid */
+.pm-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    background: #000;
+}
+
+/* Date Group */
+.pm-date-group { margin-bottom: 30px; }
+.pm-date-header {
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.pm-date-header span {
+    color: #2196F3;
+    font-weight: normal;
+    font-size: 14px;
+}
+
+/* Grid */
+.pm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* Presentation Card */
+.pm-card {
+    background: #1a1a1a;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #333;
+}
+.pm-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border-color: #555;
+}
+
+.pm-card-preview {
+    height: 180px;
+    width: 100%;
+    background: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+.pm-card-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pm-card-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+}
+.pm-card-placeholder i {
+    font-size: 64px;
+    color: #444;
+}
+
+.pm-card-info { padding: 12px; }
+.pm-card-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pm-card-meta {
+    font-size: 11px;
+    color: #888;
+}
+
+/* Hover Actions */
+.pm-card-actions {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 180px;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 5;
+}
+.pm-card:hover .pm-card-actions { opacity: 1; }
+.btn-pm-action {
+    background: #2196F3;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.btn-pm-action:hover { background: #1976D2; }
+
+.pm-card-delete {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s, background 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.pm-card:hover .pm-card-delete { opacity: 1; }
+.pm-card-delete:hover { background: #c82333; }
+.pm-card-delete i { font-size: 18px; }
+
+/* Search Bar */
+.pm-search-bar {
+    background: #222;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    width: 300px;
+}
+.pm-search-bar input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    width: 100%;
+    margin: 0;
+    padding: 5px;
+    font-size: 14px;
+    outline: none;
+}
+.pm-search-bar i { color: #666; }
+
+/* Context Menu */
+#pm-context-menu {
+    position: fixed;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 4px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    z-index: 100000;
+    display: none;
+    min-width: 150px;
+}
+.pm-context-item {
+    padding: 10px 15px;
+    color: #eee;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.pm-context-item:hover { background: #2196F3; color: white; }
+.pm-context-item i { font-size: 16px; }
+.pm-context-separator { border-top: 1px solid #444; margin: 2px 0; }

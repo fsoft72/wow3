@@ -37,6 +37,10 @@ export class UIManager {
     await MediaManager.init();
     this.attachMediaManagerButton();
 
+    // Initialize global PresentationManager and attach button handler
+    await PresentationManager.init();
+    this.attachPresentationManagerButton();
+
     console.log('UIManager initialized');
   }
 
@@ -48,6 +52,18 @@ export class UIManager {
     if (btn) {
       btn.addEventListener('click', () => {
         MediaManager.open();
+      });
+    }
+  }
+
+  /**
+   * Attach presentation manager button click handler
+   */
+  attachPresentationManagerButton() {
+    const btn = document.getElementById('open-btn');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        PresentationManager.open();
       });
     }
   }
