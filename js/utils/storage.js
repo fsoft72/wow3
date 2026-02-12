@@ -6,7 +6,9 @@
  */
 
 import { STORAGE_KEYS } from './constants.js';
-import PresentationsDB from './presentations_db.js';
+
+// PresentationsDB is loaded globally via script tag
+const PresentationsDB = window.PresentationsDB;
 
 // ==================== INDEXEDDB (PERMANENT STORAGE) ====================
 
