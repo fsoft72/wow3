@@ -541,6 +541,7 @@ export class RightSidebar {
 
     const labelEl = document.createElement('label');
     labelEl.textContent = label;
+    labelEl.classList.add('active'); // Mark label as active for Materialize
 
     select.addEventListener('change', (e) => onChange(e.target.value));
 
