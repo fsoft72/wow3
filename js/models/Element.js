@@ -1,0 +1,245 @@
+/**
+ * WOW3 Base Element Class
+ * Base class for all slide elements with common functionality
+ */
+
+import { generateId } from '../utils/dom.js';
+import { DEFAULTS, DEFAULT_SIZE } from '../utils/constants.js';
+
+export class Element {
+  /**
+   * Create a new element
+   * @param {string} type - Element type
+   * @param {Object} properties - Element properties
+   */
+  constructor(type, properties = {}) {
+    this.id = properties.id || generateId('element');
+    this.type = type;
+
+    // Position and size
+    this.position = {
+      x: properties.position?.x ?? 100,
+      y: properties.position?.y ?? 100,
+      width: properties.position?.width ?? DEFAULT_SIZE[type.toUpperCase()]?.width ?? 200,
+      height: properties.position?.height ?? DEFAULT_SIZE[type.toUpperCase()]?.height ?? 100,
+      rotation: properties.position?.rotation ?? 0
+    };
+
+    // Base properties
+    this.properties = {
+      font: {
+        family: properties.properties?.font?.family || DEFAULTS.FONT_FAMILY,
+        size: properties.properties?.font?.size || DEFAULTS.FONT_SIZE,
+        color: properties.properties?.font?.color || DEFAULTS.FONT_COLOR,
+        style: properties.properties?.font?.style || 'normal',
+        weight: properties.properties?.font?.weight || 'normal',
+        decoration: properties.properties?.font?.decoration || 'none',
+        alignment: properties.properties?.font?.alignment || 'left'
+      },
+      ...properties.properties
+    };
+
+    // Animation effects
+    this.inEffect = properties.inEffect || null;
+    this.outEffect = properties.outEffect || null;
+
+    // Children elements (max 1 level deep)
+    this.children = [];
+    this.parent = null;
+
+    // Load children if provided
+    if (properties.children && properties.children.length > 0) {
+      this.children = properties.children.map(childData => {
+        const ChildClass = getElementClass(childData.type);
+        const child = new ChildClass(childData);
+        child.parent = this;
+        return child;
+      });
+    }
+  }
+
+  /**
+   * Convert element to JSON for storage
+   * @returns {Object} JSON representation
+   */
+  toJSON() {
+    return {
+      id: this.id,
+      type: this.type,
+      position: { ...this.position },
+      properties: JSON.parse(JSON.stringify(this.properties)),
+      inEffect: this.inEffect ? { ...this.inEffect } : null,
+      outEffect: this.outEffect ? { ...this.outEffect } : null,
+      children: this.children.map(child => child.toJSON())
+    };
+  }
+
+  /**
+   * Create element from JSON data
+   * @param {Object} data - JSON data
+   * @returns {Element} Element instance
+   */
+  static fromJSON(data) {
+    const ElementClass = getElementClass(data.type);
+    return new ElementClass(data);
+  }
+
+  /**
+   * Add child element
+   * @param {Element} element - Element to add as child
+   * @returns {boolean} Success status
+   */
+  addChild(element) {
+    // Only one level of nesting allowed
+    if (this.children.length === 0 && !this.parent) {
+      element.parent = this;
+      this.children.push(element);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Remove child element
+   * @param {string} elementId - ID of element to remove
+   * @returns {boolean} Success status
+   */
+  removeChild(elementId) {
+    const index = this.children.findIndex(child => child.id === elementId);
+    if (index !== -1) {
+      this.children[index].parent = null;
+      this.children.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Get child element by ID
+   * @param {string} elementId - Element ID
+   * @returns {Element|null} Child element or null
+   */
+  getChild(elementId) {
+    return this.children.find(child => child.id === elementId) || null;
+  }
+
+  /**
+   * Clone element
+   * @returns {Element} Cloned element
+   */
+  clone() {
+    const data = this.toJSON();
+    data.id = generateId('element');
+    // Also generate new IDs for children
+    data.children = data.children.map(child => ({
+      ...child,
+      id: generateId('element')
+    }));
+    return Element.fromJSON(data);
+  }
+
+  /**
+   * Update position
+   * @param {Object} updates - Position updates
+   */
+  updatePosition(updates) {
+    this.position = { ...this.position, ...updates };
+  }
+
+  /**
+   * Set animation effect
+   * @param {string} type - 'in' or 'out'
+   * @param {Object} animation - Animation configuration
+   */
+  setAnimation(type, animation) {
+    if (type === 'in') {
+      this.inEffect = animation;
+    } else if (type === 'out') {
+      this.outEffect = animation;
+    }
+  }
+
+  /**
+   * Remove animation effect
+   * @param {string} type - 'in' or 'out'
+   */
+  removeAnimation(type) {
+    if (type === 'in') {
+      this.inEffect = null;
+    } else if (type === 'out') {
+      this.outEffect = null;
+    }
+  }
+
+  /**
+   * Render element to DOM (to be overridden by subclasses)
+   * @returns {HTMLElement} DOM element
+   */
+  render() {
+    const el = document.createElement('div');
+    el.className = 'element';
+    el.id = this.id;
+    el.dataset.type = this.type;
+
+    this.applyStyles(el);
+
+    return el;
+  }
+
+  /**
+   * Apply styles to DOM element
+   * @param {HTMLElement} el - DOM element
+   */
+  applyStyles(el) {
+    el.style.cssText = `
+      left: ${this.position.x}px;
+      top: ${this.position.y}px;
+      width: ${this.position.width}px;
+      height: ${this.position.height}px;
+      transform: rotate(${this.position.rotation}deg);
+    `;
+  }
+
+  /**
+   * Update element from DOM
+   * @param {HTMLElement} el - DOM element
+   */
+  updateFromDOM(el) {
+    this.position.x = parseFloat(el.style.left) || this.position.x;
+    this.position.y = parseFloat(el.style.top) || this.position.y;
+    this.position.width = parseFloat(el.style.width) || this.position.width;
+    this.position.height = parseFloat(el.style.height) || this.position.height;
+
+    // Extract rotation from transform
+    const transform = el.style.transform;
+    const rotateMatch = transform.match(/rotate\(([^)]+)\)/);
+    if (rotateMatch) {
+      this.position.rotation = parseFloat(rotateMatch[1]);
+    }
+  }
+}
+
+/**
+ * Get element class by type
+ * @param {string} type - Element type
+ * @returns {Class} Element class
+ */
+const getElementClass = (type) => {
+  // Import dynamically to avoid circular dependencies
+  // This will be populated as we create the specific element classes
+  const classes = {
+    text: () => import('./TextElement.js').then(m => m.TextElement),
+    image: () => import('./ImageElement.js').then(m => m.ImageElement),
+    video: () => import('./VideoElement.js').then(m => m.VideoElement),
+    audio: () => import('./AudioElement.js').then(m => m.AudioElement),
+    shape: () => import('./ShapeElement.js').then(m => m.ShapeElement),
+    list: () => import('./ListElement.js').then(m => m.ListElement),
+    link: () => import('./LinkElement.js').then(m => m.LinkElement)
+  };
+
+  // For now, return Element base class
+  // This will be updated when we implement the specific classes
+  return Element;
+};
+
+export default Element;
