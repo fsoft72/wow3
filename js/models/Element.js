@@ -34,6 +34,10 @@ export class Element {
       rotation: Math.round(properties.position?.rotation ?? 0)
     };
 
+    // Separate font from other properties so the spread doesn't
+    // overwrite the fully-defaulted font object we build below.
+    const { font: _fontRaw, ...restProps } = properties.properties || {};
+
     // Base properties
     this.properties = {
       font: {
@@ -58,7 +62,7 @@ export class Element {
           width: properties.properties?.font?.stroke?.width ?? 1
         }
       },
-      ...properties.properties
+      ...restProps
     };
 
     // Animation effects
