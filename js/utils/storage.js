@@ -144,8 +144,9 @@ export const savePresentation = async (presentation, thumbnail = null) => {
       thumbnail = await generateThumbnail(presentation);
     }
 
-    // Add thumbnail to presentation data
-    const data = presentation.toJSON ? presentation.toJSON() : presentation;
+    // Serialize to plain JSON object (strips Promises, DOM refs, and other non-cloneable values)
+    const raw = presentation.toJSON ? presentation.toJSON() : presentation;
+    const data = JSON.parse(JSON.stringify(raw));
     if (thumbnail) {
       data.thumbnail = thumbnail;
     }
