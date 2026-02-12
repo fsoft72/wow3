@@ -97,6 +97,30 @@ export class TextPanel {
             </button>
           </div>
         </div>
+
+        <div class="control-group">
+          <label>
+            <input type="checkbox" id="shadow-enabled" ${font.shadow?.enabled ? 'checked' : ''} />
+            <span>Text Shadow</span>
+          </label>
+          <div id="shadow-options" style="display:${font.shadow?.enabled ? 'block' : 'none'}; margin-top:8px;">
+            ${PanelUtils.renderColorPicker('Color', 'shadow-color', font.shadow?.color || '#000000')}
+            ${PanelUtils.renderSlider('Offset X', 'shadow-offset-x', font.shadow?.offsetX ?? 2, -20, 20, 1, 'px')}
+            ${PanelUtils.renderSlider('Offset Y', 'shadow-offset-y', font.shadow?.offsetY ?? 2, -20, 20, 1, 'px')}
+            ${PanelUtils.renderSlider('Blur', 'shadow-blur', font.shadow?.blur ?? 4, 0, 30, 1, 'px')}
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>
+            <input type="checkbox" id="stroke-enabled" ${font.stroke?.enabled ? 'checked' : ''} />
+            <span>Text Stroke</span>
+          </label>
+          <div id="stroke-options" style="display:${font.stroke?.enabled ? 'block' : 'none'}; margin-top:8px;">
+            ${PanelUtils.renderColorPicker('Color', 'stroke-color', font.stroke?.color || '#000000')}
+            ${PanelUtils.renderSlider('Width', 'stroke-width', font.stroke?.width ?? 1, 0.5, 10, 0.5, 'px')}
+          </div>
+        </div>
       </div>
     `;
   }
@@ -208,6 +232,44 @@ export class TextPanel {
         updateProperty('properties.font.verticalAlign', btn.dataset.value);
       });
     }
+
+    // Shadow toggle + options
+    const shadowEnabled = document.getElementById('shadow-enabled');
+    const shadowOptions = document.getElementById('shadow-options');
+    if (shadowEnabled) {
+      shadowEnabled.addEventListener('change', (e) => {
+        updateProperty('properties.font.shadow.enabled', e.target.checked);
+        if (shadowOptions) shadowOptions.style.display = e.target.checked ? 'block' : 'none';
+      });
+    }
+    PanelUtils.bindColorPicker('shadow-color', (value) => {
+      updateProperty('properties.font.shadow.color', value);
+    });
+    PanelUtils.bindSlider('shadow-offset-x', (value) => {
+      updateProperty('properties.font.shadow.offsetX', parseInt(value));
+    });
+    PanelUtils.bindSlider('shadow-offset-y', (value) => {
+      updateProperty('properties.font.shadow.offsetY', parseInt(value));
+    });
+    PanelUtils.bindSlider('shadow-blur', (value) => {
+      updateProperty('properties.font.shadow.blur', parseInt(value));
+    });
+
+    // Stroke toggle + options
+    const strokeEnabled = document.getElementById('stroke-enabled');
+    const strokeOptions = document.getElementById('stroke-options');
+    if (strokeEnabled) {
+      strokeEnabled.addEventListener('change', (e) => {
+        updateProperty('properties.font.stroke.enabled', e.target.checked);
+        if (strokeOptions) strokeOptions.style.display = e.target.checked ? 'block' : 'none';
+      });
+    }
+    PanelUtils.bindColorPicker('stroke-color', (value) => {
+      updateProperty('properties.font.stroke.color', value);
+    });
+    PanelUtils.bindSlider('stroke-width', (value) => {
+      updateProperty('properties.font.stroke.width', parseFloat(value));
+    });
   }
 }
 

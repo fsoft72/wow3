@@ -38,6 +38,18 @@ export class TextElement extends Element {
     const vAlignMap = { top: 'start', middle: 'center', bottom: 'end' };
     const vAlign = vAlignMap[this.properties.font.verticalAlign] || 'start';
 
+    // Build optional text-shadow
+    const sh = this.properties.font.shadow;
+    const shadowCSS = sh?.enabled
+      ? `text-shadow: ${sh.offsetX}px ${sh.offsetY}px ${sh.blur}px ${sh.color};`
+      : '';
+
+    // Build optional text-stroke
+    const st = this.properties.font.stroke;
+    const strokeCSS = st?.enabled
+      ? `-webkit-text-stroke: ${st.width}px ${st.color}; paint-order: stroke fill;`
+      : '';
+
     // Apply text styles — use CSS Grid so text-align still works
     textContent.style.cssText = `
       font-family: ${this.properties.font.family};
@@ -53,6 +65,8 @@ export class TextElement extends Element {
       overflow: hidden;
       display: grid;
       align-content: ${vAlign};
+      ${shadowCSS}
+      ${strokeCSS}
     `;
 
     el.appendChild(textContent);

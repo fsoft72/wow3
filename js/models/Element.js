@@ -44,7 +44,19 @@ export class Element {
         weight: properties.properties?.font?.weight || 'normal',
         decoration: properties.properties?.font?.decoration || 'none',
         alignment: properties.properties?.font?.alignment || 'left',
-        verticalAlign: properties.properties?.font?.verticalAlign || 'top'
+        verticalAlign: properties.properties?.font?.verticalAlign || 'top',
+        shadow: {
+          enabled: properties.properties?.font?.shadow?.enabled || false,
+          color: properties.properties?.font?.shadow?.color || '#000000',
+          offsetX: properties.properties?.font?.shadow?.offsetX ?? 2,
+          offsetY: properties.properties?.font?.shadow?.offsetY ?? 2,
+          blur: properties.properties?.font?.shadow?.blur ?? 4
+        },
+        stroke: {
+          enabled: properties.properties?.font?.stroke?.enabled || false,
+          color: properties.properties?.font?.stroke?.color || '#000000',
+          width: properties.properties?.font?.stroke?.width ?? 1
+        }
       },
       ...properties.properties
     };
