@@ -119,6 +119,36 @@ export const applyAnimation = (element, animation, options = {}) => {
         rect.right <= window.innerWidth
       );
 
+      // DEBUG: Check parent container
+      const parent = element.parentElement;
+      if (parent) {
+        const parentRect = parent.getBoundingClientRect();
+        const parentComputed = window.getComputedStyle(parent);
+        console.log('📦 PARENT container:', parent.id || parent.className);
+        console.log('📐 PARENT BoundingRect:', {
+          x: parentRect.x,
+          y: parentRect.y,
+          width: parentRect.width,
+          height: parentRect.height
+        });
+        console.log('🎨 PARENT Computed:', {
+          opacity: parentComputed.opacity,
+          visibility: parentComputed.visibility,
+          display: parentComputed.display,
+          overflow: parentComputed.overflow,
+          zIndex: parentComputed.zIndex,
+          background: parentComputed.background
+        });
+      }
+
+      // DEBUG: Check for overlapping elements
+      const elementAtPoint = document.elementFromPoint(
+        rect.left + rect.width / 2,
+        rect.top + rect.height / 2
+      );
+      console.log('🎯 Element at center point:', elementAtPoint?.id || elementAtPoint?.className);
+      console.log('🎯 Is our element at that point?', elementAtPoint === element);
+
       element.removeEventListener('animationend', handler);
       resolve();
     };
