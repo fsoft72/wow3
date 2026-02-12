@@ -13,15 +13,24 @@ export class Element {
    * @param {Object} properties - Element properties
    */
   constructor(type, properties = {}) {
+    // Handle case where type is actually the full element data object
+    if (typeof type === 'object' && type !== null) {
+      properties = type;
+      type = properties.type || 'text';
+    }
+
     this.id = properties.id || generateId('element');
     this.type = type;
+
+    // Ensure type is a string for DEFAULT_SIZE lookup
+    const typeKey = (typeof type === 'string' ? type : 'text').toUpperCase();
 
     // Position and size
     this.position = {
       x: properties.position?.x ?? 100,
       y: properties.position?.y ?? 100,
-      width: properties.position?.width ?? DEFAULT_SIZE[type.toUpperCase()]?.width ?? 200,
-      height: properties.position?.height ?? DEFAULT_SIZE[type.toUpperCase()]?.height ?? 100,
+      width: properties.position?.width ?? DEFAULT_SIZE[typeKey]?.width ?? 200,
+      height: properties.position?.height ?? DEFAULT_SIZE[typeKey]?.height ?? 100,
       rotation: properties.position?.rotation ?? 0
     };
 
