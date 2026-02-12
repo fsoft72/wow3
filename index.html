@@ -101,6 +101,13 @@
           </div>
         </div>
       </div>
+
+      <!-- Media Manager Button -->
+      <div class="media-manager-button-wrapper">
+        <button id="open-media-manager" class="btn waves-effect blue darken-1 btn-block">
+          <i class="material-icons left">perm_media</i>Media Library
+        </button>
+      </div>
     </aside>
   </div>
 
@@ -199,6 +206,19 @@
     <div class="modal-footer">
       <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
       <a href="#!" id="save-animation-btn" class="modal-close waves-effect waves-green btn">Save</a>
+    </div>
+  </div>
+
+  <!-- Media Manager Modal -->
+  <div id="media-manager-modal" class="modal modal-fixed-footer media-manager-modal">
+    <div class="modal-content">
+      <h4><i class="material-icons left">perm_media</i>Media Library</h4>
+      <div id="media-grid" class="media-grid">
+        <!-- Media items rendered here -->
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Close</a>
     </div>
   </div>
 

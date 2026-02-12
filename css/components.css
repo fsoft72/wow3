@@ -407,3 +407,142 @@
 .slide-in-left {
   animation: slideInLeft 0.3s ease;
 }
+
+/* ==================== MEDIA MANAGER ==================== */
+
+/* Media Manager Modal */
+.media-manager-modal {
+  width: 90% !important;
+  max-width: 1200px !important;
+  height: 80% !important;
+  max-height: 80% !important;
+}
+
+.media-manager-modal .modal-content {
+  height: calc(100% - 56px);
+  overflow-y: auto;
+}
+
+/* Media Grid */
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 16px 0;
+}
+
+/* Media Card */
+.media-card {
+  position: relative;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.media-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Media Preview */
+.media-preview {
+  position: relative;
+  width: 100%;
+  height: 150px;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.media-preview img,
+.media-preview video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.media-preview .media-icon,
+.media-preview .media-icon-large {
+  position: absolute;
+  color: rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.media-preview .media-icon {
+  font-size: 48px;
+}
+
+.media-preview .media-icon-large {
+  font-size: 64px;
+  color: #2196F3;
+}
+
+/* Media Info */
+.media-info {
+  padding: 12px;
+}
+
+.media-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.media-meta {
+  font-size: 11px;
+  color: #999;
+}
+
+/* Media Actions */
+.media-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.media-card:hover .media-actions {
+  opacity: 1;
+}
+
+.media-actions .btn-flat {
+  min-width: auto;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.media-actions .btn-flat i {
+  line-height: 36px;
+  margin: 0;
+}
+
+/* Media Manager Button in Sidebar */
+.media-manager-button-wrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: linear-gradient(to top, white 60%, transparent);
+  border-top: 1px solid #e0e0e0;
+}
+
+.btn-block {
+  width: 100%;
+  display: block;
+}

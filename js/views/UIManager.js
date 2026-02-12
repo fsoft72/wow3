@@ -6,12 +6,14 @@
 import { RightSidebar } from './RightSidebar.js';
 import { StatusBar } from './StatusBar.js';
 import { ElementsTree } from './ElementsTree.js';
+import { MediaManager } from './MediaManager.js';
 
 export class UIManager {
   constructor() {
     this.rightSidebar = null;
     this.statusBar = null;
     this.elementsTree = null;
+    this.mediaManager = null;
     this.currentMode = 'editor'; // 'editor' or 'presentation'
   }
 
@@ -25,15 +27,32 @@ export class UIManager {
     this.rightSidebar = new RightSidebar();
     this.statusBar = new StatusBar();
     this.elementsTree = new ElementsTree();
+    this.mediaManager = new MediaManager();
 
     await this.rightSidebar.init();
     await this.statusBar.init();
     await this.elementsTree.init();
+    await this.mediaManager.init();
 
     // Initialize MaterializeCSS tabs
     this.initTabs();
 
+    // Attach media manager button handler
+    this.attachMediaManagerButton();
+
     console.log('UIManager initialized');
+  }
+
+  /**
+   * Attach media manager button click handler
+   */
+  attachMediaManagerButton() {
+    const btn = document.getElementById('open-media-manager');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        this.mediaManager.open();
+      });
+    }
   }
 
   /**
