@@ -118,4 +118,6 @@ export class ListElement extends Element {
   }
 }
 
+Element.registerClass('list', ListElement);
+
 export default ListElement;

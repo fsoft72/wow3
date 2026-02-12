@@ -799,3 +799,24 @@ Help diagnose why animations are not working by showing:
 **Updated Files:**
 - `index.html`: Added `add-audio-btn` toolbar item
 - `EditorController.js`: Wired up click handler for `add-audio-btn`
+
+---
+
+## Fix: Video/Image/Audio Elements Lost on Reload
+
+### Critical Bug Fix: async toJSON() corrupting serialized data
+- ✓ **Root cause**: `VideoElement.toJSON()`, `ImageElement.toJSON()`, and `AudioElement.toJSON()` were `async`, returning a Promise instead of an object when called synchronously by `saveSnapshot()` / `savePresentation()` / `JSON.stringify()`
+- ✓ **Effect**: `JSON.stringify(promise)` produces `{}` — the entire element data (type, url, position) was silently lost; on reload, `{}` with no `type` became a text element
+- ✓ **Fix**: Removed `async toJSON()` and `async fromJSON()` overrides from all three media element classes — the base `Element.toJSON()` already serializes all properties including `url`
+
+### Secondary Fix: Element.getElementClass() always returned base Element
+- ✓ **Root cause**: `getElementClass()` in `Element.js` had dynamic imports that were never used, always falling back to `return Element`
+- ✓ **Effect**: `Element.clone()` (copy/paste/duplicate) and child element loading always created base `Element` instances instead of the correct subclass
+- ✓ **Fix**: Replaced with a class registry pattern — each subclass calls `Element.registerClass(type, Class)` on load, avoiding circular imports
+
+**Updated Files:**
+- `Element.js`: Replaced broken `getElementClass()` with `Element._classRegistry` + `Element.registerClass()` pattern
+- `VideoElement.js`: Removed `async toJSON()` and `async fromJSON()`, added `Element.registerClass('video', VideoElement)`
+- `ImageElement.js`: Same — removed async overrides, added registration
+- `AudioElement.js`: Same — removed async overrides, added registration
+- `TextElement.js`, `ShapeElement.js`, `ListElement.js`, `LinkElement.js`: Added `Element.registerClass()` calls

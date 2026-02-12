@@ -111,4 +111,6 @@ export class ShapeElement extends Element {
   }
 }
 
+Element.registerClass('shape', ShapeElement);
+
 export default ShapeElement;

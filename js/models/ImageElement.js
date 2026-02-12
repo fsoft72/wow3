@@ -113,48 +113,10 @@ export class ImageElement extends Element {
     this.properties.objectFit = mode;
   }
 
-  /**
-   * Export to JSON (includes data URL for portability)
-   * @returns {Object} JSON representation
-   */
-  async toJSON() {
-    const base = super.toJSON();
-
-    // If URL is a media ID, export as data URL
-    if (this.properties.url && this.properties.url.startsWith('media_')) {
-      try {
-        const mediaData = await window.MediaDB.exportMedia(this.properties.url);
-        if (mediaData) {
-          base.properties.mediaExport = mediaData;
-        }
-      } catch (error) {
-        console.error('Failed to export media:', error);
-      }
-    }
-
-    return base;
-  }
-
-  /**
-   * Import from JSON (handles data URLs)
-   * @param {Object} data - JSON data
-   * @returns {ImageElement} Image element instance
-   */
-  static async fromJSON(data) {
-    // Check if there's exported media data
-    if (data.properties?.mediaExport) {
-      try {
-        // Import media to IndexedDB
-        const mediaId = await window.MediaDB.importMedia(data.properties.mediaExport);
-        data.properties.url = mediaId;
-        delete data.properties.mediaExport;
-      } catch (error) {
-        console.error('Failed to import media:', error);
-      }
-    }
-
-    return new ImageElement(data);
-  }
+  // toJSON() is inherited from Element — all properties (including url) are serialized automatically.
+  // Media export (embedding binary data) is handled by storage.js exportPresentation().
 }
+
+Element.registerClass('image', ImageElement);
 
 export default ImageElement;

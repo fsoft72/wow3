@@ -106,4 +106,6 @@ export class LinkElement extends Element {
   }
 }
 
+Element.registerClass('link', LinkElement);
+
 export default LinkElement;

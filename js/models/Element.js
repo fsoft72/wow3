@@ -238,26 +238,27 @@ export class Element {
 }
 
 /**
- * Get element class by type
+ * Registry of element subclasses, populated by each subclass module to avoid circular imports.
+ * @type {Object<string, Class>}
+ */
+Element._classRegistry = {};
+
+/**
+ * Register an element subclass for a given type string
+ * @param {string} type - Element type key (e.g. 'video')
+ * @param {Class} cls - Subclass constructor
+ */
+Element.registerClass = (type, cls) => {
+  Element._classRegistry[type] = cls;
+};
+
+/**
+ * Get element class by type (looks up registry, falls back to base Element)
  * @param {string} type - Element type
  * @returns {Class} Element class
  */
 const getElementClass = (type) => {
-  // Import dynamically to avoid circular dependencies
-  // This will be populated as we create the specific element classes
-  const classes = {
-    text: () => import('./TextElement.js').then(m => m.TextElement),
-    image: () => import('./ImageElement.js').then(m => m.ImageElement),
-    video: () => import('./VideoElement.js').then(m => m.VideoElement),
-    audio: () => import('./AudioElement.js').then(m => m.AudioElement),
-    shape: () => import('./ShapeElement.js').then(m => m.ShapeElement),
-    list: () => import('./ListElement.js').then(m => m.ListElement),
-    link: () => import('./LinkElement.js').then(m => m.LinkElement)
-  };
-
-  // For now, return Element base class
-  // This will be updated when we implement the specific classes
-  return Element;
+  return Element._classRegistry[type] || Element;
 };
 
 export default Element;

@@ -88,4 +88,6 @@ export class TextElement extends Element {
   }
 }
 
+Element.registerClass('text', TextElement);
+
 export default TextElement;
