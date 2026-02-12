@@ -773,3 +773,29 @@ Help diagnose why animations are not working by showing:
 - `RightSidebar.js`: Added `showMultiSelectionInfo(count)` method
 - `SlideController.js`: Call `deselectAll()` at start of `selectSlide()`
 - `EditorController.js`: Updated `deleteSelectedElement()` to delegate to `deleteSelectedElements()`
+
+---
+
+## Click Animations Advance with "Next" Key
+
+### Feature: Arrow-right / Space / PageDown now advance click-triggered animations
+- ✓ **Keyboard advancement**: Click-triggered animations can now be advanced with the same "next" keys used for slide navigation (ArrowRight, Space, PageDown)
+- ✓ **Smart routing**: When click animations are pending, "next" advances the animation queue; once all are played, "next" moves to the next slide
+- ✓ **Refactored AnimationController**: Click animation queue is now managed via `_clickAnimQueue` with public `hasPendingClickAnimations` getter and `advanceClickAnimation()` method
+- ✓ **Proper cleanup**: `_cleanupClickListeners()` ensures all event handlers and state are reset on slide change or Escape
+
+**Updated Files:**
+- `AnimationController.js`: Refactored `playClickAnimations()` into queue-based system with `advanceClickAnimation()`, `hasPendingClickAnimations`, and `_cleanupClickListeners()`
+- `PlaybackController.js`: `nextSlide()` checks for pending click animations before advancing
+
+---
+
+## Add Audio Element to Toolbar
+
+### Feature: Audio element can now be added from the toolbar
+- ✓ **Toolbar button**: Added "Add Audio" button (audiotrack icon) to the element toolbar
+- ✓ **Settings panel**: AudioPanel already has Autoplay, Loop, Muted, and Show Controls checkboxes
+
+**Updated Files:**
+- `index.html`: Added `add-audio-btn` toolbar item
+- `EditorController.js`: Wired up click handler for `add-audio-btn`

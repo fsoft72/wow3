@@ -117,6 +117,11 @@ export class EditorController {
       addShapeBtn.addEventListener('click', () => this.addElement('shape'));
     }
 
+    const addAudioBtn = document.getElementById('add-audio-btn');
+    if (addAudioBtn) {
+      addAudioBtn.addEventListener('click', () => this.addElement('audio'));
+    }
+
     // Slide background color
     const slideBackground = document.getElementById('slide-background');
     if (slideBackground) {

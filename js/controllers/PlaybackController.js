@@ -181,9 +181,15 @@ export class PlaybackController {
   }
 
   /**
-   * Navigate to next slide
+   * Navigate to next slide, or advance pending click animation first
    */
   nextSlide() {
+    // If click-triggered animations are still queued, advance them instead
+    if (this.editor.animationController && this.editor.animationController.hasPendingClickAnimations) {
+      this.editor.animationController.advanceClickAnimation();
+      return;
+    }
+
     if (this.currentSlideIndex < this.editor.presentation.slides.length - 1) {
       this.showSlide(this.currentSlideIndex + 1);
     } else {

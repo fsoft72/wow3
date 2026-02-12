@@ -22,6 +22,14 @@ export class AnimationController {
     this.currentElement = null;
     this.currentMode = null; // 'in' or 'out'
     this.modal = null;
+
+    // Click-animation queue state
+    this._clickAnimQueue = [];
+    this._clickAnimIndex = 0;
+    this._clickAnimContainer = null;
+    this._clickAnimResolve = null;
+    this._clickHandler = null;
+    this._clickEscapeHandler = null;
   }
 
   /**
@@ -311,37 +319,85 @@ export class AnimationController {
   }
 
   /**
-   * Play click-triggered animations
+   * Whether there are queued click-triggered animations still waiting
+   * @returns {boolean}
+   */
+  get hasPendingClickAnimations() {
+    return this._clickAnimQueue.length > 0 && this._clickAnimIndex < this._clickAnimQueue.length;
+  }
+
+  /**
+   * Advance the click-animation queue by one step (called externally by PlaybackController)
+   * @returns {Promise<boolean>} true if an animation was played
+   */
+  async advanceClickAnimation() {
+    if (!this.hasPendingClickAnimations) return false;
+
+    await this.playElementAnimation(
+      this._clickAnimQueue[this._clickAnimIndex], 'in', this._clickAnimContainer
+    );
+    this._clickAnimIndex++;
+
+    if (!this.hasPendingClickAnimations) {
+      this._cleanupClickListeners();
+    }
+
+    return true;
+  }
+
+  /**
+   * Play click-triggered animations, advancing one per click or "next" key press
    * @param {Array} elements - Elements with click-triggered animations
    * @param {HTMLElement} container - DOM container to scope element lookups to
-   * @returns {Promise} Promise that resolves when all animations complete
+   * @returns {Promise} Resolves when all click animations have been played
    */
   playClickAnimations(elements, container) {
+    // Clean up any leftover state from a previous slide
+    this._cleanupClickListeners();
+
+    this._clickAnimQueue = elements;
+    this._clickAnimIndex = 0;
+    this._clickAnimContainer = container;
+
     return new Promise((resolve) => {
-      let currentIndex = 0;
+      this._clickAnimResolve = resolve;
 
-      const playNext = async () => {
-        if (currentIndex < elements.length) {
-          await this.playElementAnimation(elements[currentIndex], 'in', container);
-          currentIndex++;
-        } else {
-          document.removeEventListener('click', playNext);
-          resolve();
-        }
+      this._clickHandler = () => {
+        this.advanceClickAnimation();
       };
 
-      document.addEventListener('click', playNext);
-
-      // Also resolve on escape
-      const escapeHandler = (e) => {
+      this._clickEscapeHandler = (e) => {
         if (e.key === 'Escape') {
-          document.removeEventListener('click', playNext);
-          document.removeEventListener('keydown', escapeHandler);
-          resolve();
+          this._cleanupClickListeners();
         }
       };
-      document.addEventListener('keydown', escapeHandler);
+
+      document.addEventListener('click', this._clickHandler);
+      document.addEventListener('keydown', this._clickEscapeHandler);
     });
+  }
+
+  /**
+   * Remove click-animation event listeners and reset queue state
+   */
+  _cleanupClickListeners() {
+    if (this._clickHandler) {
+      document.removeEventListener('click', this._clickHandler);
+      this._clickHandler = null;
+    }
+    if (this._clickEscapeHandler) {
+      document.removeEventListener('keydown', this._clickEscapeHandler);
+      this._clickEscapeHandler = null;
+    }
+
+    this._clickAnimQueue = [];
+    this._clickAnimIndex = 0;
+    this._clickAnimContainer = null;
+
+    if (this._clickAnimResolve) {
+      this._clickAnimResolve();
+      this._clickAnimResolve = null;
+    }
   }
 
   /**
