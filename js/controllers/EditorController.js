@@ -92,9 +92,10 @@ export class EditorController {
 
     const playBtn = document.getElementById('play-btn');
     if (playBtn) {
-      playBtn.addEventListener('click', () => {
+      playBtn.addEventListener('click', (e) => {
         if (this.playbackController) {
-          this.playbackController.start();
+          const fromIndex = e.shiftKey ? this.presentation.currentSlideIndex : 0;
+          this.playbackController.start(fromIndex);
         }
       });
     }

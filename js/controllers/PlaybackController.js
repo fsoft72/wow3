@@ -55,8 +55,9 @@ export class PlaybackController {
 
   /**
    * Start presentation playback
+   * @param {number} fromIndex - Slide index to start from (default 0)
    */
-  start() {
+  start(fromIndex = 0) {
     if (!this.presentationView) return;
 
     this.isPlaying = true;
@@ -73,14 +74,21 @@ export class PlaybackController {
       });
     }
 
-    // Show first visible slide
-    const first = this._findVisibleSlide(0);
-    if (first === -1) {
+    // When starting from a specific slide (Shift+Play), show it even if hidden.
+    // Otherwise find the first visible slide from the requested index.
+    let startSlide;
+    if (fromIndex > 0) {
+      startSlide = fromIndex;
+    } else {
+      startSlide = this._findVisibleSlide(0);
+    }
+
+    if (startSlide === -1) {
       M.toast({ html: 'All slides are hidden', classes: 'orange' });
       this.stop();
       return;
     }
-    this.showSlide(first);
+    this.showSlide(startSlide);
 
     // Setup navigation
     this.setupNavigation();
