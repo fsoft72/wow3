@@ -201,7 +201,25 @@ export class EditorController {
     if (!this.presentation) return;
 
     try {
+      // Save current slide index
+      const currentSlideIndex = this.presentation.currentSlideIndex;
+
+      // Temporarily switch to first slide for thumbnail capture
+      if (currentSlideIndex !== 0 && this.presentation.slides.length > 0) {
+        this.presentation.setCurrentSlide(0);
+        await this.slideController.renderCurrentSlide();
+        // Wait for render to complete
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      // Save presentation (will generate thumbnail from first slide)
       const success = await savePresentation(this.presentation);
+
+      // Restore original slide
+      if (currentSlideIndex !== 0) {
+        this.presentation.setCurrentSlide(currentSlideIndex);
+        await this.slideController.renderCurrentSlide();
+      }
 
       if (success) {
         this.unsavedChanges = false;

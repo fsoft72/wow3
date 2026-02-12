@@ -27,6 +27,9 @@ export const generateThumbnail = async (presentation) => {
     const canvas = document.getElementById('slide-canvas');
     if (!canvas) return null;
 
+    // Wait a bit to ensure canvas is rendered
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     // Create a temporary canvas for thumbnail
     const thumbCanvas = document.createElement('canvas');
     const thumbWidth = 400;
@@ -35,35 +38,89 @@ export const generateThumbnail = async (presentation) => {
     thumbCanvas.height = thumbHeight;
     const ctx = thumbCanvas.getContext('2d');
 
-    // Fill with white background
-    ctx.fillStyle = '#ffffff';
+    // Fill with slide background
+    const firstSlide = presentation.slides[0];
+    ctx.fillStyle = firstSlide.background || '#ffffff';
     ctx.fillRect(0, 0, thumbWidth, thumbHeight);
 
-    // Clone the current canvas content
-    const mainCanvasRect = canvas.getBoundingClientRect();
-    const scaleX = thumbWidth / mainCanvasRect.width;
-    const scaleY = thumbHeight / mainCanvasRect.height;
+    // Get all elements from the canvas
+    const elements = canvas.querySelectorAll('.element');
+
+    if (elements.length === 0) {
+      // No elements, just return background
+      return thumbCanvas.toDataURL('image/png');
+    }
+
+    // Calculate scale to fit canvas into thumbnail
+    const canvasRect = canvas.getBoundingClientRect();
+    const scaleX = thumbWidth / canvasRect.width;
+    const scaleY = thumbHeight / canvasRect.height;
     const scale = Math.min(scaleX, scaleY);
 
-    // Use html2canvas if available, otherwise use simpler method
-    if (typeof html2canvas !== 'undefined') {
-      try {
-        const capturedCanvas = await html2canvas(canvas, {
-          backgroundColor: '#ffffff',
-          scale: 1,
-          logging: false
-        });
-        ctx.drawImage(capturedCanvas, 0, 0, thumbWidth, thumbHeight);
-      } catch (e) {
-        console.warn('html2canvas failed, using simple rendering:', e);
-        // Fallback: just use background color
-        ctx.fillStyle = presentation.slides[0].background || '#ffffff';
-        ctx.fillRect(0, 0, thumbWidth, thumbHeight);
+    // Center the content
+    const offsetX = (thumbWidth - canvasRect.width * scale) / 2;
+    const offsetY = (thumbHeight - canvasRect.height * scale) / 2;
+
+    // Draw each element onto thumbnail canvas
+    for (const element of elements) {
+      const rect = element.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+
+      // Calculate position relative to canvas
+      const x = (rect.left - canvasRect.left) * scale + offsetX;
+      const y = (rect.top - canvasRect.top) * scale + offsetY;
+      const width = rect.width * scale;
+      const height = rect.height * scale;
+
+      // Get element type
+      const elementType = element.dataset.type;
+
+      if (elementType === 'text') {
+        // Draw text elements
+        const textContent = element.querySelector('.text-content');
+        if (textContent) {
+          const computedStyle = window.getComputedStyle(textContent);
+          ctx.save();
+          ctx.fillStyle = computedStyle.color;
+          ctx.font = `${computedStyle.fontWeight} ${computedStyle.fontStyle} ${parseFloat(computedStyle.fontSize) * scale}px ${computedStyle.fontFamily}`;
+          ctx.textAlign = computedStyle.textAlign || 'left';
+          ctx.textBaseline = 'top';
+
+          // Handle text alignment
+          let textX = x;
+          if (ctx.textAlign === 'center') textX = x + width / 2;
+          else if (ctx.textAlign === 'right') textX = x + width;
+
+          ctx.fillText(textContent.innerText, textX, y);
+          ctx.restore();
+        }
+      } else if (elementType === 'image') {
+        // Draw image elements
+        const img = element.querySelector('img');
+        if (img && img.complete && img.naturalWidth > 0) {
+          ctx.drawImage(img, x, y, width, height);
+        }
+      } else if (elementType === 'shape') {
+        // Draw shape elements
+        const svg = element.querySelector('svg');
+        if (svg) {
+          const computedStyle = window.getComputedStyle(svg);
+          ctx.save();
+          ctx.fillStyle = computedStyle.fill || '#000000';
+
+          // Simple shape rendering (rectangle or circle)
+          const shapeType = element.dataset.shapeType || 'rectangle';
+          if (shapeType === 'circle') {
+            ctx.beginPath();
+            ctx.arc(x + width/2, y + height/2, Math.min(width, height)/2, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillRect(x, y, width, height);
+          }
+          ctx.restore();
+        }
       }
-    } else {
-      // Simple fallback: use slide background color
-      ctx.fillStyle = presentation.slides[0].background || '#ffffff';
-      ctx.fillRect(0, 0, thumbWidth, thumbHeight);
+      // Note: Video, audio, and other complex elements are skipped in thumbnails
     }
 
     return thumbCanvas.toDataURL('image/png');

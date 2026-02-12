@@ -419,3 +419,25 @@
 - `i18n.js`: Added translations for presentation manager
 - `UIManager.js`: Initialize and attach PresentationManager
 - `index.html`: Added presentation-manager CSS and JS includes
+
+---
+
+## Thumbnail Generation Fix
+
+### Fix: Proper thumbnail capture from first slide
+- ✓ **Improved thumbnail rendering**: Now properly captures elements (text, images, shapes)
+- ✓ **First slide capture**: Temporarily switches to first slide before generating thumbnail
+- ✓ **Element rendering**: Draws text with proper styling, images, and shapes onto thumbnail
+- ✓ **Background preservation**: Uses actual slide background color
+- ✓ **Scale calculation**: Properly scales canvas content to fit 400×300 thumbnail
+
+**How It Works:**
+1. When saving, temporarily switch to first slide
+2. Render first slide to canvas
+3. Iterate through all elements and draw them to thumbnail canvas
+4. Capture as PNG data URL
+5. Restore original slide
+
+**Updated Files:**
+- `storage.js`: Enhanced `generateThumbnail()` to render actual elements
+- `EditorController.js`: Temporarily switches to first slide during save for thumbnail capture
