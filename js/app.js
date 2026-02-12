@@ -105,23 +105,42 @@ class WOW3App {
 
   /**
    * Load or create presentation
+   * Priority: 1. localStorage snapshot (current working), 2. IndexedDB (last saved), 3. New
    */
   async loadPresentation() {
-    // Try to load from localStorage
-    const savedData = localStorage.getItem('wow3_current_presentation');
-    if (savedData) {
-      try {
-        const data = JSON.parse(savedData);
-        await this.editor.loadPresentation(data);
-        console.log('Loaded saved presentation');
-      } catch (error) {
-        console.error('Failed to load saved presentation:', error);
-        await this.editor.createNewPresentation();
+    try {
+      // Import storage utilities dynamically
+      const { loadSnapshot, getAllPresentations } = await import('./utils/storage.js');
+
+      // Try to load snapshot first (current working presentation)
+      const snapshot = loadSnapshot();
+      if (snapshot) {
+        await this.editor.loadPresentation(snapshot);
+        console.log('📸 Loaded presentation from snapshot');
+        return;
       }
-    } else {
-      // Create new presentation
+
+      // Try to load last saved presentation from IndexedDB
+      const presentations = await getAllPresentations();
+      if (presentations && presentations.length > 0) {
+        // Load the most recently modified presentation
+        const lastPresentation = presentations[0];
+        const { loadPresentation } = await import('./utils/storage.js');
+        const data = await loadPresentation(lastPresentation.id);
+
+        if (data) {
+          await this.editor.loadPresentation(data);
+          console.log('💾 Loaded last saved presentation from IndexedDB');
+          return;
+        }
+      }
+
+      // No saved data, create new presentation
       await this.editor.createNewPresentation();
-      console.log('Created new presentation');
+      console.log('✨ Created new presentation');
+    } catch (error) {
+      console.error('Failed to load presentation:', error);
+      await this.editor.createNewPresentation();
     }
   }
 

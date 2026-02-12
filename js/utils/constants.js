@@ -95,6 +95,7 @@ export const SHORTCUTS = {
 export const STORAGE_KEYS = {
   PREFIX: 'wow3_',
   CURRENT_PRESENTATION: 'wow3_current_presentation',
+  SNAPSHOT: 'wow3_snapshot',
   AUTO_SAVE: 'wow3_autosave',
   PREFERENCES: 'wow3_preferences'
 };

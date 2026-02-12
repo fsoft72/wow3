@@ -1,77 +1,83 @@
 /**
  * WOW3 Storage Utilities
- * Functions for data persistence using localStorage
+ * Dual storage system:
+ * - IndexedDB: Permanent storage (user clicks "Save")
+ * - localStorage: Snapshots for auto-save and crash recovery
  */
 
 import { STORAGE_KEYS } from './constants.js';
+import PresentationsDB from './presentations_db.js';
+
+// ==================== INDEXEDDB (PERMANENT STORAGE) ====================
 
 /**
- * Save presentation to localStorage
+ * Save presentation to IndexedDB (permanent storage)
+ * This is called when user explicitly clicks "Save"
  * @param {Object} presentation - Presentation object
- * @returns {boolean} Success status
+ * @returns {Promise<boolean>} Success status
  */
-export const savePresentation = (presentation) => {
+export const savePresentation = async (presentation) => {
   try {
-    const data = JSON.stringify(presentation.toJSON());
-    localStorage.setItem(STORAGE_KEYS.PREFIX + presentation.id, data);
-    localStorage.setItem(STORAGE_KEYS.CURRENT_PRESENTATION, data);
+    await PresentationsDB.savePresentation(presentation);
+
+    // Also update the snapshot after successful save
+    await saveSnapshot(presentation);
+
+    console.log('✅ Presentation saved to IndexedDB');
     return true;
   } catch (e) {
-    console.error('Failed to save presentation:', e);
+    console.error('❌ Failed to save presentation to IndexedDB:', e);
     return false;
   }
 };
 
 /**
- * Load presentation from localStorage
+ * Load presentation from IndexedDB
  * @param {string} id - Presentation ID
- * @returns {Object|null} Presentation data or null
+ * @returns {Promise<Object|null>} Presentation data or null
  */
-export const loadPresentation = (id) => {
+export const loadPresentation = async (id) => {
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.PREFIX + id);
-    return data ? JSON.parse(data) : null;
+    const data = await PresentationsDB.getPresentation(id);
+    return data;
   } catch (e) {
-    console.error('Failed to load presentation:', e);
+    console.error('Failed to load presentation from IndexedDB:', e);
     return null;
   }
 };
 
 /**
- * Get all saved presentations
- * @returns {Array} Array of presentation metadata
+ * Get all saved presentations from IndexedDB
+ * @returns {Promise<Array>} Array of presentations
  */
-export const getAllPresentations = () => {
-  const presentations = [];
-
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith(STORAGE_KEYS.PREFIX) && key !== STORAGE_KEYS.CURRENT_PRESENTATION) {
-      try {
-        const data = JSON.parse(localStorage.getItem(key));
-        presentations.push({
-          id: data.id,
-          title: data.title,
-          modified: data.metadata.modified,
-          slideCount: data.slides.length
-        });
-      } catch (e) {
-        console.error('Failed to parse presentation:', e);
-      }
-    }
+export const getAllPresentations = async () => {
+  try {
+    const presentations = await PresentationsDB.getAllPresentations();
+    return presentations.map(p => ({
+      id: p.id,
+      title: p.title,
+      modified: p.metadata?.modified,
+      slideCount: p.slides?.length || 0
+    }));
+  } catch (e) {
+    console.error('Failed to get all presentations:', e);
+    return [];
   }
-
-  return presentations.sort((a, b) => new Date(b.modified) - new Date(a.modified));
 };
 
 /**
- * Delete presentation from localStorage
+ * Delete presentation from IndexedDB
  * @param {string} id - Presentation ID
- * @returns {boolean} Success status
+ * @returns {Promise<boolean>} Success status
  */
-export const deletePresentation = (id) => {
+export const deletePresentation = async (id) => {
   try {
+    await PresentationsDB.deletePresentation(id);
+
+    // Also remove from localStorage if it exists
     localStorage.removeItem(STORAGE_KEYS.PREFIX + id);
+
+    console.log('✅ Presentation deleted from IndexedDB');
     return true;
   } catch (e) {
     console.error('Failed to delete presentation:', e);
@@ -80,11 +86,124 @@ export const deletePresentation = (id) => {
 };
 
 /**
+ * Search presentations by title
+ * @param {string} query - Search query
+ * @returns {Promise<Array>} Filtered presentations
+ */
+export const searchPresentations = async (query) => {
+  try {
+    return await PresentationsDB.searchPresentations(query);
+  } catch (e) {
+    console.error('Failed to search presentations:', e);
+    return [];
+  }
+};
+
+// ==================== LOCALSTORAGE (SNAPSHOTS) ====================
+
+/**
+ * Save snapshot to localStorage (auto-save, crash recovery)
+ * This is called every 30 seconds for crash recovery
+ * @param {Object} presentation - Presentation object
+ * @returns {boolean} Success status
+ */
+export const saveSnapshot = (presentation) => {
+  try {
+    const data = JSON.stringify(presentation.toJSON ? presentation.toJSON() : presentation);
+
+    // Save as current working presentation
+    localStorage.setItem(STORAGE_KEYS.CURRENT_PRESENTATION, data);
+
+    // Also save with timestamp for recovery
+    const timestamp = Date.now();
+    localStorage.setItem(STORAGE_KEYS.SNAPSHOT + '_' + timestamp, data);
+
+    // Keep only last 3 snapshots to avoid filling localStorage
+    cleanupOldSnapshots();
+
+    console.log('📸 Snapshot saved to localStorage');
+    return true;
+  } catch (e) {
+    console.error('Failed to save snapshot:', e);
+    return false;
+  }
+};
+
+/**
+ * Load snapshot from localStorage
+ * @returns {Object|null} Snapshot data or null
+ */
+export const loadSnapshot = () => {
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.CURRENT_PRESENTATION);
+    return data ? JSON.parse(data) : null;
+  } catch (e) {
+    console.error('Failed to load snapshot:', e);
+    return null;
+  }
+};
+
+/**
+ * Clear current snapshot
+ */
+export const clearSnapshot = () => {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.CURRENT_PRESENTATION);
+    console.log('🗑️ Snapshot cleared');
+  } catch (e) {
+    console.error('Failed to clear snapshot:', e);
+  }
+};
+
+/**
+ * Get all snapshots (for recovery)
+ * @returns {Array} Array of snapshots with timestamps
+ */
+export const getAllSnapshots = () => {
+  const snapshots = [];
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith(STORAGE_KEYS.SNAPSHOT + '_')) {
+      try {
+        const data = JSON.parse(localStorage.getItem(key));
+        const timestamp = parseInt(key.split('_').pop());
+        snapshots.push({
+          timestamp,
+          data,
+          date: new Date(timestamp)
+        });
+      } catch (e) {
+        console.error('Failed to parse snapshot:', e);
+      }
+    }
+  }
+
+  return snapshots.sort((a, b) => b.timestamp - a.timestamp);
+};
+
+/**
+ * Clean up old snapshots (keep only last 3)
+ */
+const cleanupOldSnapshots = () => {
+  const snapshots = getAllSnapshots();
+
+  // Keep only last 3 snapshots
+  if (snapshots.length > 3) {
+    snapshots.slice(3).forEach(snapshot => {
+      localStorage.removeItem(STORAGE_KEYS.SNAPSHOT + '_' + snapshot.timestamp);
+    });
+  }
+};
+
+// ==================== IMPORT/EXPORT ====================
+
+/**
  * Export presentation as JSON file
  * @param {Object} presentation - Presentation object
  */
 export const exportPresentation = (presentation) => {
-  const data = JSON.stringify(presentation.toJSON(), null, 2);
+  const data = JSON.stringify(presentation.toJSON ? presentation.toJSON() : presentation, null, 2);
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
 
@@ -95,6 +214,8 @@ export const exportPresentation = (presentation) => {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+
+  console.log('📥 Presentation exported to JSON');
 };
 
 /**
@@ -118,6 +239,7 @@ export const importPresentation = () => {
       reader.onload = (e) => {
         try {
           const data = JSON.parse(e.target.result);
+          console.log('📤 Presentation imported from JSON');
           resolve(data);
         } catch (error) {
           reject(error);
@@ -130,6 +252,8 @@ export const importPresentation = () => {
     input.click();
   });
 };
+
+// ==================== PREFERENCES ====================
 
 /**
  * Save user preferences
@@ -160,20 +284,28 @@ export const loadPreferences = () => {
   }
 };
 
+// ==================== UTILITIES ====================
+
 /**
- * Clear all application data
- * @returns {boolean} Success status
+ * Clear all application data (both IndexedDB and localStorage)
+ * @returns {Promise<boolean>} Success status
  */
-export const clearAllData = () => {
+export const clearAllData = async () => {
   try {
+    // Clear IndexedDB
+    await PresentationsDB.clearAllPresentations();
+
+    // Clear localStorage
     const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key.startsWith(STORAGE_KEYS.PREFIX)) {
+      if (key.startsWith(STORAGE_KEYS.PREFIX) || key.startsWith(STORAGE_KEYS.SNAPSHOT)) {
         keys.push(key);
       }
     }
     keys.forEach(key => localStorage.removeItem(key));
+
+    console.log('🗑️ All data cleared');
     return true;
   } catch (e) {
     console.error('Failed to clear data:', e);
@@ -183,27 +315,37 @@ export const clearAllData = () => {
 
 /**
  * Get storage usage statistics
- * @returns {Object} Storage usage info
+ * @returns {Promise<Object>} Storage usage info
  */
-export const getStorageUsage = () => {
-  let totalSize = 0;
-  let presentationCount = 0;
+export const getStorageUsage = async () => {
+  // localStorage usage
+  let localStorageSize = 0;
+  let snapshotCount = 0;
 
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key.startsWith(STORAGE_KEYS.PREFIX)) {
+    if (key.startsWith(STORAGE_KEYS.PREFIX) || key.startsWith(STORAGE_KEYS.SNAPSHOT)) {
       const value = localStorage.getItem(key);
-      totalSize += key.length + value.length;
-      if (key !== STORAGE_KEYS.CURRENT_PRESENTATION && key !== STORAGE_KEYS.PREFERENCES) {
-        presentationCount++;
+      localStorageSize += (key.length + value.length) * 2; // UTF-16
+
+      if (key.startsWith(STORAGE_KEYS.SNAPSHOT)) {
+        snapshotCount++;
       }
     }
   }
 
+  // IndexedDB usage
+  const presentationCount = await PresentationsDB.getPresentationCount();
+
   return {
-    totalSize: totalSize * 2, // UTF-16 uses 2 bytes per character
-    presentationCount,
-    totalSizeFormatted: formatBytes(totalSize * 2)
+    localStorage: {
+      size: localStorageSize,
+      sizeFormatted: formatBytes(localStorageSize),
+      snapshotCount
+    },
+    indexedDB: {
+      presentationCount
+    }
   };
 };
 

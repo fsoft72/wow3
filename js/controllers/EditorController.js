@@ -4,7 +4,14 @@
  */
 
 import { Presentation } from '../models/Presentation.js';
-import { savePresentation, loadPresentation, exportPresentation, importPresentation } from '../utils/storage.js';
+import {
+  savePresentation,
+  loadPresentation,
+  saveSnapshot,
+  loadSnapshot,
+  exportPresentation,
+  importPresentation
+} from '../utils/storage.js';
 import { appEvents, AppEvents } from '../utils/events.js';
 
 export class EditorController {
@@ -165,29 +172,36 @@ export class EditorController {
   }
 
   /**
-   * Save presentation
+   * Save presentation to IndexedDB (permanent storage)
+   * Called when user explicitly clicks "Save" button or Ctrl+S
    */
-  savePresentation() {
+  async savePresentation() {
     if (!this.presentation) return;
 
-    const success = savePresentation(this.presentation);
+    try {
+      const success = await savePresentation(this.presentation);
 
-    if (success) {
-      this.unsavedChanges = false;
-      M.toast({ html: 'Presentation saved', classes: 'green' });
-      appEvents.emit(AppEvents.PRESENTATION_SAVED, this.presentation);
-    } else {
-      M.toast({ html: 'Failed to save presentation', classes: 'red' });
+      if (success) {
+        this.unsavedChanges = false;
+        M.toast({ html: '💾 Presentation saved to IndexedDB', classes: 'green' });
+        appEvents.emit(AppEvents.PRESENTATION_SAVED, this.presentation);
+      } else {
+        M.toast({ html: '❌ Failed to save presentation', classes: 'red' });
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      M.toast({ html: '❌ Failed to save presentation', classes: 'red' });
     }
   }
 
   /**
-   * Auto-save presentation
+   * Auto-save presentation to localStorage (snapshot for crash recovery)
+   * Called every 30 seconds automatically
    */
   autoSave() {
     if (this.unsavedChanges && this.presentation) {
-      console.log('Auto-saving presentation...');
-      savePresentation(this.presentation);
+      console.log('📸 Auto-saving snapshot to localStorage...');
+      saveSnapshot(this.presentation);
     }
   }
 

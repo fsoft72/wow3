@@ -198,3 +198,22 @@
 - ✓ Responsive MaterializeCSS UI
 
 **Ready for:** Browser testing and user feedback!
+
+---
+
+## Storage System Migration (IndexedDB + localStorage)
+
+### Major Update: Dual Storage System
+- ✓ **IndexedDB** for permanent storage (user clicks "Save")
+- ✓ **localStorage** for snapshots/auto-save (crash recovery)
+
+**New Files:**
+- `presentations_db.js`: Complete IndexedDB manager
+- Updated `storage.js`: Dual storage with snapshots
+
+**Key Changes:**
+- Save button → IndexedDB (permanent)
+- Auto-save (30s) → localStorage snapshot
+- Load priority: snapshot → IndexedDB → new
+- Keeps last 3 snapshots for recovery
+- No more 5-10MB localStorage limit issues!
