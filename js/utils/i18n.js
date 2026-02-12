@@ -41,7 +41,4 @@ window.I18n = {
 /**
  * Global helper for translation
  */
-const __ = (key, ...args) => window.I18n.t(key, ...args);
-
-window.__ = __;
-export default __;
+window.__ = (key, ...args) => window.I18n.t(key, ...args);
