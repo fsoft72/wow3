@@ -461,6 +461,8 @@ export class ElementController {
   updateElementProperty(property, value) {
     if (!this.selectedElement) return;
 
+    const selectedId = this.selectedElement.id;
+
     // Navigate property path and set value
     const paths = property.split('.');
     let target = this.selectedElement;
@@ -471,19 +473,29 @@ export class ElementController {
 
     target[paths[paths.length - 1]] = value;
 
-    // Re-render element
+    // Re-render canvas (recreates all DOM nodes)
     this.editor.slideController.renderCurrentSlide();
 
-    // Re-select element to maintain selection
-    const element = this.editor.getActiveSlide()
-      .getElement(this.selectedElement.id);
+    // Re-establish selection on the new DOM without touching the
+    // properties panel.  Going through the full selectElement() path
+    // would call deselectAll() → clearProperties() → updateProperties(),
+    // resetting currentElementId and causing a full panel redraw that
+    // kills slider / input focus.
+    const element = this.editor.getActiveSlide().getElement(selectedId);
 
     if (element) {
-      this.selectElement(element);
+      this._selectedElements.clear();
+      this._selectedElements.add(element);
+
+      const elementDOM = document.getElementById(element.id);
+      if (elementDOM) {
+        elementDOM.classList.add('selected');
+        this.addHandles(elementDOM);
+      }
     }
 
     this.editor.recordHistory();
-    appEvents.emit(AppEvents.ELEMENT_UPDATED, this.selectedElement);
+    appEvents.emit(AppEvents.ELEMENT_UPDATED, element || this.selectedElement);
   }
 
   /**
