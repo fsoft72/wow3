@@ -160,6 +160,9 @@ export class SlideController {
     if (index === this.editor.presentation.currentSlideIndex) {
       div.classList.add('active');
     }
+    if (!slide.visible) {
+      div.classList.add('slide-hidden');
+    }
     div.dataset.slideIndex = index;
     div.draggable = true;
 
@@ -168,6 +171,19 @@ export class SlideController {
     number.className = 'slide-number';
     number.textContent = index + 1;
     div.appendChild(number);
+
+    // Visibility toggle (eye icon)
+    const eyeBtn = document.createElement('div');
+    eyeBtn.className = 'slide-visibility-btn';
+    eyeBtn.title = slide.visible ? 'Hide slide' : 'Show slide';
+    eyeBtn.innerHTML = `<i class="material-icons">${slide.visible ? 'visibility' : 'visibility_off'}</i>`;
+    eyeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      slide.visible = !slide.visible;
+      this.editor.recordHistory();
+      this.renderSlides();
+    });
+    div.appendChild(eyeBtn);
 
     // Thumbnail preview
     const preview = document.createElement('div');

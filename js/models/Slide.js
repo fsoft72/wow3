@@ -23,6 +23,7 @@ export class Slide {
     this.id = properties.id || generateId('slide');
     this.title = properties.title || 'Untitled Slide';
     this.background = properties.background || DEFAULTS.BACKGROUND_COLOR;
+    this.visible = properties.visible !== false; // default true
     this.elements = [];
 
     // Load elements if provided
@@ -190,6 +191,7 @@ export class Slide {
       id: this.id,
       title: this.title,
       background: this.background,
+      visible: this.visible,
       elements: this.elements.map(el => el.toJSON())
     };
   }

@@ -28,6 +28,32 @@ export class PlaybackController {
   }
 
   /**
+   * Find the next visible slide index searching forward from `from` (inclusive)
+   * @param {number} from - Start index
+   * @returns {number} Visible slide index, or -1 if none
+   */
+  _findVisibleSlide(from) {
+    const slides = this.editor.presentation.slides;
+    for (let i = from; i < slides.length; i++) {
+      if (slides[i].visible) return i;
+    }
+    return -1;
+  }
+
+  /**
+   * Find the previous visible slide index searching backward from `from` (inclusive)
+   * @param {number} from - Start index
+   * @returns {number} Visible slide index, or -1 if none
+   */
+  _findVisibleSlideReverse(from) {
+    const slides = this.editor.presentation.slides;
+    for (let i = from; i >= 0; i--) {
+      if (slides[i].visible) return i;
+    }
+    return -1;
+  }
+
+  /**
    * Start presentation playback
    */
   start() {
@@ -47,8 +73,14 @@ export class PlaybackController {
       });
     }
 
-    // Show first slide
-    this.showSlide(0);
+    // Show first visible slide
+    const first = this._findVisibleSlide(0);
+    if (first === -1) {
+      M.toast({ html: 'All slides are hidden', classes: 'orange' });
+      this.stop();
+      return;
+    }
+    this.showSlide(first);
 
     // Setup navigation
     this.setupNavigation();
@@ -76,15 +108,17 @@ export class PlaybackController {
         e.preventDefault();
         this.previousSlide();
       }
-      // First slide: Home
+      // First visible slide: Home
       else if (e.key === 'Home') {
         e.preventDefault();
-        this.showSlide(0);
+        const first = this._findVisibleSlide(0);
+        if (first !== -1) this.showSlide(first);
       }
-      // Last slide: End
+      // Last visible slide: End
       else if (e.key === 'End') {
         e.preventDefault();
-        this.showSlide(this.editor.presentation.slides.length - 1);
+        const last = this._findVisibleSlideReverse(this.editor.presentation.slides.length - 1);
+        if (last !== -1) this.showSlide(last);
       }
       // Exit: Escape
       else if (e.key === 'Escape') {
@@ -200,7 +234,9 @@ export class PlaybackController {
       font-size: 14px;
       z-index: 1000;
     `;
-    indicator.textContent = `${index + 1} / ${this.editor.presentation.slides.length}`;
+    const visibleSlides = this.editor.presentation.slides.filter(s => s.visible);
+    const visiblePos = visibleSlides.indexOf(slide) + 1;
+    indicator.textContent = `${visiblePos} / ${visibleSlides.length}`;
     this.presentationView.appendChild(indicator);
 
     // Play animations (pass container so lookups are scoped to the presentation view)
@@ -221,20 +257,21 @@ export class PlaybackController {
       return;
     }
 
-    if (this.currentSlideIndex < this.editor.presentation.slides.length - 1) {
-      this.showSlide(this.currentSlideIndex + 1);
+    const next = this._findVisibleSlide(this.currentSlideIndex + 1);
+    if (next !== -1) {
+      this.showSlide(next);
     } else {
-      // End of presentation
       M.toast({ html: 'End of presentation', classes: 'blue' });
     }
   }
 
   /**
-   * Navigate to previous slide
+   * Navigate to previous visible slide
    */
   previousSlide() {
-    if (this.currentSlideIndex > 0) {
-      this.showSlide(this.currentSlideIndex - 1);
+    const prev = this._findVisibleSlideReverse(this.currentSlideIndex - 1);
+    if (prev !== -1) {
+      this.showSlide(prev);
     }
   }
 
