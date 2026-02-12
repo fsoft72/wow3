@@ -80,10 +80,44 @@ export const applyAnimation = (element, animation, options = {}) => {
       element.style.opacity = '1';
       element.style.visibility = 'visible';
 
-      console.log('🎨 [applyAnimation] Final state after cleanup:', {
-        opacity: element.style.opacity,
-        visibility: element.style.visibility
+      // DEBUG: Comprehensive element state
+      const computedStyle = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      console.log('🔍 [DEBUG] Complete element state for:', element.id);
+      console.log('📐 BoundingRect:', {
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+        top: rect.top,
+        left: rect.left
       });
+      console.log('🎨 Computed styles:', {
+        opacity: computedStyle.opacity,
+        visibility: computedStyle.visibility,
+        display: computedStyle.display,
+        position: computedStyle.position,
+        zIndex: computedStyle.zIndex,
+        transform: computedStyle.transform,
+        width: computedStyle.width,
+        height: computedStyle.height
+      });
+      console.log('📝 Inline styles:', {
+        opacity: element.style.opacity,
+        visibility: element.style.visibility,
+        display: element.style.display,
+        width: element.style.width,
+        height: element.style.height,
+        left: element.style.left,
+        top: element.style.top
+      });
+      console.log('📦 Element HTML:', element.outerHTML.substring(0, 500));
+      console.log('👁️ Is element in viewport?',
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= window.innerHeight &&
+        rect.right <= window.innerWidth
+      );
 
       element.removeEventListener('animationend', handler);
       resolve();
