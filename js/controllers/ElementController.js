@@ -461,8 +461,6 @@ export class ElementController {
   updateElementProperty(property, value) {
     if (!this.selectedElement) return;
 
-    const selectedId = this.selectedElement.id;
-
     // Navigate property path and set value
     const paths = property.split('.');
     let target = this.selectedElement;
@@ -473,29 +471,41 @@ export class ElementController {
 
     target[paths[paths.length - 1]] = value;
 
-    // Re-render canvas (recreates all DOM nodes)
-    this.editor.slideController.renderCurrentSlide();
+    // Re-render only the affected element instead of the entire slide.
+    // A full renderCurrentSlide() destroys all DOM nodes, causing media
+    // elements (images, video, audio) to flash as they reload.
+    const canvas = document.getElementById('slide-canvas');
+    const oldDOM = document.getElementById(this.selectedElement.id);
 
-    // Re-establish selection on the new DOM without touching the
-    // properties panel.  Going through the full selectElement() path
-    // would call deselectAll() → clearProperties() → updateProperties(),
-    // resetting currentElementId and causing a full panel redraw that
-    // kills slider / input focus.
-    const element = this.editor.getActiveSlide().getElement(selectedId);
+    if (canvas && oldDOM) {
+      const activeSlide = this.editor.getActiveSlide();
+      const zIndex = activeSlide.elements.indexOf(this.selectedElement);
+      const nextSibling = oldDOM.nextSibling;
+      oldDOM.remove();
 
-    if (element) {
-      this._selectedElements.clear();
-      this._selectedElements.add(element);
+      const newDOM = this.selectedElement.render(zIndex >= 0 ? zIndex : 0);
 
-      const elementDOM = document.getElementById(element.id);
-      if (elementDOM) {
-        elementDOM.classList.add('selected');
-        this.addHandles(elementDOM);
+      // Re-render children
+      this.selectedElement.children.forEach((child, childIndex) => {
+        const childDOM = child.render(zIndex * 100 + childIndex + 1);
+        newDOM.appendChild(childDOM);
+        this.attachHandlers(childDOM, child);
+      });
+
+      if (nextSibling) {
+        canvas.insertBefore(newDOM, nextSibling);
+      } else {
+        canvas.appendChild(newDOM);
       }
+
+      // Re-attach interaction handlers and selection state
+      this.attachHandlers(newDOM, this.selectedElement);
+      newDOM.classList.add('selected');
+      this.addHandles(newDOM);
     }
 
     this.editor.recordHistory();
-    appEvents.emit(AppEvents.ELEMENT_UPDATED, element || this.selectedElement);
+    appEvents.emit(AppEvents.ELEMENT_UPDATED, this.selectedElement);
   }
 
   /**

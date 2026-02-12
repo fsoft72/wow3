@@ -34,11 +34,11 @@ export class TextElement extends Element {
     textContent.contentEditable = false;
     textContent.innerText = this.properties.text;
 
-    // Map verticalAlign value to flexbox align-items
-    const vAlignMap = { top: 'flex-start', middle: 'center', bottom: 'flex-end' };
-    const vAlign = vAlignMap[this.properties.font.verticalAlign] || 'flex-start';
+    // Map verticalAlign to CSS grid align-content
+    const vAlignMap = { top: 'start', middle: 'center', bottom: 'end' };
+    const vAlign = vAlignMap[this.properties.font.verticalAlign] || 'start';
 
-    // Apply text styles
+    // Apply text styles — use CSS Grid so text-align still works
     textContent.style.cssText = `
       font-family: ${this.properties.font.family};
       font-size: ${this.properties.font.size}px;
@@ -51,8 +51,8 @@ export class TextElement extends Element {
       height: 100%;
       outline: none;
       overflow: hidden;
-      display: flex;
-      align-items: ${vAlign};
+      display: grid;
+      align-content: ${vAlign};
     `;
 
     el.appendChild(textContent);
