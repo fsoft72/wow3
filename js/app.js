@@ -1,0 +1,248 @@
+/**
+ * WOW3 Application Bootstrap
+ * Main entry point for the application
+ */
+
+// This will be populated as we create the controllers and views
+// For now, we'll create a simple initialization structure
+
+class WOW3App {
+  constructor() {
+    this.editor = null;
+    this.uiManager = null;
+    this.initialized = false;
+  }
+
+  /**
+   * Initialize the application
+   */
+  async init() {
+    console.log('Initializing WOW3...');
+
+    try {
+      // Initialize MaterializeCSS components
+      this.initMaterialize();
+
+      // Initialize UI Manager (will be implemented in Phase 5)
+      // this.uiManager = new UIManager();
+      // await this.uiManager.init();
+
+      // Initialize Editor Controller (will be implemented in Phase 3)
+      // this.editor = new EditorController(this.uiManager);
+      // await this.editor.init();
+
+      // Load or create presentation
+      // await this.loadPresentation();
+
+      // Setup global event listeners
+      this.setupGlobalEvents();
+
+      // Setup keyboard shortcuts
+      this.setupKeyboardShortcuts();
+
+      this.initialized = true;
+      console.log('WOW3 initialized successfully');
+
+      // Show welcome message
+      M.toast({ html: 'WOW3 Ready!', classes: 'green' });
+    } catch (error) {
+      console.error('Failed to initialize WOW3:', error);
+      M.toast({ html: 'Failed to initialize WOW3', classes: 'red' });
+    }
+  }
+
+  /**
+   * Initialize MaterializeCSS components
+   */
+  initMaterialize() {
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize all Materialize components
+      M.AutoInit();
+
+      // Initialize specific components
+      const tabs = document.querySelectorAll('.tabs');
+      M.Tabs.init(tabs);
+
+      const modals = document.querySelectorAll('.modal');
+      M.Modal.init(modals);
+
+      const selects = document.querySelectorAll('select');
+      M.FormSelect.init(selects);
+
+      const dropdowns = document.querySelectorAll('.dropdown-trigger');
+      M.Dropdown.init(dropdowns);
+
+      console.log('MaterializeCSS components initialized');
+    });
+  }
+
+  /**
+   * Load or create presentation
+   */
+  async loadPresentation() {
+    // Try to load from localStorage
+    const savedData = localStorage.getItem('wow3_current_presentation');
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData);
+        await this.editor.loadPresentation(data);
+        console.log('Loaded saved presentation');
+      } catch (error) {
+        console.error('Failed to load saved presentation:', error);
+        await this.editor.createNewPresentation();
+      }
+    } else {
+      // Create new presentation
+      await this.editor.createNewPresentation();
+      console.log('Created new presentation');
+    }
+  }
+
+  /**
+   * Setup global event listeners
+   */
+  setupGlobalEvents() {
+    // Auto-save interval
+    setInterval(() => {
+      if (this.editor && this.editor.hasUnsavedChanges && this.editor.hasUnsavedChanges()) {
+        console.log('Auto-saving...');
+        this.editor.autoSave();
+      }
+    }, 30000); // Every 30 seconds
+
+    // Window resize
+    window.addEventListener('resize', () => {
+      if (this.uiManager && this.uiManager.handleResize) {
+        this.uiManager.handleResize();
+      }
+    });
+
+    // Before unload warning
+    window.addEventListener('beforeunload', (e) => {
+      if (this.editor && this.editor.hasUnsavedChanges && this.editor.hasUnsavedChanges()) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+      }
+    });
+
+    // Click outside to deselect
+    document.addEventListener('click', (e) => {
+      const canvas = document.getElementById('slide-canvas');
+      if (e.target === canvas && this.editor && this.editor.elementController) {
+        this.editor.elementController.deselectElement();
+      }
+    });
+  }
+
+  /**
+   * Setup keyboard shortcuts
+   */
+  setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+      const ctrl = e.ctrlKey || e.metaKey;
+      const shift = e.shiftKey;
+
+      // Don't trigger shortcuts when typing in input fields
+      if (e.target.tagName === 'INPUT' ||
+          e.target.tagName === 'TEXTAREA' ||
+          e.target.contentEditable === 'true') {
+        // Allow only Ctrl+S in input fields
+        if (ctrl && e.key === 's') {
+          e.preventDefault();
+          if (this.editor && this.editor.savePresentation) {
+            this.editor.savePresentation();
+          }
+        }
+        return;
+      }
+
+      // Save: Ctrl+S
+      if (ctrl && e.key === 's') {
+        e.preventDefault();
+        if (this.editor && this.editor.savePresentation) {
+          this.editor.savePresentation();
+        }
+      }
+      // Undo: Ctrl+Z
+      else if (ctrl && e.key === 'z' && !shift) {
+        e.preventDefault();
+        if (this.editor && this.editor.undo) {
+          this.editor.undo();
+        }
+      }
+      // Redo: Ctrl+Y or Ctrl+Shift+Z
+      else if ((ctrl && e.key === 'y') || (ctrl && shift && e.key === 'z')) {
+        e.preventDefault();
+        if (this.editor && this.editor.redo) {
+          this.editor.redo();
+        }
+      }
+      // Delete: Delete or Backspace
+      else if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        if (this.editor && this.editor.deleteSelectedElement) {
+          this.editor.deleteSelectedElement();
+        }
+      }
+      // Copy: Ctrl+C
+      else if (ctrl && e.key === 'c') {
+        e.preventDefault();
+        if (this.editor && this.editor.elementController) {
+          this.editor.elementController.copySelectedElement();
+        }
+      }
+      // Paste: Ctrl+V
+      else if (ctrl && e.key === 'v') {
+        e.preventDefault();
+        if (this.editor && this.editor.elementController) {
+          this.editor.elementController.pasteElement();
+        }
+      }
+      // Duplicate: Ctrl+D
+      else if (ctrl && e.key === 'd') {
+        e.preventDefault();
+        if (this.editor && this.editor.elementController) {
+          this.editor.elementController.duplicateSelectedElement();
+        }
+      }
+      // Play: F5
+      else if (e.key === 'F5') {
+        e.preventDefault();
+        if (this.editor && this.editor.animationController) {
+          this.editor.animationController.enterPlayMode();
+        }
+      }
+      // Escape: Exit play mode or deselect
+      else if (e.key === 'Escape') {
+        if (this.editor && this.editor.animationController && this.editor.animationController.playMode) {
+          this.editor.animationController.exitPlayMode();
+        } else if (this.editor && this.editor.elementController) {
+          this.editor.elementController.deselectElement();
+        }
+      }
+    });
+  }
+
+  /**
+   * Cleanup and shutdown
+   */
+  shutdown() {
+    console.log('Shutting down WOW3...');
+    // Cleanup logic here
+  }
+}
+
+// Initialize application when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.app = new WOW3App();
+    window.app.init();
+  });
+} else {
+  // DOM is already ready
+  window.app = new WOW3App();
+  window.app.init();
+}
+
+// Make app available globally
+export default WOW3App;

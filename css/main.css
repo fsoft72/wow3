@@ -1,0 +1,243 @@
+/**
+ * WOW3 Main Application Styles
+ * Layout, typography, and base styles
+ */
+
+:root {
+  --sidebar-width: 250px;
+  --toolbar-height: 64px;
+  --statusbar-height: 32px;
+  --canvas-bg: #f5f5f5;
+  --sidebar-bg: #ffffff;
+  --border-color: #e0e0e0;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overflow: hidden;
+  background: var(--canvas-bg);
+}
+
+/* ==================== TOP MENU ==================== */
+
+#top-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--toolbar-height);
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.divider-vertical {
+  height: 100%;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 8px;
+}
+
+/* ==================== APP CONTAINER ==================== */
+
+#app-container {
+  display: flex;
+  height: calc(100vh - var(--toolbar-height) - var(--statusbar-height));
+  margin-top: var(--toolbar-height);
+}
+
+/* ==================== SIDEBARS ==================== */
+
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-shrink: 0;
+}
+
+#left-sidebar {
+  border-right: 1px solid var(--border-color);
+}
+
+#right-sidebar {
+  border-left: 1px solid var(--border-color);
+}
+
+.sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Tabs in sidebar */
+.tabs {
+  background: #fff;
+}
+
+.tabs .tab a {
+  color: #666;
+}
+
+.tabs .tab a:hover,
+.tabs .tab a.active {
+  color: #1976d2;
+}
+
+.tabs .indicator {
+  background-color: #1976d2;
+}
+
+.tab-content {
+  padding: 16px;
+  display: none;
+}
+
+.tab-content:first-of-type {
+  display: block;
+}
+
+/* ==================== CANVAS AREA ==================== */
+
+.canvas-area {
+  flex: 1;
+  background: var(--canvas-bg);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#canvas-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* ==================== STATUS BAR ==================== */
+
+.status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--statusbar-height);
+  background: #263238;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  justify-content: space-between;
+  font-size: 13px;
+  z-index: 999;
+}
+
+/* ==================== PROPERTY SECTIONS ==================== */
+
+.property-section {
+  margin-bottom: 24px;
+}
+
+.property-section h6 {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: #424242;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.property-section .input-field {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.property-section .input-field input,
+.property-section .input-field select {
+  font-size: 14px;
+}
+
+.property-section .input-field label {
+  font-size: 13px;
+}
+
+/* ==================== PRESENTATION VIEW ==================== */
+
+#presentation-view {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  z-index: 100000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+#presentation-view.active {
+  display: flex;
+}
+
+/* ==================== SCROLLBAR STYLING ==================== */
+
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* ==================== UTILITY CLASSES ==================== */
+
+.hidden {
+  display: none !important;
+}
+
+.invisible {
+  visibility: hidden !important;
+}
+
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media screen and (max-width: 1024px) {
+  :root {
+    --sidebar-width: 200px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  :root {
+    --sidebar-width: 180px;
+  }
+
+  #toolbar li a {
+    padding: 0 10px;
+  }
+}

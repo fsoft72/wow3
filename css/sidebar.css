@@ -1,0 +1,352 @@
+/**
+ * WOW3 Sidebar Styles
+ * Styles for left and right sidebars, slide list, and elements tree
+ */
+
+/* ==================== SLIDE LIST ==================== */
+
+.slide-list {
+  padding: 8px;
+}
+
+.slide-thumbnail {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.slide-thumbnail.active {
+  border-color: #2196F3;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.slide-thumbnail:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.slide-thumbnail.dragging {
+  opacity: 0.5;
+}
+
+.slide-number {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 2;
+}
+
+.slide-preview {
+  width: 100%;
+  height: 100%;
+  background: white;
+  position: relative;
+  transform-origin: top left;
+}
+
+.slide-preview canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* Empty state */
+.slide-list-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.slide-list-empty i {
+  font-size: 48px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+/* ==================== ELEMENTS TREE ==================== */
+
+.elements-tree {
+  padding: 0;
+}
+
+.elements-tree-empty {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+  font-size: 14px;
+}
+
+.tree-item {
+  padding: 8px 12px;
+  border-left: 2px solid #e0e0e0;
+  margin-bottom: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+  font-size: 14px;
+}
+
+.tree-item.level-1 {
+  margin-left: 20px;
+  padding-left: 8px;
+}
+
+.tree-item:hover {
+  background: #f5f5f5;
+}
+
+.tree-item.selected {
+  background: #E3F2FD;
+  border-left-color: #2196F3;
+}
+
+.tree-item-icon {
+  font-size: 16px;
+  color: #666;
+  width: 20px;
+  text-align: center;
+}
+
+.tree-item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Animation buttons */
+.animation-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.animation-btn:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.animation-btn.active {
+  background: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+}
+
+.animation-btn:active {
+  transform: scale(0.95);
+}
+
+/* ==================== PROPERTY PANELS ==================== */
+
+.property-group {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.property-group:last-child {
+  border-bottom: none;
+}
+
+.property-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+  display: block;
+  font-weight: 500;
+}
+
+.property-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.property-row.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.property-row.three-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+/* Color picker group */
+.color-picker-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-picker-group input[type="color"] {
+  width: 40px;
+  height: 32px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.color-picker-group input[type="text"] {
+  flex: 1;
+  height: 32px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0 8px;
+  font-family: monospace;
+}
+
+/* ==================== BUTTON GROUPS ==================== */
+
+.btn-group {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.btn-group .btn-small {
+  flex: 1;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.btn-group .btn-small i {
+  font-size: 16px;
+}
+
+/* ==================== SELECT DROPDOWNS ==================== */
+
+.property-section select {
+  display: block;
+  width: 100%;
+  height: 32px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+/* ==================== NUMBER INPUTS ==================== */
+
+.number-input-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.number-input-group input {
+  flex: 1;
+  height: 32px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0 8px;
+  font-size: 14px;
+}
+
+.number-input-group .unit {
+  font-size: 12px;
+  color: #666;
+  min-width: 20px;
+}
+
+/* ==================== TOGGLE SWITCHES ==================== */
+
+.toggle-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.toggle-group label {
+  font-size: 14px;
+  color: #333;
+}
+
+/* ==================== COLLAPSIBLE SECTIONS ==================== */
+
+.collapsible {
+  border: none;
+  box-shadow: none;
+  margin: 0;
+}
+
+.collapsible-header {
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.collapsible-header i {
+  margin-right: 8px;
+}
+
+.collapsible-body {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* ==================== SLIDER INPUTS ==================== */
+
+.range-field {
+  margin: 16px 0;
+}
+
+.range-field input[type="range"] {
+  width: 100%;
+}
+
+.range-value {
+  font-size: 12px;
+  color: #666;
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* ==================== DIVIDERS ==================== */
+
+.sidebar-divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 16px 0;
+}
+
+/* ==================== HELPER TEXT ==================== */
+
+.helper-text {
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+  line-height: 1.3;
+}

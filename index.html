@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="WOW3 - Web-based Presentation Software">
+  <title>WOW3 Presentation</title>
+
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- MaterializeCSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/editor.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <!-- Top Menu Bar -->
+  <nav id="top-menu" class="blue darken-2">
+    <div class="nav-wrapper">
+      <a href="#" class="brand-logo" style="margin-left: 20px;">WOW3</a>
+      <ul id="toolbar" class="right">
+        <li><a href="#" id="new-btn" title="New Presentation"><i class="material-icons">add</i></a></li>
+        <li><a href="#" id="open-btn" title="Open Presentation"><i class="material-icons">folder_open</i></a></li>
+        <li><a href="#" id="save-btn" title="Save Presentation"><i class="material-icons">save</i></a></li>
+        <li><a href="#" id="export-btn" title="Export JSON"><i class="material-icons">download</i></a></li>
+        <li><a href="#" id="import-btn" title="Import JSON"><i class="material-icons">upload</i></a></li>
+        <li class="divider-vertical"></li>
+        <li><a href="#" id="add-text-btn" title="Add Text"><i class="material-icons">text_fields</i></a></li>
+        <li><a href="#" id="add-image-btn" title="Add Image"><i class="material-icons">image</i></a></li>
+        <li><a href="#" id="add-video-btn" title="Add Video"><i class="material-icons">videocam</i></a></li>
+        <li><a href="#" id="add-shape-btn" title="Add Shape"><i class="material-icons">crop_square</i></a></li>
+        <li class="divider-vertical"></li>
+        <li><a href="#" id="play-btn" title="Play Presentation"><i class="material-icons">play_arrow</i></a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div id="app-container">
+    <!-- Left Sidebar -->
+    <aside id="left-sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <button id="add-slide-btn" class="btn waves-effect blue darken-1 btn-small" style="width: 100%;">
+          <i class="material-icons left">add</i> New Slide
+        </button>
+      </div>
+      <div id="slide-list" class="slide-list">
+        <!-- Slide thumbnails will be rendered here -->
+      </div>
+    </aside>
+
+    <!-- Main Canvas -->
+    <main id="main-canvas" class="canvas-area">
+      <div id="canvas-wrapper">
+        <div id="slide-canvas" class="slide-canvas">
+          <!-- Current slide elements rendered here -->
+        </div>
+        <div id="alignment-guides" class="alignment-guides">
+          <!-- Dynamic alignment guides -->
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Sidebar -->
+    <aside id="right-sidebar" class="sidebar">
+      <ul class="tabs">
+        <li class="tab"><a href="#tab-slide" class="active">Slide</a></li>
+        <li class="tab"><a href="#tab-element">Element</a></li>
+        <li class="tab"><a href="#tab-animation">Animation</a></li>
+      </ul>
+
+      <div id="tab-slide" class="tab-content">
+        <div class="property-section">
+          <h6>Slide Properties</h6>
+          <div class="input-field">
+            <input type="text" id="slide-title" placeholder="Slide Title">
+            <label for="slide-title" class="active">Title</label>
+          </div>
+          <div class="input-field">
+            <input type="color" id="slide-background" value="#ffffff">
+            <label for="slide-background" class="active">Background Color</label>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-element" class="tab-content">
+        <p class="grey-text center-align" style="padding: 20px;">No element selected</p>
+      </div>
+
+      <div id="tab-animation" class="tab-content">
+        <div class="property-section">
+          <h6>Page Elements</h6>
+          <div id="elements-tree">
+            <!-- Elements tree rendered here -->
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Bottom Status Bar -->
+  <footer id="status-bar" class="status-bar">
+    <span id="slide-counter">Slide 1 of 1</span>
+    <span id="zoom-level">100%</span>
+  </footer>
+
+  <!-- Animation Modal -->
+  <div id="animation-modal" class="modal">
+    <div class="modal-content">
+      <h4>Animation Settings</h4>
+
+      <div class="row">
+        <div class="col s12">
+          <label>Animation Type</label>
+          <p>
+            <label>
+              <input type="checkbox" id="anim-fade-in" value="1" />
+              <span>Fade In</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input type="checkbox" id="anim-fade-out" value="2" />
+              <span>Fade Out</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input type="checkbox" id="anim-slide-in" value="4" />
+              <span>Slide In</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input type="checkbox" id="anim-slide-out" value="8" />
+              <span>Slide Out</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input type="checkbox" id="anim-zoom-in" value="16" />
+              <span>Zoom In</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input type="checkbox" id="anim-zoom-out" value="32" />
+              <span>Zoom Out</span>
+            </label>
+          </p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="input-field col s6">
+          <select id="anim-direction">
+            <option value="left" selected>Left</option>
+            <option value="right">Right</option>
+            <option value="top">Top</option>
+            <option value="bottom">Bottom</option>
+          </select>
+          <label>Direction</label>
+        </div>
+
+        <div class="input-field col s6">
+          <input type="number" id="anim-duration" value="600" min="100" max="3000" step="100">
+          <label for="anim-duration" class="active">Duration (ms)</label>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="input-field col s6">
+          <select id="anim-trigger">
+            <option value="auto" selected>Auto</option>
+            <option value="click">Click</option>
+          </select>
+          <label>Trigger</label>
+        </div>
+
+        <div class="input-field col s6">
+          <select id="anim-easing">
+            <option value="linear">Linear</option>
+            <option value="ease">Ease</option>
+            <option value="ease-in">Ease In</option>
+            <option value="ease-out">Ease Out</option>
+            <option value="ease-in-out" selected>Ease In Out</option>
+          </select>
+          <label>Easing</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+      <a href="#!" id="save-animation-btn" class="modal-close waves-effect waves-green btn">Save</a>
+    </div>
+  </div>
+
+  <!-- Presentation View (Fullscreen) -->
+  <div id="presentation-view" style="display: none;">
+    <!-- Presentation slides rendered here during playback -->
+  </div>
+
+  <!-- MaterializeCSS JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  <!-- Application JavaScript (ES6 Modules) -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

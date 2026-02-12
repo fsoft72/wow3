@@ -1,0 +1,364 @@
+/**
+ * WOW3 Editor Canvas and Element Styles
+ * Styles for the editing canvas, elements, and interaction handles
+ */
+
+/* ==================== SLIDE CANVAS ==================== */
+
+.slide-canvas {
+  width: 1280px;
+  height: 720px;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+  transform-origin: center;
+}
+
+/* ==================== ELEMENT BASE STYLES ==================== */
+
+.element {
+  position: absolute;
+  cursor: move;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.element.selected {
+  outline: 2px solid #2196F3;
+  outline-offset: 2px;
+  z-index: 1000;
+}
+
+.element.dragging {
+  opacity: 0.7;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  cursor: grabbing;
+}
+
+/* ==================== TEXT ELEMENT ==================== */
+
+.text-element {
+  padding: 8px;
+}
+
+.text-content {
+  width: 100%;
+  height: 100%;
+  outline: none;
+  word-wrap: break-word;
+  overflow: hidden;
+}
+
+.text-content:focus {
+  outline: 1px dashed #2196F3;
+  outline-offset: 2px;
+}
+
+/* ==================== IMAGE ELEMENT ==================== */
+
+.image-element img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* ==================== VIDEO ELEMENT ==================== */
+
+.video-element video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ==================== AUDIO ELEMENT ==================== */
+
+.audio-element {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  border: 2px dashed #ccc;
+}
+
+.audio-element audio {
+  width: 90%;
+}
+
+/* ==================== SHAPE ELEMENT ==================== */
+
+.shape-element svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ==================== LIST ELEMENT ==================== */
+
+.list-element {
+  padding: 8px;
+}
+
+.list-element ul,
+.list-element ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.list-element li {
+  margin: 4px 0;
+}
+
+/* ==================== LINK ELEMENT ==================== */
+
+.link-element {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  background: #2196F3;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.link-element:hover {
+  background: #1976D2;
+}
+
+/* ==================== RESIZE HANDLES ==================== */
+
+.resize-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #2196F3;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  display: none;
+}
+
+.element.selected .resize-handle {
+  display: block;
+}
+
+/* Corner handles */
+.resize-handle.nw {
+  top: -5px;
+  left: -5px;
+  cursor: nw-resize;
+}
+
+.resize-handle.ne {
+  top: -5px;
+  right: -5px;
+  cursor: ne-resize;
+}
+
+.resize-handle.sw {
+  bottom: -5px;
+  left: -5px;
+  cursor: sw-resize;
+}
+
+.resize-handle.se {
+  bottom: -5px;
+  right: -5px;
+  cursor: se-resize;
+}
+
+/* Edge handles */
+.resize-handle.n {
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: n-resize;
+}
+
+.resize-handle.s {
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: s-resize;
+}
+
+.resize-handle.w {
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: w-resize;
+}
+
+.resize-handle.e {
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: e-resize;
+}
+
+/* ==================== ROTATION HANDLE ==================== */
+
+.rotate-handle {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  background: #4CAF50;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: grab;
+  z-index: 1001;
+  display: none;
+}
+
+.element.selected .rotate-handle {
+  display: block;
+}
+
+.rotate-handle:active {
+  cursor: grabbing;
+}
+
+/* Rotation handle line */
+.rotate-handle::before {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 10px;
+  background: #4CAF50;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* ==================== ALIGNMENT GUIDES ==================== */
+
+.alignment-guides {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.alignment-guide {
+  position: absolute;
+  background: #2196F3;
+  opacity: 0.7;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.alignment-guide.horizontal {
+  width: 100%;
+  height: 1px;
+  left: 0;
+}
+
+.alignment-guide.vertical {
+  width: 1px;
+  height: 100%;
+  top: 0;
+}
+
+/* ==================== SELECTION BOX ==================== */
+
+.selection-box {
+  position: absolute;
+  border: 2px dashed #2196F3;
+  background: rgba(33, 150, 243, 0.1);
+  pointer-events: none;
+  z-index: 998;
+}
+
+/* ==================== CONTEXT MENU ==================== */
+
+.context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  min-width: 150px;
+}
+
+.context-menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.context-menu-item:hover {
+  background: #f5f5f5;
+}
+
+.context-menu-divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 4px 0;
+}
+
+/* ==================== PLACEHOLDER TEXT ==================== */
+
+.element-placeholder {
+  color: #999;
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* ==================== LOADING STATES ==================== */
+
+.element.loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.element.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid #2196F3;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* ==================== ERROR STATES ==================== */
+
+.element.error {
+  border: 2px solid #f44336;
+  background: rgba(244, 67, 54, 0.05);
+}
+
+.element-error-message {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #f44336;
+  color: white;
+  padding: 4px 8px;
+  font-size: 12px;
+  margin-top: 4px;
+  border-radius: 2px;
+  z-index: 1002;
+}

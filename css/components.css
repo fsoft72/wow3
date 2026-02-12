@@ -1,0 +1,409 @@
+/**
+ * WOW3 Reusable Components
+ * Modals, buttons, and other UI components
+ */
+
+/* ==================== MODALS ==================== */
+
+.modal {
+  max-height: 80%;
+}
+
+.modal h4 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.modal .modal-content {
+  padding: 24px;
+}
+
+.modal .modal-footer {
+  padding: 16px 24px;
+}
+
+/* ==================== BUTTONS ==================== */
+
+.btn,
+.btn-small,
+.btn-large,
+.btn-flat {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.btn i,
+.btn-small i,
+.btn-large i {
+  font-size: 1.3rem;
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon i {
+  margin: 0;
+}
+
+/* ==================== TOOLTIPS ==================== */
+
+.tooltipped {
+  position: relative;
+}
+
+/* ==================== CHIPS ==================== */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 12px;
+  font-size: 12px;
+  border-radius: 12px;
+  background-color: #e0e0e0;
+  margin: 2px;
+}
+
+.chip.animation-chip {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.chip.selected-chip {
+  background-color: #2196F3;
+  color: white;
+}
+
+/* ==================== BADGES ==================== */
+
+.badge {
+  min-width: 20px;
+  padding: 0 6px;
+  height: 20px;
+  line-height: 20px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.badge.new {
+  background-color: #4CAF50;
+}
+
+/* ==================== CARDS ==================== */
+
+.card {
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card .card-content {
+  padding: 16px;
+}
+
+.card .card-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.card .card-action {
+  padding: 12px 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* ==================== PROGRESS BARS ==================== */
+
+.progress {
+  background-color: #e0e0e0;
+  height: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress .indeterminate {
+  background-color: #2196F3;
+}
+
+.progress .determinate {
+  background-color: #2196F3;
+}
+
+/* ==================== LOADING SPINNER ==================== */
+
+.spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+}
+
+.spinner-wrapper {
+  background: white;
+  padding: 32px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.spinner-wrapper .preloader-wrapper {
+  margin: 0 auto 16px;
+}
+
+.spinner-message {
+  font-size: 14px;
+  color: #666;
+}
+
+/* ==================== EMPTY STATES ==================== */
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.empty-state i {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state h5 {
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.empty-state p {
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+/* ==================== ALERTS ==================== */
+
+.alert {
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.alert i {
+  font-size: 20px;
+}
+
+.alert-info {
+  background-color: #E3F2FD;
+  color: #1976D2;
+  border-left: 4px solid #2196F3;
+}
+
+.alert-success {
+  background-color: #E8F5E9;
+  color: #388E3C;
+  border-left: 4px solid #4CAF50;
+}
+
+.alert-warning {
+  background-color: #FFF3E0;
+  color: #F57C00;
+  border-left: 4px solid #FF9800;
+}
+
+.alert-error {
+  background-color: #FFEBEE;
+  color: #C62828;
+  border-left: 4px solid #F44336;
+}
+
+/* ==================== DROPDOWN MENU ==================== */
+
+.dropdown-content {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.dropdown-content li > a,
+.dropdown-content li > span {
+  color: #333;
+  font-size: 14px;
+  padding: 12px 16px;
+}
+
+.dropdown-content li > a > i {
+  margin-right: 12px;
+}
+
+/* ==================== BREADCRUMBS ==================== */
+
+.breadcrumb {
+  font-size: 14px;
+  color: #666;
+}
+
+.breadcrumb:before {
+  color: #999;
+}
+
+.breadcrumb:last-child {
+  color: #333;
+}
+
+/* ==================== TABS ==================== */
+
+.tabs .tab {
+  font-size: 13px;
+  text-transform: none;
+}
+
+.tabs .tab a {
+  padding: 0 16px;
+}
+
+/* ==================== DIVIDERS ==================== */
+
+.divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 16px 0;
+}
+
+.divider-vertical {
+  width: 1px;
+  background-color: rgba(255, 255, 255, 0.2);
+  margin: 0 8px;
+}
+
+/* ==================== COLLECTION ==================== */
+
+.collection {
+  border: 1px solid #e0e0e0;
+}
+
+.collection .collection-item {
+  padding: 12px 16px;
+  font-size: 14px;
+}
+
+.collection .collection-item.active {
+  background-color: #2196F3;
+  color: white;
+}
+
+/* ==================== FLOATING ACTION BUTTON ==================== */
+
+.fixed-action-btn {
+  position: fixed;
+  bottom: 48px;
+  right: 24px;
+  z-index: 1000;
+}
+
+/* ==================== TOASTS ==================== */
+
+#toast-container {
+  top: auto !important;
+  bottom: 48px;
+  right: 24px;
+}
+
+.toast {
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* ==================== SWITCHES ==================== */
+
+.switch label {
+  font-size: 14px;
+  color: #333;
+}
+
+.switch label input[type=checkbox]:checked + .lever {
+  background-color: #84c9f4;
+}
+
+.switch label input[type=checkbox]:checked + .lever:after {
+  background-color: #2196F3;
+}
+
+/* ==================== CHECKBOX & RADIO ==================== */
+
+[type="checkbox"] + span:not(.lever),
+[type="radio"] + span {
+  font-size: 14px;
+  color: #333;
+  padding-left: 26px;
+}
+
+[type="checkbox"]:checked + span:not(.lever):before {
+  border-right: 2px solid #2196F3;
+  border-bottom: 2px solid #2196F3;
+}
+
+/* ==================== FILE INPUT ==================== */
+
+.file-field .btn {
+  padding: 0 16px;
+}
+
+.file-field input[type=text] {
+  height: 36px;
+  border-bottom: 1px solid #ccc;
+}
+
+/* ==================== ANIMATIONS ==================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+.slide-in-right {
+  animation: slideInRight 0.3s ease;
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.3s ease;
+}
