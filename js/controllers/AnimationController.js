@@ -170,12 +170,24 @@ export class AnimationController {
     // Build animation object from form
     const animation = this.buildAnimationFromForm();
 
+    console.log('🎬 [AnimationController] Saving animation:', {
+      element: this.currentElement.id,
+      mode: this.currentMode,
+      animation
+    });
+
     // Set animation on element
     if (this.currentMode === 'in') {
       this.currentElement.inEffect = animation.type !== 0 ? animation : null;
     } else {
       this.currentElement.outEffect = animation.type !== 0 ? animation : null;
     }
+
+    console.log('🎬 [AnimationController] Animation saved to element:', {
+      elementId: this.currentElement.id,
+      inEffect: this.currentElement.inEffect,
+      outEffect: this.currentElement.outEffect
+    });
 
     // Update UI
     if (this.editor.uiManager && this.editor.uiManager.elementsTree) {
@@ -265,12 +277,23 @@ export class AnimationController {
    * @returns {Promise} Promise that resolves when animations complete
    */
   async playSlideAnimations(slide) {
+    console.log('🎬 [AnimationController] playSlideAnimations called for slide');
+
     // Get all elements with inEffect
-    const animatedElements = slide.getAllElements().filter((el) => el.inEffect);
+    const allElements = slide.getAllElements();
+    console.log('🎬 [AnimationController] Total elements on slide:', allElements.length);
+
+    const animatedElements = allElements.filter((el) => el.inEffect);
+    console.log('🎬 [AnimationController] Elements with animations:', animatedElements.length, animatedElements.map(el => ({
+      id: el.id,
+      type: el.type,
+      inEffect: el.inEffect
+    })));
 
     // Prepare elements (hide them initially)
     animatedElements.forEach((element) => {
       const elementDOM = document.getElementById(element.id);
+      console.log('🎬 [AnimationController] Preparing element:', element.id, 'DOM found:', !!elementDOM);
       if (elementDOM) {
         prepareElementForAnimation(elementDOM);
       }
@@ -278,22 +301,29 @@ export class AnimationController {
 
     // Separate by trigger type
     const autoElements = animatedElements.filter(
-      (el) => el.inEffect.trigger === AnimationTrigger.AUTO
+      (el) => el.inEffect.trigger === AnimationTrigger.AUTO || el.inEffect.trigger === 'auto'
     );
 
     const clickElements = animatedElements.filter(
-      (el) => el.inEffect.trigger === AnimationTrigger.CLICK
+      (el) => el.inEffect.trigger === AnimationTrigger.CLICK || el.inEffect.trigger === 'click'
     );
+
+    console.log('🎬 [AnimationController] Auto animations:', autoElements.length);
+    console.log('🎬 [AnimationController] Click animations:', clickElements.length);
 
     // Play auto animations
     for (const element of autoElements) {
+      console.log('🎬 [AnimationController] Playing auto animation for:', element.id);
       await this.playElementAnimation(element, 'in');
     }
 
     // Setup click handler for click-triggered animations
     if (clickElements.length > 0) {
+      console.log('🎬 [AnimationController] Setting up click animations');
       await this.playClickAnimations(clickElements);
     }
+
+    console.log('🎬 [AnimationController] All slide animations completed');
   }
 
   /**
@@ -337,15 +367,30 @@ export class AnimationController {
    */
   async playElementAnimation(element, mode) {
     const animation = mode === 'in' ? element.inEffect : element.outEffect;
-    if (!animation) return;
+    console.log('🎬 [AnimationController] playElementAnimation:', {
+      elementId: element.id,
+      mode,
+      animation
+    });
+
+    if (!animation) {
+      console.log('🎬 [AnimationController] No animation found for element:', element.id);
+      return;
+    }
 
     const elementDOM = document.getElementById(element.id);
-    if (!elementDOM) return;
+    if (!elementDOM) {
+      console.log('🎬 [AnimationController] ❌ Element DOM not found:', element.id);
+      return;
+    }
 
+    console.log('🎬 [AnimationController] Applying animation to:', element.id);
     appEvents.emit(AppEvents.ANIMATION_STARTED, { element, mode });
 
     // Apply animation
     await applyAnimation(elementDOM, animation);
+
+    console.log('🎬 [AnimationController] ✓ Animation completed for:', element.id);
 
     // Play children animations
     for (const child of element.children) {

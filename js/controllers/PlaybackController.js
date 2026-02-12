@@ -173,8 +173,16 @@ export class PlaybackController {
     this.presentationView.appendChild(indicator);
 
     // Play animations
+    console.log('🎮 [PlaybackController] About to play animations for slide', index);
+    console.log('🎮 [PlaybackController] AnimationController exists:', !!this.editor.animationController);
+    console.log('🎮 [PlaybackController] Slide elements:', slide.elements.length);
+
     if (this.editor.animationController) {
+      console.log('🎮 [PlaybackController] Calling playSlideAnimations...');
       await this.editor.animationController.playSlideAnimations(slide);
+      console.log('🎮 [PlaybackController] ✓ playSlideAnimations completed');
+    } else {
+      console.log('🎮 [PlaybackController] ❌ No AnimationController found!');
     }
 
     appEvents.emit(AppEvents.SLIDE_SELECTED, index);

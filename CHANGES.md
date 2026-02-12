@@ -551,3 +551,31 @@ The Presentation Manager now provides a dedicated "New Presentation" button, mak
 - `EditorController.js`: Added title input event handler and updateUI enhancement
 - `presentation_manager.js`: Added renamePresentation() method and context menu option
 - `main.css`: Added styling for title input with focus states
+
+---
+
+## Debug Logging for Animations
+
+### Added: Comprehensive debug logging for animation system
+- ✓ **AnimationController logs**: Save, play, and element animation tracking
+- ✓ **PlaybackController logs**: Slide animation triggering
+- ✓ **Animation utility logs**: CSS class application and timing
+- ✓ **Detailed output**: Element IDs, animation objects, classes, and events
+
+**Console Output:**
+- 🎬 AnimationController events
+- 🎮 PlaybackController events
+- 🎨 Animation utility events
+- Shows animation data, element states, and CSS classes applied
+
+**Purpose:**
+Help diagnose why animations are not working by showing:
+- If animations are saved to elements
+- If playback is triggered
+- If CSS classes are applied
+- If animation events fire
+
+**Updated Files:**
+- `AnimationController.js`: Added logging to save and play methods
+- `PlaybackController.js`: Added logging to slide display
+- `animations.js`: Added logging to applyAnimation function

@@ -14,7 +14,14 @@ import { AnimationType, SlideDirection } from './constants.js';
  */
 export const applyAnimation = (element, animation, options = {}) => {
   return new Promise((resolve) => {
+    console.log('🎨 [applyAnimation] Starting:', {
+      element: element.id,
+      animation,
+      options
+    });
+
     if (!animation || !element) {
+      console.log('🎨 [applyAnimation] ❌ Missing animation or element');
       resolve();
       return;
     }
@@ -28,27 +35,41 @@ export const applyAnimation = (element, animation, options = {}) => {
     // Apply duration
     const duration = animation.duration || 600;
     element.style.animationDuration = `${duration}ms`;
+    console.log('🎨 [applyAnimation] Duration set:', duration + 'ms');
 
     // Apply delay if specified
     if (options.delay || animation.delay) {
       const delay = options.delay || animation.delay;
       element.style.animationDelay = `${delay}ms`;
+      console.log('🎨 [applyAnimation] Delay set:', delay + 'ms');
     }
 
     // Apply easing
     const easing = options.easing || animation.easing || 'ease-in-out';
     element.style.animationTimingFunction = easing;
+    console.log('🎨 [applyAnimation] Easing set:', easing);
 
     // Apply animation type classes
     const animationClasses = getAnimationClasses(animation.type, animation.direction);
+    console.log('🎨 [applyAnimation] Animation classes:', animationClasses);
     animationClasses.forEach(cls => element.classList.add(cls));
 
     // Make element visible
     element.style.opacity = '1';
     element.style.visibility = 'visible';
+    console.log('🎨 [applyAnimation] Element made visible');
+
+    console.log('🎨 [applyAnimation] Final element classes:', Array.from(element.classList));
+    console.log('🎨 [applyAnimation] Final element styles:', {
+      animationDuration: element.style.animationDuration,
+      animationTimingFunction: element.style.animationTimingFunction,
+      opacity: element.style.opacity,
+      visibility: element.style.visibility
+    });
 
     // Wait for animation to complete
     const handler = () => {
+      console.log('🎨 [applyAnimation] ✓ animationend event fired for:', element.id);
       element.removeEventListener('animationend', handler);
       resolve();
     };
@@ -56,10 +77,13 @@ export const applyAnimation = (element, animation, options = {}) => {
     element.addEventListener('animationend', handler);
 
     // Fallback timeout in case animationend doesn't fire
+    const timeoutDuration = duration + (options.delay || animation.delay || 0) + 100;
+    console.log('🎨 [applyAnimation] Setting fallback timeout:', timeoutDuration + 'ms');
     setTimeout(() => {
+      console.log('🎨 [applyAnimation] ⏱️ Timeout fallback triggered for:', element.id);
       element.removeEventListener('animationend', handler);
       resolve();
-    }, duration + (options.delay || animation.delay || 0) + 100);
+    }, timeoutDuration);
   });
 };
 
