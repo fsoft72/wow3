@@ -849,3 +849,34 @@ Help diagnose why animations are not working by showing:
 - `PlaybackController.js`: Shell/slide layer rendering in `showSlide()` with shellMode ordering
 - `index.html`: Added shell settings section in right sidebar
 - `sidebar.css`: Shell thumbnail styles (purple dashed border, shell label)
+
+---
+
+## Template Manager
+
+### Feature: Create new slides from pre-designed layouts or user-saved templates
+- ✓ **Built-in templates**: 6 pre-designed slide layouts (Blank, Title Slide, Title + Content, Section Divider, Two Column, Image Focus)
+- ✓ **User templates**: Save any slide as a reusable template via "+" button or right-click context menu
+- ✓ **Template Manager modal**: Dark-theme modal with grid view, search, and context menu
+- ✓ **IndexedDB persistence**: User templates stored permanently in IndexedDB (`wow3_templates`)
+- ✓ **Template operations**: Use, rename, delete user templates
+- ✓ **Slide preview**: Miniature slide previews in template cards with positioned elements
+- ✓ **Fresh IDs**: Templates use `Slide.clone()` to generate new IDs for slide and all elements
+- ✓ **Search**: Filter both built-in and user templates by name
+- ✓ **Undo support**: Template-created slides integrate with history system
+
+**Access Points:**
+1. Green dashboard icon button next to "New Slide" in left sidebar header
+2. "+" button on slide thumbnails (top-left, hover reveal)
+3. Right-click slide thumbnail → "Save as Template"
+
+**New Files:**
+- `js/utils/templates_db.js`: IndexedDB CRUD for user templates
+- `js/utils/template_manager.js`: Template Manager modal UI + built-in templates
+- `css/template-manager.css`: Dark-theme modal styling
+
+**Updated Files:**
+- `index.html`: Added CSS/script tags, Templates button in left sidebar header
+- `js/controllers/SlideController.js`: Added "+" save-as-template button on thumbnails + context menu entry
+- `js/controllers/EditorController.js`: Added `addSlideFromTemplate(slideData)` method + Slide import
+- `js/views/UIManager.js`: Initialize TemplateManager + attach button handler

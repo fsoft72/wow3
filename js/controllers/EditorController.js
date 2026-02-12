@@ -4,6 +4,7 @@
  */
 
 import { Presentation } from '../models/Presentation.js';
+import { Slide } from '../models/Slide.js';
 import {
   savePresentation,
   loadPresentation,
@@ -467,6 +468,25 @@ export class EditorController {
     this.presentation.setCurrentSlide(this.presentation.slides.length - 1);
 
     appEvents.emit(AppEvents.SLIDE_ADDED, slide);
+  }
+
+  /**
+   * Add a new slide from a template's slide data
+   * @param {Object} slideData - Slide JSON data from a template
+   */
+  addSlideFromTemplate(slideData) {
+    const tempSlide = Slide.fromJSON(slideData);
+    const newSlide = tempSlide.clone();
+
+    const insertIndex = this.presentation.currentSlideIndex + 1;
+    this.presentation.addSlide(newSlide, insertIndex);
+    this.presentation.setCurrentSlide(insertIndex);
+
+    this.recordHistory();
+    this.render();
+
+    M.toast({ html: 'Slide created from template', classes: 'green' });
+    appEvents.emit(AppEvents.SLIDE_ADDED, newSlide);
   }
 
   /**

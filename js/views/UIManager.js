@@ -41,6 +41,10 @@ export class UIManager {
     await PresentationManager.init();
     this.attachPresentationManagerButton();
 
+    // Initialize global TemplateManager and attach button handler
+    await TemplateManager.init();
+    this.attachTemplateManagerButton();
+
     console.log('UIManager initialized');
   }
 
@@ -64,6 +68,18 @@ export class UIManager {
     if (btn) {
       btn.addEventListener('click', () => {
         PresentationManager.open();
+      });
+    }
+  }
+
+  /**
+   * Attach template manager button click handler
+   */
+  attachTemplateManagerButton() {
+    const btn = document.getElementById('open-templates-btn');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        TemplateManager.open();
       });
     }
   }

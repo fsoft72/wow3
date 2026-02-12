@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/media-manager.css">
   <link rel="stylesheet" href="css/presentation-manager.css">
+  <link rel="stylesheet" href="css/template-manager.css">
   <link rel="stylesheet" href="css/dialog.css">
   <link rel="stylesheet" href="css/panels.css">
 </head>
@@ -54,9 +55,12 @@
   <div id="app-container">
     <!-- Left Sidebar -->
     <aside id="left-sidebar" class="sidebar">
-      <div class="sidebar-header">
-        <button id="add-slide-btn" class="btn waves-effect blue darken-1 btn-small" style="width: 100%;">
+      <div class="sidebar-header" style="display: flex; gap: 6px;">
+        <button id="add-slide-btn" class="btn waves-effect blue darken-1 btn-small" style="flex: 1;">
           <i class="material-icons left">add</i> New Slide
+        </button>
+        <button id="open-templates-btn" class="btn waves-effect green darken-1 btn-small" title="Templates">
+          <i class="material-icons">dashboard</i>
         </button>
       </div>
       <div id="slide-list" class="slide-list">
@@ -254,6 +258,8 @@
   <script src="js/utils/panel_utils.js"></script>
   <script src="js/utils/media_manager.js"></script>
   <script src="js/utils/presentation_manager.js"></script>
+  <script src="js/utils/templates_db.js"></script>
+  <script src="js/utils/template_manager.js"></script>
 
   <!-- Application JavaScript (ES6 Modules) -->
   <script type="module" src="js/app.js"></script>
