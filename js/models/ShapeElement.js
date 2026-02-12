@@ -23,10 +23,11 @@ export class ShapeElement extends Element {
 
   /**
    * Render shape element to DOM
+   * @param {number} zIndex - Z-index for stacking (optional)
    * @returns {HTMLElement} DOM element
    */
-  render() {
-    const el = super.render();
+  render(zIndex = null) {
+    const el = super.render(zIndex);
     el.classList.add('shape-element');
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');

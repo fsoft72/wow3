@@ -22,10 +22,11 @@ export class ListElement extends Element {
 
   /**
    * Render list element to DOM
+   * @param {number} zIndex - Z-index for stacking (optional)
    * @returns {HTMLElement} DOM element
    */
-  render() {
-    const el = super.render();
+  render(zIndex = null) {
+    const el = super.render(zIndex);
     el.classList.add('list-element');
 
     // Create list container

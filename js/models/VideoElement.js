@@ -27,10 +27,11 @@ export class VideoElement extends Element {
 
   /**
    * Render video element to DOM
+   * @param {number} zIndex - Z-index for stacking (optional)
    * @returns {HTMLElement} DOM element
    */
-  render() {
-    const el = super.render();
+  render(zIndex = null) {
+    const el = super.render(zIndex);
     el.classList.add('video-element');
 
     if (this.properties.url) {

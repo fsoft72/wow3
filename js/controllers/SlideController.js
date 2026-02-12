@@ -257,9 +257,9 @@ export class SlideController {
     const currentSlide = this.editor.presentation.getCurrentSlide();
     canvas.style.background = currentSlide.background;
 
-    // Render all elements
-    currentSlide.elements.forEach((element) => {
-      const elementDOM = element.render();
+    // Render all elements with proper z-index
+    currentSlide.elements.forEach((element, index) => {
+      const elementDOM = element.render(index);
       canvas.appendChild(elementDOM);
 
       // Attach interaction handlers
@@ -267,9 +267,9 @@ export class SlideController {
         this.editor.elementController.attachHandlers(elementDOM, element);
       }
 
-      // Render children
-      element.children.forEach((child) => {
-        const childDOM = child.render();
+      // Render children with higher z-index than parent
+      element.children.forEach((child, childIndex) => {
+        const childDOM = child.render(index * 100 + childIndex + 1);
         elementDOM.appendChild(childDOM);
 
         if (this.editor.elementController) {

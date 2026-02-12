@@ -186,15 +186,16 @@ export class Element {
 
   /**
    * Render element to DOM (to be overridden by subclasses)
+   * @param {number} zIndex - Z-index for stacking (optional)
    * @returns {HTMLElement} DOM element
    */
-  render() {
+  render(zIndex = null) {
     const el = document.createElement('div');
     el.className = 'element';
     el.id = this.id;
     el.dataset.type = this.type;
 
-    this.applyStyles(el);
+    this.applyStyles(el, zIndex);
 
     return el;
   }
@@ -202,15 +203,19 @@ export class Element {
   /**
    * Apply styles to DOM element
    * @param {HTMLElement} el - DOM element
+   * @param {number} zIndex - Z-index for stacking (optional)
    */
-  applyStyles(el) {
-    el.style.cssText = `
-      left: ${this.position.x}px;
-      top: ${this.position.y}px;
-      width: ${this.position.width}px;
-      height: ${this.position.height}px;
-      transform: rotate(${this.position.rotation}deg);
-    `;
+  applyStyles(el, zIndex = null) {
+    // Set styles individually to preserve animation-set properties like opacity and visibility
+    el.style.left = `${this.position.x}px`;
+    el.style.top = `${this.position.y}px`;
+    el.style.width = `${this.position.width}px`;
+    el.style.height = `${this.position.height}px`;
+    el.style.transform = `rotate(${this.position.rotation}deg)`;
+
+    if (zIndex !== null) {
+      el.style.zIndex = zIndex;
+    }
   }
 
   /**

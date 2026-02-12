@@ -21,10 +21,11 @@ export class TextElement extends Element {
 
   /**
    * Render text element to DOM
+   * @param {number} zIndex - Z-index for stacking (optional)
    * @returns {HTMLElement} DOM element
    */
-  render() {
-    const el = super.render();
+  render(zIndex = null) {
+    const el = super.render(zIndex);
     el.classList.add('text-element');
 
     // Create text content container

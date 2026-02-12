@@ -14,14 +14,7 @@ import { AnimationType, SlideDirection } from './constants.js';
  */
 export const applyAnimation = (element, animation, options = {}) => {
   return new Promise((resolve) => {
-    console.log('🎨 [applyAnimation] Starting:', {
-      element: element.id,
-      animation,
-      options
-    });
-
     if (!animation || !element) {
-      console.log('🎨 [applyAnimation] ❌ Missing animation or element');
       resolve();
       return;
     }
@@ -35,47 +28,27 @@ export const applyAnimation = (element, animation, options = {}) => {
     // Apply duration
     const duration = animation.duration || 600;
     element.style.animationDuration = `${duration}ms`;
-    console.log('🎨 [applyAnimation] Duration set:', duration + 'ms');
 
     // Apply delay if specified
     if (options.delay || animation.delay) {
       const delay = options.delay || animation.delay;
       element.style.animationDelay = `${delay}ms`;
-      console.log('🎨 [applyAnimation] Delay set:', delay + 'ms');
     }
 
     // Apply easing
     const easing = options.easing || animation.easing || 'ease-in-out';
     element.style.animationTimingFunction = easing;
-    console.log('🎨 [applyAnimation] Easing set:', easing);
 
     // Apply animation type classes
     const animationClasses = getAnimationClasses(animation.type, animation.direction);
-    console.log('🎨 [applyAnimation] Animation classes:', animationClasses);
     animationClasses.forEach(cls => element.classList.add(cls));
 
-    // Make element visible (with !important to prevent override)
+    // Make element visible (with !important to override initial hidden state)
     element.style.setProperty('opacity', '1', 'important');
     element.style.setProperty('visibility', 'visible', 'important');
-    console.log('🎨 [applyAnimation] Element made visible with !important');
-    console.log('🎨 [applyAnimation] Verify styles after setting:', {
-      opacity: element.style.opacity,
-      visibility: element.style.visibility,
-      cssText: element.style.cssText
-    });
-
-    console.log('🎨 [applyAnimation] Final element classes:', Array.from(element.classList));
-    console.log('🎨 [applyAnimation] Final element styles:', {
-      animationDuration: element.style.animationDuration,
-      animationTimingFunction: element.style.animationTimingFunction,
-      opacity: element.style.opacity,
-      visibility: element.style.visibility
-    });
 
     // Wait for animation to complete
     const handler = () => {
-      console.log('🎨 [applyAnimation] ✓ animationend event fired for:', element.id);
-
       // Ensure element stays visible after animation (with !important)
       element.style.setProperty('opacity', '1', 'important');
       element.style.setProperty('visibility', 'visible', 'important');
@@ -85,86 +58,6 @@ export const applyAnimation = (element, animation, options = {}) => {
       element.style.setProperty('opacity', '1', 'important');
       element.style.setProperty('visibility', 'visible', 'important');
 
-      // DEBUG: Comprehensive element state
-      const computedStyle = window.getComputedStyle(element);
-      const rect = element.getBoundingClientRect();
-      console.log('🔍 [DEBUG] Complete element state for:', element.id);
-      console.log('📐 BoundingRect:', {
-        x: rect.x,
-        y: rect.y,
-        width: rect.width,
-        height: rect.height,
-        top: rect.top,
-        left: rect.left
-      });
-      console.log('🎨 Computed styles:', {
-        opacity: computedStyle.opacity,
-        visibility: computedStyle.visibility,
-        display: computedStyle.display,
-        position: computedStyle.position,
-        zIndex: computedStyle.zIndex,
-        transform: computedStyle.transform,
-        width: computedStyle.width,
-        height: computedStyle.height
-      });
-      console.log('📝 Inline styles:', {
-        opacity: element.style.opacity,
-        visibility: element.style.visibility,
-        display: element.style.display,
-        width: element.style.width,
-        height: element.style.height,
-        left: element.style.left,
-        top: element.style.top
-      });
-      console.log('📦 Element HTML:', element.outerHTML.substring(0, 500));
-      console.log('👁️ Is element in viewport?',
-        rect.top >= 0 &&
-        rect.left >= 0 &&
-        rect.bottom <= window.innerHeight &&
-        rect.right <= window.innerWidth
-      );
-
-      // DEBUG: Check parent container
-      const parent = element.parentElement;
-      if (parent) {
-        const parentRect = parent.getBoundingClientRect();
-        const parentComputed = window.getComputedStyle(parent);
-        console.log('📦 PARENT container:', parent.id || parent.className);
-        console.log('📐 PARENT BoundingRect:', {
-          x: parentRect.x,
-          y: parentRect.y,
-          width: parentRect.width,
-          height: parentRect.height
-        });
-        console.log('🎨 PARENT Computed:', {
-          opacity: parentComputed.opacity,
-          visibility: parentComputed.visibility,
-          display: parentComputed.display,
-          overflow: parentComputed.overflow,
-          zIndex: parentComputed.zIndex,
-          background: parentComputed.background
-        });
-      }
-
-      // DEBUG: Check for overlapping elements
-      const elementAtPoint = document.elementFromPoint(
-        rect.left + rect.width / 2,
-        rect.top + rect.height / 2
-      );
-      console.log('🎯 Element at center point:', elementAtPoint?.id || elementAtPoint?.className);
-      console.log('🎯 Is our element at that point?', elementAtPoint === element);
-
-      // DEBUG: Check element state after 2 seconds
-      setTimeout(() => {
-        console.log('⏰ [2 SECONDS LATER] Element state for:', element.id);
-        console.log('⏰ Inline styles:', element.style.cssText);
-        console.log('⏰ Opacity:', element.style.opacity);
-        console.log('⏰ Visibility:', element.style.visibility);
-        const computedNow = window.getComputedStyle(element);
-        console.log('⏰ Computed opacity:', computedNow.opacity);
-        console.log('⏰ Computed visibility:', computedNow.visibility);
-      }, 2000);
-
       element.removeEventListener('animationend', handler);
       resolve();
     };
@@ -173,10 +66,7 @@ export const applyAnimation = (element, animation, options = {}) => {
 
     // Fallback timeout in case animationend doesn't fire
     const timeoutDuration = duration + (options.delay || animation.delay || 0) + 100;
-    console.log('🎨 [applyAnimation] Setting fallback timeout:', timeoutDuration + 'ms');
     setTimeout(() => {
-      console.log('🎨 [applyAnimation] ⏱️ Timeout fallback triggered for:', element.id);
-
       // Ensure element stays visible (with !important)
       element.style.setProperty('opacity', '1', 'important');
       element.style.setProperty('visibility', 'visible', 'important');
@@ -401,10 +291,8 @@ export const getAnimationTypeName = (type) => {
  */
 export const prepareElementForAnimation = (element) => {
   if (!element) return;
-  console.log('🎬 [prepareElementForAnimation] Hiding element:', element.id);
   element.style.opacity = '0';
   element.style.visibility = 'hidden';
-  console.log('🎬 [prepareElementForAnimation] Element hidden:', element.style.cssText);
 };
 
 /**

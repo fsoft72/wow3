@@ -131,9 +131,10 @@ export class PlaybackController {
       box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     `;
 
-    // Render all elements
-    slide.elements.forEach((element) => {
-      const elementDOM = element.render();
+    // Render all elements with proper z-index
+    slide.elements.forEach((element, index) => {
+      // Use index as z-index to ensure proper stacking
+      const elementDOM = element.render(index);
 
       // Initially hide elements with inEffect
       if (element.inEffect) {
@@ -143,9 +144,9 @@ export class PlaybackController {
 
       slideContainer.appendChild(elementDOM);
 
-      // Render children
-      element.children.forEach((child) => {
-        const childDOM = child.render();
+      // Render children with higher z-index than parent
+      element.children.forEach((child, childIndex) => {
+        const childDOM = child.render(index * 100 + childIndex + 1);
         if (child.inEffect) {
           childDOM.style.opacity = '0';
           childDOM.style.visibility = 'hidden';
@@ -173,16 +174,8 @@ export class PlaybackController {
     this.presentationView.appendChild(indicator);
 
     // Play animations
-    console.log('🎮 [PlaybackController] About to play animations for slide', index);
-    console.log('🎮 [PlaybackController] AnimationController exists:', !!this.editor.animationController);
-    console.log('🎮 [PlaybackController] Slide elements:', slide.elements.length);
-
     if (this.editor.animationController) {
-      console.log('🎮 [PlaybackController] Calling playSlideAnimations...');
       await this.editor.animationController.playSlideAnimations(slide);
-      console.log('🎮 [PlaybackController] ✓ playSlideAnimations completed');
-    } else {
-      console.log('🎮 [PlaybackController] ❌ No AnimationController found!');
     }
 
     appEvents.emit(AppEvents.SLIDE_SELECTED, index);
