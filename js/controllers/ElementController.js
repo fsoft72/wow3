@@ -131,12 +131,28 @@ export class ElementController {
       elementDOM.classList.add('selected');
       this.addHandles(elementDOM);
 
+      // Switch to Element tab automatically
+      this.switchToElementTab();
+
       // Update properties panel
       if (this.editor.uiManager && this.editor.uiManager.rightSidebar) {
         this.editor.uiManager.rightSidebar.updateProperties(element);
       }
 
       appEvents.emit(AppEvents.ELEMENT_SELECTED, element);
+    }
+  }
+
+  /**
+   * Switch to the Element tab in the right sidebar
+   */
+  switchToElementTab() {
+    const tabs = document.querySelector('.tabs');
+    if (tabs) {
+      const tabsInstance = M.Tabs.getInstance(tabs);
+      if (tabsInstance) {
+        tabsInstance.select('tab-element');
+      }
     }
   }
 

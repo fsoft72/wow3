@@ -441,3 +441,21 @@
 **Updated Files:**
 - `storage.js`: Enhanced `generateThumbnail()` to render actual elements
 - `EditorController.js`: Temporarily switches to first slide during save for thumbnail capture
+
+---
+
+## Auto-Select Element Tab
+
+### Feature: Automatically switch to Element tab when selecting an element
+- ✓ **Auto tab switching**: Clicking on any element now automatically switches to the "Element" tab
+- ✓ **Better UX**: Users can immediately see and edit element properties without manually switching tabs
+- ✓ **Smooth workflow**: Eliminates extra click when selecting elements
+
+**How It Works:**
+1. User clicks on an element in the canvas
+2. Element is selected and highlighted
+3. Right sidebar automatically switches to "Element" tab
+4. Properties panel displays element properties
+
+**Updated Files:**
+- `ElementController.js`: Added `switchToElementTab()` method and integrated into `selectElement()`
