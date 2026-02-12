@@ -60,11 +60,6 @@ export class EditorController {
    */
   setupEventListeners() {
     // Toolbar events
-    const newBtn = document.getElementById('new-btn');
-    if (newBtn) {
-      newBtn.addEventListener('click', () => this.createNewPresentation());
-    }
-
     const saveBtn = document.getElementById('save-btn');
     if (saveBtn) {
       saveBtn.addEventListener('click', () => this.savePresentation());

@@ -459,3 +459,19 @@
 
 **Updated Files:**
 - `ElementController.js`: Added `switchToElementTab()` method and integrated into `selectElement()`
+
+---
+
+## UI Cleanup: Remove New Presentation Button
+
+### Change: Removed "+" New Presentation button from toolbar
+- ✓ **Streamlined toolbar**: Removed redundant "+" button
+- ✓ **Single entry point**: Use Presentation Manager (folder icon) for all presentation management
+- ✓ **Cleaner UI**: Less clutter in the top toolbar
+
+**Rationale:**
+The Presentation Manager now provides a dedicated "New Presentation" button, making the toolbar "+" button redundant. Users can create, open, browse, and delete presentations all from one unified interface.
+
+**Updated Files:**
+- `index.html`: Removed new-btn from toolbar
+- `EditorController.js`: Removed new-btn event listener
