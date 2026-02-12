@@ -515,3 +515,39 @@ The Presentation Manager now provides a dedicated "New Presentation" button, mak
 
 **Updated Files:**
 - `Element.js`: Round rotation values in constructor and updatePosition method
+
+---
+
+## Presentation Title Management
+
+### Feature: Editable presentation title with rename functionality
+- ✓ **Title input field**: Added text input next to WOW3 logo for presentation name
+- ✓ **Auto-save title**: Title automatically saved when changed
+- ✓ **Display in manager**: Presentation name shown in Presentation Manager
+- ✓ **Rename function**: Right-click context menu option to rename presentations
+- ✓ **Auto-update**: Title input updates when loading different presentations
+- ✓ **Visual feedback**: Input highlights on focus with smooth transitions
+
+**Features:**
+1. **Title Input in Navbar**:
+   - Located next to WOW3 logo
+   - 300px width with semi-transparent background
+   - Updates in real-time when typing
+   - Marks presentation as unsaved when changed
+
+2. **Rename in Presentation Manager**:
+   - Right-click on any presentation
+   - Select "Rename" from context menu
+   - Dialog prompts for new name
+   - Updates presentation and refreshes display
+
+3. **Auto-Sync**:
+   - Title input updates when creating new presentation
+   - Title input updates when loading presentation
+   - Title saved with presentation to IndexedDB
+
+**Updated Files:**
+- `index.html`: Added presentation-title-input field in navbar
+- `EditorController.js`: Added title input event handler and updateUI enhancement
+- `presentation_manager.js`: Added renamePresentation() method and context menu option
+- `main.css`: Added styling for title input with focus states

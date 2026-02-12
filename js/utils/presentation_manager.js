@@ -209,11 +209,33 @@ const PresentationManager = {
             <div class="pm-context-item" onclick="PresentationManager.openPresentation('${id}')">
                 <i class="material-icons">play_arrow</i> Open
             </div>
+            <div class="pm-context-item" onclick="PresentationManager.renamePresentation('${id}')">
+                <i class="material-icons">edit</i> Rename
+            </div>
             <div class="pm-context-separator"></div>
             <div class="pm-context-item" onclick="PresentationManager.deletePresentation('${id}')">
                 <i class="material-icons">delete</i> ${__('delete')}
             </div>
         `;
+    },
+
+    renamePresentation: async function(id) {
+        try {
+            const data = await PresentationsDB.getPresentation(id);
+            if (!data) return;
+
+            const newName = await Dialog.prompt("Rename Presentation:", data.title, "Rename");
+            if (newName && newName.trim() !== '') {
+                data.title = newName.trim();
+                data.metadata.modified = new Date().toISOString();
+                await PresentationsDB.savePresentation(data);
+                M.toast({ html: 'Presentation renamed', classes: 'green' });
+                await this.refresh();
+            }
+        } catch (error) {
+            console.error('Failed to rename presentation:', error);
+            M.toast({ html: 'Failed to rename presentation', classes: 'red' });
+        }
     }
 };
 

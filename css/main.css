@@ -36,6 +36,20 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+#presentation-title-input {
+  outline: none;
+  transition: all 0.2s;
+}
+
+#presentation-title-input:focus {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+#presentation-title-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
 .divider-vertical {
   height: 100%;
   width: 1px;

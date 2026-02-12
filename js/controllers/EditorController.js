@@ -59,6 +59,18 @@ export class EditorController {
    * Setup event listeners
    */
   setupEventListeners() {
+    // Presentation title input
+    const titleInput = document.getElementById('presentation-title-input');
+    if (titleInput) {
+      titleInput.addEventListener('change', (e) => {
+        if (this.presentation) {
+          this.presentation.title = e.target.value || 'Untitled Presentation';
+          this.presentation.updateModified();
+          this.unsavedChanges = true;
+        }
+      });
+    }
+
     // Toolbar events
     const saveBtn = document.getElementById('save-btn');
     if (saveBtn) {
@@ -292,6 +304,12 @@ export class EditorController {
    * Update UI elements
    */
   updateUI() {
+    // Update presentation title input
+    const titleInput = document.getElementById('presentation-title-input');
+    if (titleInput && this.presentation) {
+      titleInput.value = this.presentation.title;
+    }
+
     // Update status bar
     const slideCounter = document.getElementById('slide-counter');
     if (slideCounter) {
