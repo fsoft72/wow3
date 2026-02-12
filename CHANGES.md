@@ -332,3 +332,31 @@
 
 **Updated Files:**
 - `RightSidebar.js`: Added element tracking and conditional rendering logic
+
+---
+
+## New Presentation Enhancement
+
+### Improved New Presentation Dialog and Cleanup
+- ✓ **Dialog confirmation**: Replaced native `confirm()` with custom Dialog system
+- ✓ **Clear messaging**: Shows different messages based on whether there are unsaved changes
+- ✓ **Complete localStorage cleanup**: Clears all localStorage snapshots when creating new presentation
+- ✓ **Canvas cleanup**: Explicitly clears the canvas DOM before rendering new presentation
+- ✓ **Element deselection**: Ensures any selected element is deselected before cleanup
+- ✓ **Better UX**: User is clearly informed that all work will be discarded
+
+**Dialog Messages:**
+- With unsaved changes: "You have unsaved changes. Creating a new presentation will discard all current work and clear the canvas. Continue?"
+- Without changes: "This will clear the canvas and create a new presentation. Continue?"
+
+**Cleanup Process:**
+1. Shows confirmation dialog with appropriate message
+2. Clears localStorage snapshots (`clearSnapshot()`)
+3. Deselects any selected elements
+4. Creates new empty Presentation object
+5. Resets history and unsaved changes flag
+6. Explicitly clears canvas DOM
+7. Re-renders the new presentation
+
+**Updated Files:**
+- `EditorController.js`: Enhanced `createNewPresentation()` method with Dialog and complete cleanup

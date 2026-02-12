@@ -10,7 +10,8 @@ import {
   saveSnapshot,
   loadSnapshot,
   exportPresentation,
-  importPresentation
+  importPresentation,
+  clearSnapshot
 } from '../utils/storage.js';
 import { appEvents, AppEvents } from '../utils/events.js';
 
@@ -140,13 +141,34 @@ export class EditorController {
    * Create new presentation
    */
   async createNewPresentation() {
-    if (this.unsavedChanges) {
-      const confirmed = confirm('You have unsaved changes. Create new presentation?');
-      if (!confirmed) return;
+    // Show confirmation dialog
+    const message = this.unsavedChanges
+      ? 'You have unsaved changes. Creating a new presentation will discard all current work and clear the canvas. Continue?'
+      : 'This will clear the canvas and create a new presentation. Continue?';
+
+    const confirmed = await Dialog.confirm(message, 'New Presentation');
+    if (!confirmed) return;
+
+    // Clear localStorage snapshots
+    clearSnapshot();
+
+    // Deselect any selected element
+    if (this.elementController) {
+      this.elementController.deselectElement();
     }
 
+    // Create new presentation
     this.presentation = new Presentation();
     this.resetHistory();
+    this.unsavedChanges = false;
+
+    // Completely clear the canvas
+    const canvas = document.getElementById('slide-canvas');
+    if (canvas) {
+      canvas.innerHTML = '';
+    }
+
+    // Re-render the new presentation
     await this.render();
 
     M.toast({ html: 'New presentation created', classes: 'green' });
