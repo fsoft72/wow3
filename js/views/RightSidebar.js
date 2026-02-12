@@ -179,11 +179,9 @@ export class RightSidebar {
     const uploadBtn = this.createFileUploadButton(element);
     section.appendChild(uploadBtn);
 
-    // URL input (for external URLs or showing media ID)
-    const urlInput = this.createTextInput('URL or Media ID', element.properties.url, async (val) => {
-      await window.app.editor.elementController.updateMediaUrl(element, val);
-    });
-    section.appendChild(urlInput);
+    // URL input with library button
+    const urlGroup = this.createMediaUrlInput(element);
+    section.appendChild(urlGroup);
 
     // Show media info if it's a media ID
     if (element.properties.url && element.properties.url.startsWith('media_')) {
@@ -196,6 +194,61 @@ export class RightSidebar {
     }
 
     this.elementTab.appendChild(section);
+  }
+
+  /**
+   * Create media URL input with library button
+   * @param {Element} element - Media element
+   * @returns {HTMLElement} URL input group
+   */
+  createMediaUrlInput(element) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'input-field';
+    wrapper.style.marginBottom = '20px';
+
+    const label = document.createElement('label');
+    label.textContent = 'URL or Media ID';
+    label.classList.add('active');
+
+    const inputWrapper = document.createElement('div');
+    inputWrapper.style.display = 'flex';
+    inputWrapper.style.gap = '8px';
+    inputWrapper.style.alignItems = 'center';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = element.properties.url || '';
+    input.style.flex = '1';
+    input.style.marginBottom = '0';
+    input.addEventListener('change', async (e) => {
+      await window.app.editor.elementController.updateMediaUrl(element, e.target.value);
+    });
+
+    const libraryBtn = document.createElement('button');
+    libraryBtn.className = 'btn-flat waves-effect blue-text';
+    libraryBtn.type = 'button';
+    libraryBtn.title = 'Select from Media Library';
+    libraryBtn.innerHTML = '<i class="material-icons">photo_library</i>';
+    libraryBtn.style.minWidth = '40px';
+    libraryBtn.style.padding = '0 8px';
+    libraryBtn.addEventListener('click', () => {
+      MediaManager.open(async (data) => {
+        // Use the media ID (localUrl format: local://media_123_abc)
+        const mediaId = data.localUrl ? data.localUrl.replace('local://', '') : data.originalItem?.id;
+        if (mediaId) {
+          await window.app.editor.elementController.updateMediaUrl(element, mediaId);
+          input.value = mediaId;
+        }
+      });
+    });
+
+    inputWrapper.appendChild(input);
+    inputWrapper.appendChild(libraryBtn);
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(inputWrapper);
+
+    return wrapper;
   }
 
   /**
