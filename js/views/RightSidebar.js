@@ -12,6 +12,7 @@ export class RightSidebar {
     this.elementTab = null;
     this.animationTab = null;
     this.activeTab = null; // Track active panel tab
+    this.currentElementId = null; // Track currently displayed element
   }
 
   /**
@@ -30,12 +31,21 @@ export class RightSidebar {
   /**
    * Update properties panel for element
    * @param {Element} element - Element to show properties for
+   * @param {boolean} forceUpdate - Force re-render even if same element
    */
-  updateProperties(element) {
+  updateProperties(element, forceUpdate = false) {
     if (!element || !this.elementTab) {
       this.clearProperties();
       return;
     }
+
+    // If the element hasn't changed, don't re-render the panel
+    if (!forceUpdate && this.currentElementId === element.id) {
+      return;
+    }
+
+    // Track current element
+    this.currentElementId = element.id;
 
     // Save current active tab before re-rendering
     const currentTab = document.querySelector('.panel-tab.active');
@@ -132,6 +142,7 @@ export class RightSidebar {
    * Clear properties panel
    */
   clearProperties() {
+    this.currentElementId = null;
     if (this.elementTab) {
       this.elementTab.innerHTML = '<p class="grey-text center-align" style="padding: 20px;">No element selected</p>';
     }

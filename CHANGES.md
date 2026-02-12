@@ -311,3 +311,24 @@
 - File metadata display
 - Easy deletion with confirmation
 - Automatic UI updates after operations
+
+---
+
+## Property Panel Optimization
+
+### Fix: Preserve Active Tab When Updating Properties
+- ✓ **Prevent unnecessary panel re-renders**: RightSidebar now tracks currently displayed element
+- ✓ **Element ID tracking**: Added `currentElementId` property to track which element's properties are shown
+- ✓ **Smart update logic**: `updateProperties()` now checks if element has changed before re-rendering
+- ✓ **Tab preservation**: Active tab (Content, Style, etc.) is now preserved when updating element properties
+- ✓ **Performance improvement**: Eliminates flickering and tab switching when adjusting properties
+
+**How It Works:**
+1. When `updateProperties(element)` is called, it compares `element.id` with `currentElementId`
+2. If the element hasn't changed, the method returns early without re-rendering
+3. Only when selecting a different element does the panel re-render
+4. Property updates on the same element no longer trigger panel re-renders
+5. The active tab stays active, providing a smooth editing experience
+
+**Updated Files:**
+- `RightSidebar.js`: Added element tracking and conditional rendering logic
