@@ -28,8 +28,11 @@ export class AnimationController {
     this._clickAnimIndex = 0;
     this._clickAnimContainer = null;
     this._clickAnimResolve = null;
-    this._clickHandler = null;
-    this._clickEscapeHandler = null;
+
+    // Auto-animation skip/cancel state
+    this._currentAnimAbortController = null;
+    this._isAnimating = false;
+    this._cancelled = false;
   }
 
   /**
@@ -286,6 +289,9 @@ export class AnimationController {
    * @returns {Promise} Promise that resolves when animations complete
    */
   async playSlideAnimations(slide, container) {
+    this._cancelled = false;
+    this._isAnimating = true;
+
     // Get all elements with inEffect
     const allElements = slide.getAllElements();
     const animatedElements = allElements.filter((el) => el.inEffect);
@@ -307,15 +313,31 @@ export class AnimationController {
       (el) => !animatedElements.includes(el.parent) && (el.inEffect.trigger === AnimationTrigger.CLICK || el.inEffect.trigger === 'click')
     );
 
-    // Play auto animations
+    // Play auto animations (skippable via skipCurrentAnimation)
     for (const element of autoElements) {
+      if (this._cancelled) break;
       await this.playElementAnimation(element, 'in', container);
     }
 
-    // Setup click handler for click-triggered animations
+    if (this._cancelled) {
+      this._isAnimating = false;
+      return;
+    }
+
+    this._isAnimating = false;
+
+    // Setup click-triggered animation queue (advanced by PlaybackController.advance)
     if (clickElements.length > 0) {
       await this.playClickAnimations(clickElements, container);
     }
+  }
+
+  /**
+   * Whether auto animations are currently playing
+   * @returns {boolean}
+   */
+  get isAnimating() {
+    return this._isAnimating;
   }
 
   /**
@@ -324,6 +346,27 @@ export class AnimationController {
    */
   get hasPendingClickAnimations() {
     return this._clickAnimQueue.length > 0 && this._clickAnimIndex < this._clickAnimQueue.length;
+  }
+
+  /**
+   * Skip the currently playing animation (completes it immediately)
+   */
+  skipCurrentAnimation() {
+    if (this._currentAnimAbortController) {
+      this._currentAnimAbortController.abort();
+    }
+  }
+
+  /**
+   * Full cleanup — abort all animations, reset all state
+   * Called when switching slides or stopping playback.
+   */
+  cleanup() {
+    this._cancelled = true;
+    this.skipCurrentAnimation();
+    this._currentAnimAbortController = null;
+    this._isAnimating = false;
+    this._cleanupClickListeners();
   }
 
   /**
@@ -359,21 +402,10 @@ export class AnimationController {
     this._clickAnimIndex = 0;
     this._clickAnimContainer = container;
 
+    // No click/escape listeners here — PlaybackController drives
+    // advancement via its unified advance() method.
     return new Promise((resolve) => {
       this._clickAnimResolve = resolve;
-
-      this._clickHandler = () => {
-        this.advanceClickAnimation();
-      };
-
-      this._clickEscapeHandler = (e) => {
-        if (e.key === 'Escape') {
-          this._cleanupClickListeners();
-        }
-      };
-
-      document.addEventListener('click', this._clickHandler);
-      document.addEventListener('keydown', this._clickEscapeHandler);
     });
   }
 
@@ -381,15 +413,6 @@ export class AnimationController {
    * Remove click-animation event listeners and reset queue state
    */
   _cleanupClickListeners() {
-    if (this._clickHandler) {
-      document.removeEventListener('click', this._clickHandler);
-      this._clickHandler = null;
-    }
-    if (this._clickEscapeHandler) {
-      document.removeEventListener('keydown', this._clickEscapeHandler);
-      this._clickEscapeHandler = null;
-    }
-
     this._clickAnimQueue = [];
     this._clickAnimIndex = 0;
     this._clickAnimContainer = null;
@@ -408,6 +431,8 @@ export class AnimationController {
    * @returns {Promise} Promise that resolves when animation completes
    */
   async playElementAnimation(element, mode, container) {
+    if (this._cancelled) return;
+
     const animation = mode === 'in' ? element.inEffect : element.outEffect;
     if (!animation) return;
 
@@ -416,11 +441,14 @@ export class AnimationController {
 
     appEvents.emit(AppEvents.ANIMATION_STARTED, { element, mode });
 
-    // Apply animation
-    await applyAnimation(elementDOM, animation);
+    // Create abort controller so this animation can be skipped externally
+    this._currentAnimAbortController = new AbortController();
+    await applyAnimation(elementDOM, animation, { signal: this._currentAnimAbortController.signal });
+    this._currentAnimAbortController = null;
 
     // Play children animations
     for (const child of element.children) {
+      if (this._cancelled) break;
       await this.playElementAnimation(child, mode, container);
     }
 

@@ -880,3 +880,27 @@ Help diagnose why animations are not working by showing:
 - `js/controllers/SlideController.js`: Added "+" save-as-template button on thumbnails + context menu entry
 - `js/controllers/EditorController.js`: Added `addSlideFromTemplate(slideData)` method + Slide import
 - `js/views/UIManager.js`: Initialize TemplateManager + attach button handler
+
+---
+
+## Unified Playback Navigation
+
+### Fix: Consistent advance behavior for all navigation inputs
+- ✓ **ArrowLeft = advance**: ArrowLeft now advances forward (same as ArrowRight/Space/Click) instead of going backward
+- ✓ **Mouse click = advance**: Clicking on the presentation view advances to the next animation or slide
+- ✓ **Skip in-progress animations**: Pressing advance during an auto animation completes it immediately
+- ✓ **Unified advance() method**: Single entry point handles: skip auto animation → advance click queue → next slide
+- ✓ **Animation abort signal**: `applyAnimation()` now supports AbortSignal for instant skip
+- ✓ **Proper cleanup on slide change**: Switching slides cancels all pending animations from the previous slide
+- ✓ **Proper cleanup on stop**: Stopping playback resets all animation state
+
+**Navigation mapping:**
+- ArrowRight, ArrowLeft, Space, PageDown, Click → `advance()` (forward)
+- PageUp → Previous slide
+- Home → First slide, End → Last slide
+- Escape → Stop playback
+
+**Updated Files:**
+- `js/utils/animations.js`: Added abort signal support to `applyAnimation()` with guard against double-resolve
+- `js/controllers/AnimationController.js`: Added `isAnimating`, `skipCurrentAnimation()`, `cleanup()`, per-element AbortController, `_cancelled` flag for loop termination; removed click/escape handlers from `playClickAnimations` (PlaybackController now drives advancement)
+- `js/controllers/PlaybackController.js`: Added unified `advance()`, ArrowLeft mapped to advance, click handler on presentation view, animation cleanup in `showSlide`/`stop`/`previousSlide`

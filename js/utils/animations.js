@@ -52,9 +52,15 @@ export const applyAnimation = (element, animation, options = {}) => {
     animationClasses.forEach(cls => element.classList.add(cls));
 
     // Finalise element visibility after animation completes
+    let resolved = false;
     const finalise = () => {
+      if (resolved) return;
+      resolved = true;
       element.removeEventListener('animationend', onEnd);
       clearTimeout(fallbackTimeout);
+      if (options.signal) {
+        options.signal.removeEventListener('abort', finalise);
+      }
       removeAnimation(element);
       element.style.setProperty('opacity', '1', 'important');
       element.style.setProperty('visibility', 'visible', 'important');
@@ -67,6 +73,15 @@ export const applyAnimation = (element, animation, options = {}) => {
     // Fallback timeout in case animationend doesn't fire
     const timeoutDuration = duration + (options.delay || animation.delay || 0) + 100;
     const fallbackTimeout = setTimeout(finalise, timeoutDuration);
+
+    // Allow external abort (skip animation immediately)
+    if (options.signal) {
+      if (options.signal.aborted) {
+        finalise();
+      } else {
+        options.signal.addEventListener('abort', finalise, { once: true });
+      }
+    }
   });
 };
 

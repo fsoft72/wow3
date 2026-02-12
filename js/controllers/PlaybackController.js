@@ -97,7 +97,7 @@ export class PlaybackController {
   }
 
   /**
-   * Setup keyboard navigation
+   * Setup keyboard and click navigation
    */
   setupNavigation() {
     const handleKeydown = (e) => {
@@ -106,13 +106,13 @@ export class PlaybackController {
         return;
       }
 
-      // Next slide: Right arrow, Space, Page Down
-      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      // Advance: Right arrow, Left arrow, Space, Page Down
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === ' ' || e.key === 'PageDown') {
         e.preventDefault();
-        this.nextSlide();
+        this.advance();
       }
-      // Previous slide: Left arrow, Page Up
-      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      // Previous slide: Page Up
+      else if (e.key === 'PageUp') {
         e.preventDefault();
         this.previousSlide();
       }
@@ -137,6 +137,16 @@ export class PlaybackController {
 
     document.addEventListener('keydown', handleKeydown);
 
+    // Click on presentation view to advance
+    const handleClick = () => {
+      if (!this.isPlaying) return;
+      this.advance();
+    };
+
+    if (this.presentationView) {
+      this.presentationView.addEventListener('click', handleClick);
+    }
+
     // Exit fullscreen handler
     const fullscreenChangeHandler = () => {
       if (!document.fullscreenElement && this.isPlaying) {
@@ -148,6 +158,7 @@ export class PlaybackController {
 
     // Store handlers for cleanup
     this._keydownHandler = handleKeydown;
+    this._presentationClickHandler = handleClick;
     this._fullscreenHandler = fullscreenChangeHandler;
   }
 
@@ -158,6 +169,11 @@ export class PlaybackController {
   async showSlide(index) {
     const slide = this.editor.presentation.slides[index];
     if (!slide) return;
+
+    // Clean up any ongoing animations from the previous slide
+    if (this.editor.animationController) {
+      this.editor.animationController.cleanup();
+    }
 
     this.currentSlideIndex = index;
 
@@ -294,15 +310,32 @@ export class PlaybackController {
   }
 
   /**
-   * Navigate to next slide, or advance pending click animation first
+   * Unified advance action: skip current animation → advance click queue → next slide.
+   * Handles ArrowRight, ArrowLeft, Space, PageDown, and mouse click.
    */
-  nextSlide() {
-    // If click-triggered animations are still queued, advance them instead
-    if (this.editor.animationController && this.editor.animationController.hasPendingClickAnimations) {
-      this.editor.animationController.advanceClickAnimation();
+  advance() {
+    const anim = this.editor.animationController;
+
+    // 1. If an auto animation is currently playing, skip it
+    if (anim && anim.isAnimating) {
+      anim.skipCurrentAnimation();
       return;
     }
 
+    // 2. If click-triggered animations are queued, advance them
+    if (anim && anim.hasPendingClickAnimations) {
+      anim.advanceClickAnimation();
+      return;
+    }
+
+    // 3. Go to next slide
+    this.nextSlide();
+  }
+
+  /**
+   * Navigate to next visible slide
+   */
+  nextSlide() {
     const next = this._findVisibleSlide(this.currentSlideIndex + 1);
     if (next !== -1) {
       this.showSlide(next);
@@ -327,6 +360,11 @@ export class PlaybackController {
   stop() {
     this.isPlaying = false;
 
+    // Clean up animation state
+    if (this.editor.animationController) {
+      this.editor.animationController.cleanup();
+    }
+
     // Exit fullscreen
     if (document.fullscreenElement) {
       document.exitFullscreen().catch((err) => {
@@ -345,6 +383,11 @@ export class PlaybackController {
     if (this._keydownHandler) {
       document.removeEventListener('keydown', this._keydownHandler);
       this._keydownHandler = null;
+    }
+
+    if (this._presentationClickHandler && this.presentationView) {
+      this.presentationView.removeEventListener('click', this._presentationClickHandler);
+      this._presentationClickHandler = null;
     }
 
     if (this._fullscreenHandler) {
