@@ -193,8 +193,8 @@ export class PlaybackController {
       slideContainer.appendChild(shellLayer);
     }
 
-    // Render shell elements (static, no animations)
-    if (shell) {
+    // Render shell elements (static, no animations) — skip if slide hides shell
+    if (shell && !slide.hideShell) {
       shell.elements.forEach((element, idx) => {
         const elementDOM = element.render(idx);
         shellLayer.appendChild(elementDOM);

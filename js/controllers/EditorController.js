@@ -147,6 +147,16 @@ export class EditorController {
       });
     }
 
+    // Hide shell on this slide
+    const slideHideShell = document.getElementById('slide-hide-shell');
+    if (slideHideShell) {
+      slideHideShell.addEventListener('change', (e) => {
+        const activeSlide = this.getActiveSlide();
+        activeSlide.hideShell = e.target.checked;
+        this.recordHistory();
+      });
+    }
+
     // Shell mode select
     const shellModeSelect = document.getElementById('shell-mode-select');
     if (shellModeSelect) {
@@ -375,6 +385,17 @@ export class EditorController {
     const shellModeSelect = document.getElementById('shell-mode-select');
     if (shellModeSelect) {
       shellModeSelect.value = this.presentation.shellMode;
+    }
+
+    // Hide-shell-per-slide checkbox (only visible when shell exists and not editing the shell itself)
+    const hasShell = this.presentation.hasShell();
+    const hideShellField = document.getElementById('hide-shell-field');
+    if (hideShellField) {
+      hideShellField.style.display = hasShell && !this.isEditingShell ? 'block' : 'none';
+    }
+    const slideHideShell = document.getElementById('slide-hide-shell');
+    if (slideHideShell) {
+      slideHideShell.checked = activeSlide.hideShell || false;
     }
   }
 

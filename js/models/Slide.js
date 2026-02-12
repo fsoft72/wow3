@@ -24,6 +24,7 @@ export class Slide {
     this.title = properties.title || 'Untitled Slide';
     this.background = properties.background || DEFAULTS.BACKGROUND_COLOR;
     this.visible = properties.visible !== false; // default true
+    this.hideShell = properties.hideShell || false;
     this.elements = [];
 
     // Load elements if provided
@@ -192,6 +193,7 @@ export class Slide {
       title: this.title,
       background: this.background,
       visible: this.visible,
+      hideShell: this.hideShell,
       elements: this.elements.map(el => el.toJSON())
     };
   }
