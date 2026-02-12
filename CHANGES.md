@@ -601,3 +601,27 @@ Help diagnose why animations are not working by showing:
 
 **Updated Files:**
 - `index.html`: Removed Animation tab, moved elements tree to Slide tab
+
+---
+
+## Fix: LocalStorage Snapshot Sync
+
+### Fix: Update localStorage snapshot when opening presentations
+- ✓ **Snapshot sync on load**: Opening a presentation now updates localStorage snapshot
+- ✓ **Snapshot sync on new**: Creating new presentation saves snapshot of new presentation
+- ✓ **Crash recovery**: Browser refresh/crash now recovers the correct presentation
+- ✓ **Consistent state**: localStorage always reflects current working presentation
+
+**Issue Before:**
+- Open presentation A
+- Open presentation B
+- localStorage still contained presentation A
+- Browser refresh would load presentation A instead of B
+
+**Fix:**
+- `loadPresentation()` now calls `saveSnapshot()` after loading
+- `createNewPresentation()` now calls `saveSnapshot()` after creation
+- localStorage always in sync with current presentation
+
+**Updated Files:**
+- `EditorController.js`: Added saveSnapshot() calls to loadPresentation() and createNewPresentation()

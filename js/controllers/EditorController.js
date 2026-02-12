@@ -178,6 +178,9 @@ export class EditorController {
     // Re-render the new presentation
     await this.render();
 
+    // Save snapshot of new presentation
+    saveSnapshot(this.presentation);
+
     M.toast({ html: 'New presentation created', classes: 'green' });
     appEvents.emit(AppEvents.PRESENTATION_CREATED, this.presentation);
   }
@@ -191,6 +194,9 @@ export class EditorController {
       this.presentation = Presentation.fromJSON(data);
       this.resetHistory();
       await this.render();
+
+      // Update localStorage snapshot to reflect the newly loaded presentation
+      saveSnapshot(this.presentation);
 
       M.toast({ html: 'Presentation loaded', classes: 'green' });
       appEvents.emit(AppEvents.PRESENTATION_LOADED, this.presentation);
