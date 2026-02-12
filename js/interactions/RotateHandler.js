@@ -23,16 +23,17 @@ export class RotateHandler {
   attach(handleDOM, element) {
     handleDOM.addEventListener('mousedown', (e) => {
       e.stopPropagation();
-      this.startRotate(e, element);
+      this.startRotate(e, handleDOM, element);
     });
   }
 
   /**
    * Start rotating element
    * @param {MouseEvent} e - Mouse event
+   * @param {HTMLElement} handleDOM - Rotate handle DOM
    * @param {Element} element - Element model
    */
-  startRotate(e, element) {
+  startRotate(e, handleDOM, element) {
     e.preventDefault();
     this.isRotating = true;
 
