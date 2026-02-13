@@ -248,6 +248,11 @@ export class PlaybackController {
       });
     });
 
+    // Hide static countdown_timer elements — the live playback overlay replaces them
+    slideLayer.querySelectorAll('.countdown-timer-element').forEach(el => {
+      el.style.display = 'none';
+    });
+
     // Replace text placeholders in rendered DOM
     this._replacePlaceholders(slideContainer, index);
 
@@ -434,6 +439,12 @@ export class PlaybackController {
     const timer = slide.elements.find(el => el.type === 'countdown_timer');
     if (!timer) return { action: 'inherit' };
     if (timer.properties.clear) return { action: 'clear' };
+
+    // If the active countdown is already from this same element, keep it running
+    if (this._activeCountdown && this._activeCountdown.element.id === timer.id) {
+      return { action: 'inherit' };
+    }
+
     return { action: 'new', element: timer };
   }
 

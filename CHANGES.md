@@ -1082,3 +1082,18 @@ Help diagnose why animations are not working by showing:
 **Updated Files:**
 - `js/controllers/ElementController.js`: Added `syncCountdownTimerStyle(property, value)` method
 - `js/panels/CountdownTimerPanel.js`: Style controls now use `updateStyleProperty()` which calls both `updateElementProperty()` and `syncCountdownTimerStyle()`
+
+---
+
+## Fix: Countdown Timer Playback Bugs
+
+### Fix: Timer no longer resets when revisiting the defining slide
+- `_resolveCountdownForSlide()` now checks if the active countdown is already from the same element (by ID) and returns `'inherit'` instead of `'new'`, preventing stop+restart
+- Navigating backward/forward through the defining slide keeps the timer counting uninterrupted
+
+### Fix: Hide static timer element during playback
+- Countdown timer elements rendered by `slide.elements.forEach()` are now hidden during playback (`display: none`)
+- The live `playback-countdown` overlay is the sole visible timer, eliminating initial-time flash and double rendering
+
+**Updated Files:**
+- `js/controllers/PlaybackController.js`: Fixed `_resolveCountdownForSlide()` same-element check; added static `.countdown-timer-element` hiding in `showSlide()`
