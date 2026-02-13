@@ -543,6 +543,11 @@ export class SlideController {
       });
     });
 
+    // Render shell preview overlay when toggled on (only for regular slides)
+    if (!this.editor.isEditingShell) {
+      this._renderShellPreview(canvas, activeSlide);
+    }
+
     // Render ghost countdown timer if current slide doesn't have one
     if (!this.editor.isEditingShell) {
       this._renderCountdownGhost(canvas, activeSlide);
@@ -758,6 +763,47 @@ export class SlideController {
       this._updateThumbnailDOM(slideId, dataUrl);
     } catch (err) {
       console.warn('Thumbnail capture failed:', err);
+    }
+  }
+
+  /**
+   * Render a read-only, semi-transparent overlay of shell elements on the canvas.
+   * Only shown when `showShellPreview` is on, a shell exists, and the current
+   * slide hasn't opted out via `hideShell`.
+   * @param {HTMLElement} canvas - Slide canvas element
+   * @param {import('../models/Slide.js').Slide} activeSlide - Current slide
+   * @private
+   */
+  _renderShellPreview(canvas, activeSlide) {
+    if (!this.editor.showShellPreview) return;
+
+    const shell = this.editor.presentation.shell;
+    if (!shell) return;
+    if (activeSlide.hideShell) return;
+
+    const shellMode = this.editor.presentation.shellMode;
+
+    // Container for all shell preview elements
+    const overlay = document.createElement('div');
+    overlay.className = 'shell-preview-overlay';
+
+    // Render shell elements inside the overlay
+    shell.elements.forEach((element, index) => {
+      const elementDOM = element.render(index);
+      overlay.appendChild(elementDOM);
+
+      // Render children
+      element.children.forEach((child, childIndex) => {
+        const childDOM = child.render(index * 100 + childIndex + 1);
+        elementDOM.appendChild(childDOM);
+      });
+    });
+
+    // Insert based on shell mode
+    if (shellMode === 'below') {
+      canvas.insertBefore(overlay, canvas.firstChild);
+    } else {
+      canvas.appendChild(overlay);
     }
   }
 

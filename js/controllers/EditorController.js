@@ -40,6 +40,9 @@ export class EditorController {
 
     // Shell editing state
     this.isEditingShell = false;
+
+    // Shell preview overlay while editing a regular slide
+    this.showShellPreview = false;
   }
 
   /**
@@ -181,6 +184,18 @@ export class EditorController {
         if (shellId) {
           this.slideController._thumbCache.delete(shellId);
           window.MediaDB.deleteThumbnail(shellId).catch(() => {});
+        }
+      });
+    }
+
+    // Shell preview toggle button
+    const shellPreviewBtn = document.getElementById('shell-preview-btn');
+    if (shellPreviewBtn) {
+      shellPreviewBtn.addEventListener('click', () => {
+        this.showShellPreview = !this.showShellPreview;
+        this.updateUI();
+        if (this.slideController) {
+          this.slideController.renderCurrentSlide();
         }
       });
     }
@@ -469,6 +484,18 @@ export class EditorController {
     const slideHideShell = document.getElementById('slide-hide-shell');
     if (slideHideShell) {
       slideHideShell.checked = activeSlide.hideShell || false;
+    }
+
+    // Shell preview toggle button — visible when shell exists and not editing shell
+    const shellPreviewBtn = document.getElementById('shell-preview-btn');
+    if (shellPreviewBtn) {
+      const showBtn = hasShell && !this.isEditingShell;
+      shellPreviewBtn.style.display = showBtn ? 'inline-flex' : 'none';
+      shellPreviewBtn.classList.toggle('active', this.showShellPreview);
+      const icon = shellPreviewBtn.querySelector('i');
+      if (icon) {
+        icon.textContent = this.showShellPreview ? 'layers' : 'layers_clear';
+      }
     }
   }
 

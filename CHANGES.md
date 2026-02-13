@@ -2,6 +2,20 @@
 
 ## 2026-02-13
 
+### Shell Preview Toggle in Editor
+- Added a toggle button in the status bar to show/hide shell slide elements while editing a regular slide
+- Shell elements are rendered as a read-only overlay with 30% opacity (`pointer-events: none`)
+- Respects `shellMode` (below/above) for proper layering relative to slide elements
+- Respects per-slide `hideShell` setting — preview won't show if the slide has shell hidden
+- Button only visible when a shell exists and the user is not in shell editing mode
+- Purple highlight on button when active; layers/layers_clear icon toggles with state
+
+**Updated Files:**
+- `js/controllers/EditorController.js`: Added `showShellPreview` state, toggle button event listener, button visibility in `updateUI()`
+- `js/controllers/SlideController.js`: Added `_renderShellPreview()` method called from `renderCurrentSlide()`
+- `index.html`: Added `#shell-preview-btn` toggle button in status bar
+- `css/editor.css`: Added `.shell-preview-overlay` and `.shell-preview-toggle` styles
+
 ### Inline Slide Rename
 - Click on the slide name label (shown on thumbnail hover) to edit the name in place
 - Press Enter or click away to confirm, Escape to cancel
