@@ -1232,3 +1232,17 @@ Help diagnose why animations are not working by showing:
 **New Files:**
 - `.github/workflows/deploy.yml`: GitHub Pages deployment workflow
 - `.gitignore`: Exclude dev-only files from the repository
+
+---
+
+## Slide Name on Thumbnail Hover
+
+### Feature: Show slide title on hover over thumbnail
+- ✓ **Hover reveal**: Slide title appears at the bottom of the thumbnail when hovering
+- ✓ **Solid background**: Dark semi-transparent background for readability
+- ✓ **Text overflow**: Long titles are truncated with ellipsis
+- ✓ **Smooth transition**: 150ms fade-in/out transition
+
+**Updated Files:**
+- `js/controllers/SlideController.js`: Added `.slide-name-label` element in `createSlideThumbnail()`
+- `css/sidebar.css`: Added `.slide-name-label` styles with hover reveal via `.slide-thumbnail:hover`

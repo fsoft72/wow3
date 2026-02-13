@@ -253,6 +253,12 @@ export class SlideController {
 
     div.appendChild(preview);
 
+    // Slide name label (shown on hover)
+    const nameLabel = document.createElement('div');
+    nameLabel.className = 'slide-name-label';
+    nameLabel.textContent = slide.title || 'Untitled Slide';
+    div.appendChild(nameLabel);
+
     // Click to select slide
     div.addEventListener('click', () => {
       this.selectSlide(index);
