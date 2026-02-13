@@ -21,7 +21,7 @@ export class SlideController {
     this._thumbTimer = null;
 
     /** @type {number} Debounce delay in ms */
-    this.THUMB_DEBOUNCE_MS = 5000;
+    this.THUMB_DEBOUNCE_MS = 2000;
   }
 
   /**
@@ -402,6 +402,9 @@ export class SlideController {
    * @param {number} index - Slide index
    */
   selectSlide(index) {
+    // Flush any pending thumbnail capture before leaving the current slide
+    this.flushThumbnailCapture();
+
     // Exit shell editing when switching to a regular slide
     this.editor.isEditingShell = false;
 
@@ -595,6 +598,18 @@ export class SlideController {
       this._thumbTimer = null;
       this._captureCurrentSlideThumbnail();
     }, this.THUMB_DEBOUNCE_MS);
+  }
+
+  /**
+   * If a thumbnail capture is pending (debounce timer running), fire it
+   * immediately so the current slide's thumbnail is up-to-date before
+   * navigating away.
+   */
+  flushThumbnailCapture() {
+    if (!this._thumbTimer) return;
+    clearTimeout(this._thumbTimer);
+    this._thumbTimer = null;
+    this._captureCurrentSlideThumbnail();
   }
 
   /**

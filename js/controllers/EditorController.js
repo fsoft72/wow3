@@ -415,6 +415,11 @@ export class EditorController {
    * Enter shell editing mode (creates shell if needed)
    */
   editShell() {
+    // Flush any pending thumbnail capture before switching to shell
+    if (this.slideController) {
+      this.slideController.flushThumbnailCapture();
+    }
+
     this.presentation.createShell();
     this.isEditingShell = true;
 
