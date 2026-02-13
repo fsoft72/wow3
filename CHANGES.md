@@ -1218,3 +1218,17 @@ Help diagnose why animations are not working by showing:
 - `js/controllers/EditorController.js`: Call `loadThumbnailsFromDB()` in `render()` before `renderSlides()`; clear thumb cache in `createNewPresentation()` and `loadPresentation()`; delete thumbnail from cache and IndexedDB in `deleteSlide()` and remove-shell button
 - `js/controllers/SlideController.js`: Added `loadThumbnailsFromDB()`; persist thumbnail in `_captureCurrentSlideThumbnail()`; delete shell thumbnail in context menu "Remove Shell"
 - `js/utils/presentation_manager.js`: Delete all slide thumbnails from IndexedDB when a presentation is deleted
+
+---
+
+## GitHub Pages Deployment
+
+### Feature: Deploy to GitHub Pages via GitHub Actions
+- ✓ **GitHub Actions workflow**: Deploys the static site on every push to `master`
+- ✓ **Manual trigger**: Can also be triggered manually via `workflow_dispatch`
+- ✓ **No build step**: Deploys the repo root directly (static site)
+- ✓ **`.gitignore`**: Added to exclude `.claude/`, swap files, `node_modules/`, `TODO.md`
+
+**New Files:**
+- `.github/workflows/deploy.yml`: GitHub Pages deployment workflow
+- `.gitignore`: Exclude dev-only files from the repository
