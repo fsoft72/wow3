@@ -1215,4 +1215,4 @@ Help diagnose why animations are not working by showing:
 **Updated Files:**
 - `js/utils/media_db.js`: Bumped version to 4; added `slide_thumbnails` store; added `saveThumbnail()`, `loadThumbnails()`, `deleteThumbnail()`, `clearAllThumbnails()` methods
 - `js/controllers/SlideController.js`: Added `loadThumbnailsFromDB()`; persist thumbnail in `_captureCurrentSlideThumbnail()`
-- `js/controllers/EditorController.js`: Call `loadThumbnailsFromDB()` in `render()` before `renderSlides()`; clear thumb cache in `createNewPresentation()` and `loadPresentation()`
+- `js/controllers/EditorController.js`: Call `loadThumbnailsFromDB()` in `render()` before `renderSlides()`; clear thumb cache in `createNewPresentation()` and `loadPresentation()`; delete thumbnail from cache and IndexedDB in `deleteSlide()`

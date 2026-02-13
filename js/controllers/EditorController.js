@@ -574,8 +574,15 @@ export class EditorController {
     const confirmed = await Dialog.confirm('Delete this slide?', 'Delete Slide');
     if (!confirmed) return;
 
+    const slideId = this.presentation.slides[index]?.id;
     const success = this.presentation.removeSlide(index);
     if (success) {
+      // Clean up persisted thumbnail
+      if (slideId) {
+        this.slideController._thumbCache.delete(slideId);
+        window.MediaDB.deleteThumbnail(slideId).catch(() => {});
+      }
+
       this.recordHistory();
       this.render();
       appEvents.emit(AppEvents.SLIDE_REMOVED, index);
