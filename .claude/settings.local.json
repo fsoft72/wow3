@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /home/fabio/dev/projects/wow3 status -u)",
+      "Bash(git -C /home/fabio/dev/projects/wow3 diff -- js/interactions/DragHandler.js js/interactions/AlignmentGuides.js js/utils/positioning.js css/editor.css)",
+      "Bash(git -C /home/fabio/dev/projects/wow3 ls-files js/interactions/DragHandler.js js/interactions/AlignmentGuides.js js/utils/positioning.js css/editor.css)",
+      "Bash(git -C /home/fabio/dev/projects/wow3 show HEAD:js/interactions/DragHandler.js)",
+      "Bash(git -C /home/fabio/dev/projects/wow3 log --oneline -5)",
+      "Bash(git -C /home/fabio/dev/projects/wow3 show 5dfe8cd --stat)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(git status:*)",
+      "Bash(wc:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}
