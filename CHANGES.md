@@ -1246,3 +1246,31 @@ Help diagnose why animations are not working by showing:
 **Updated Files:**
 - `js/controllers/SlideController.js`: Added `.slide-name-label` element in `createSlideThumbnail()`
 - `css/sidebar.css`: Added `.slide-name-label` styles with hover reveal via `.slide-thumbnail:hover`
+
+---
+
+## Clip Shapes for Image and Video Elements
+
+### Feature: Crop images and videos to geometric shapes
+- ✓ **Shape types**: Circle and Rectangle clip shapes for image and video elements
+- ✓ **Circle clipping**: `border-radius: 50%` + `overflow: hidden` clips media to a perfect circle; element forced to square aspect ratio
+- ✓ **Rectangle clipping**: Clips with optional border-radius for rounded rectangles
+- ✓ **Shape border**: Configurable border width (0-20px) and color on the shape outline
+- ✓ **Content scaling**: Media inside the shape can be scaled (50-200%) for zoom control
+- ✓ **Works with crops**: Shape wrapper sits outside the crop clipper, both features compose correctly
+- ✓ **YouTube support**: YouTube video iframes also clip to shapes
+- ✓ **Persistence**: All properties serialized automatically via existing `toJSON()`/`fromJSON()`
+- ✓ **Playback**: Shapes render identically in presentation mode (same `render()` method)
+
+**New Properties (ImageElement + VideoElement):**
+- `clipShape`: `'none'` | `'circle'` | `'rectangle'` (default: `'none'`)
+- `shapeBorderWidth`: Border width in px (default: `0`)
+- `shapeBorderColor`: Border color hex (default: `'#000000'`)
+- `shapeScale`: Content scale percentage (default: `100`)
+
+**Updated Files:**
+- `js/models/ImageElement.js`: Added clip shape properties; added `_createShapeWrapper()` and `_createScaleContainer()` helpers; modified `render()` to wrap content in shape wrapper when active
+- `js/models/VideoElement.js`: Same additions as ImageElement; YouTube overlay placed outside shape wrapper
+- `js/panels/ImagePanel.js`: Added Clip Shape section to Style tab (shape selector, border width/color, content scale); force panel re-render on shape change
+- `js/panels/VideoPanel.js`: Added Clip Shape section to Settings tab with same controls
+- `css/editor.css`: Added `.clip-shape-wrapper` and `.clip-shape-content` CSS classes

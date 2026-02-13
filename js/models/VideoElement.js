@@ -26,6 +26,12 @@ export class VideoElement extends Element {
 
     // Crop state: null = no crop, object = cropped
     this.properties.crop = properties.properties?.crop || null;
+
+    // Clip shape: 'none', 'circle', 'rectangle'
+    this.properties.clipShape = properties.properties?.clipShape || 'none';
+    this.properties.shapeBorderWidth = properties.properties?.shapeBorderWidth ?? 0;
+    this.properties.shapeBorderColor = properties.properties?.shapeBorderColor || '#000000';
+    this.properties.shapeScale = properties.properties?.shapeScale ?? 100;
   }
 
   /**
@@ -38,6 +44,7 @@ export class VideoElement extends Element {
     el.classList.add('video-element');
 
     const url = this.properties.url;
+    const hasClipShape = this.properties.clipShape && this.properties.clipShape !== 'none';
 
     if (url) {
       const type = this._getVideoType(url);
@@ -45,15 +52,15 @@ export class VideoElement extends Element {
       if (type === 'youtube') {
         const youtubeId = this._parseYouTubeId(url);
         const iframe = document.createElement('iframe');
-        
+
         // Use no-cookie embed
         let src = `https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0`;
-        
+
         // Add parameters based on properties
         if (this.properties.autoplay) src += '&autoplay=1&mute=1';
         if (this.properties.loop) src += `&loop=1&playlist=${youtubeId}`;
         if (this.properties.controls === false) src += '&controls=0';
-        
+
         iframe.src = src;
         iframe.style.cssText = `
           width: 100%;
@@ -63,9 +70,18 @@ export class VideoElement extends Element {
         `;
         iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
         iframe.allowFullscreen = true;
-        el.appendChild(iframe);
 
-        // Add overlay to allow selection in editor (iframes capture clicks)
+        if (hasClipShape) {
+          const wrapper = this._createShapeWrapper();
+          const scaleContainer = this._createScaleContainer();
+          scaleContainer.appendChild(iframe);
+          wrapper.appendChild(scaleContainer);
+          el.appendChild(wrapper);
+        } else {
+          el.appendChild(iframe);
+        }
+
+        // Add overlay to allow selection in editor (iframes capture clicks) — outside shape wrapper
         const isPresentation = window.app && window.app.uiManager && window.app.uiManager.currentMode === 'presentation';
         if (!isPresentation) {
           const overlay = document.createElement('div');
@@ -106,6 +122,8 @@ export class VideoElement extends Element {
           el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f5f5f5;color:#999;">Video not found</div>';
         };
 
+        let content;
+
         if (crop) {
           // Cropped mode: inner clipper div with overflow hidden (element itself must not clip handles)
           const clipper = document.createElement('div');
@@ -126,14 +144,24 @@ export class VideoElement extends Element {
             object-fit: fill;
           `;
           clipper.appendChild(video);
-          el.appendChild(clipper);
+          content = clipper;
         } else {
           video.style.cssText = `
             width: 100%;
             height: 100%;
             object-fit: cover;
           `;
-          el.appendChild(video);
+          content = video;
+        }
+
+        if (hasClipShape) {
+          const wrapper = this._createShapeWrapper();
+          const scaleContainer = this._createScaleContainer();
+          scaleContainer.appendChild(content);
+          wrapper.appendChild(scaleContainer);
+          el.appendChild(wrapper);
+        } else {
+          el.appendChild(content);
         }
       }
     } else {
@@ -141,6 +169,59 @@ export class VideoElement extends Element {
     }
 
     return el;
+  }
+
+  /**
+   * Create the clip shape wrapper div with border-radius, overflow, and border
+   * @returns {HTMLElement} Shape wrapper element
+   * @private
+   */
+  _createShapeWrapper() {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'clip-shape-wrapper';
+
+    let borderRadius = '0';
+    if (this.properties.clipShape === 'circle') {
+      borderRadius = '50%';
+    } else if (this.properties.clipShape === 'rectangle') {
+      borderRadius = `${this.properties.borderRadius || 0}px`;
+    }
+
+    const borderWidth = this.properties.shapeBorderWidth || 0;
+    const borderColor = this.properties.shapeBorderColor || '#000000';
+    const borderStyle = borderWidth > 0 ? `border: ${borderWidth}px solid ${borderColor};` : '';
+
+    wrapper.style.cssText = `
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      overflow: hidden;
+      border-radius: ${borderRadius};
+      box-sizing: border-box;
+      ${borderStyle}
+    `;
+
+    return wrapper;
+  }
+
+  /**
+   * Create the scale container div inside the shape wrapper
+   * @returns {HTMLElement} Scale container element
+   * @private
+   */
+  _createScaleContainer() {
+    const container = document.createElement('div');
+    container.className = 'clip-shape-content';
+
+    const scale = (this.properties.shapeScale || 100) / 100;
+
+    container.style.cssText = `
+      width: 100%; height: 100%;
+      transform: scale(${scale});
+      transform-origin: center center;
+    `;
+
+    return container;
   }
 
   /**

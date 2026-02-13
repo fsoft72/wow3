@@ -60,7 +60,23 @@ export class ImagePanel {
           </select>
         </div>
 
-        ${PanelUtils.renderSlider('Border Radius', 'border-radius', props.borderRadius || 0, 0, 50, 1, 'px')}
+        <div class="control-group">
+          <label>Clip Shape</label>
+          <select id="clip-shape" class="panel-select">
+            <option value="none" ${(props.clipShape || 'none') === 'none' ? 'selected' : ''}>None</option>
+            <option value="circle" ${props.clipShape === 'circle' ? 'selected' : ''}>Circle</option>
+            <option value="rectangle" ${props.clipShape === 'rectangle' ? 'selected' : ''}>Rectangle</option>
+          </select>
+        </div>
+
+        ${props.clipShape && props.clipShape !== 'none' ? `
+          ${props.clipShape === 'rectangle' ? PanelUtils.renderSlider('Border Radius', 'border-radius', props.borderRadius || 0, 0, 50, 1, 'px') : ''}
+          ${PanelUtils.renderSlider('Border Width', 'shape-border-width', props.shapeBorderWidth || 0, 0, 20, 1, 'px')}
+          ${PanelUtils.renderColorPicker('Border Color', 'shape-border-color', props.shapeBorderColor || '#000000')}
+          ${PanelUtils.renderSlider('Content Scale', 'shape-scale', props.shapeScale || 100, 50, 200, 1, '%')}
+        ` : `
+          ${PanelUtils.renderSlider('Border Radius', 'border-radius', props.borderRadius || 0, 0, 50, 1, 'px')}
+        `}
 
         ${PanelUtils.renderSlider('Opacity', 'opacity', (props.opacity !== undefined ? props.opacity : 1) * 100, 0, 100, 1, '%')}
       </div>
@@ -183,9 +199,46 @@ export class ImagePanel {
       });
     }
 
-    // Border radius
+    // Clip shape
+    const clipShapeSelect = document.getElementById('clip-shape');
+    if (clipShapeSelect) {
+      clipShapeSelect.addEventListener('change', (e) => {
+        const newShape = e.target.value;
+
+        // Enforce square aspect ratio for circle
+        if (newShape === 'circle') {
+          const size = Math.min(element.position.width, element.position.height);
+          element.position.width = size;
+          element.position.height = size;
+        }
+
+        updateProperty('properties.clipShape', newShape);
+
+        // Force panel re-render to show/hide conditional controls
+        if (window.app.editor.uiManager?.rightSidebar) {
+          window.app.editor.uiManager.rightSidebar.updateProperties(element, true);
+        }
+      });
+    }
+
+    // Border radius (shown for rectangle shape or when no shape)
     PanelUtils.bindSlider('border-radius', (value) => {
       updateProperty('properties.borderRadius', parseInt(value));
+    });
+
+    // Shape border width
+    PanelUtils.bindSlider('shape-border-width', (value) => {
+      updateProperty('properties.shapeBorderWidth', parseInt(value));
+    });
+
+    // Shape border color
+    PanelUtils.bindColorPicker('shape-border-color', (value) => {
+      updateProperty('properties.shapeBorderColor', value);
+    });
+
+    // Shape content scale
+    PanelUtils.bindSlider('shape-scale', (value) => {
+      updateProperty('properties.shapeScale', parseInt(value));
     });
 
     // Opacity
