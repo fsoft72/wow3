@@ -44,21 +44,17 @@ export class ResizeHandler {
     const startY = e.clientY;
     const startPos = { ...element.position };
 
-    // Circle clip shapes always lock to 1:1; cropped elements lock to wrapper ratio;
+    // Cropped elements lock to wrapper ratio;
     // uncropped images/videos lock to their natural aspect ratio (or Ctrl)
     const hasCrop = element.properties.crop != null;
-    const isCircle = element.properties.clipShape === 'circle';
     const lockAspectRatio =
-      isCircle ||
       hasCrop ||
       e.ctrlKey ||
       element.properties.aspectRatio !== null && element.properties.aspectRatio !== undefined;
 
-    const aspectRatio = isCircle
-      ? 1
-      : hasCrop
-        ? startPos.width / startPos.height
-        : (element.properties.aspectRatio || startPos.width / startPos.height);
+    const aspectRatio = hasCrop
+      ? startPos.width / startPos.height
+      : (element.properties.aspectRatio || startPos.width / startPos.height);
 
     const elementDOM = document.getElementById(element.id);
 

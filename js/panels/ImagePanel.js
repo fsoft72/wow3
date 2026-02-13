@@ -205,13 +205,6 @@ export class ImagePanel {
       clipShapeSelect.addEventListener('change', (e) => {
         const newShape = e.target.value;
 
-        // Enforce square aspect ratio for circle
-        if (newShape === 'circle') {
-          const size = Math.min(element.position.width, element.position.height);
-          element.position.width = size;
-          element.position.height = size;
-        }
-
         updateProperty('properties.clipShape', newShape);
 
         // Force panel re-render to show/hide conditional controls

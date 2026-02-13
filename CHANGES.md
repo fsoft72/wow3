@@ -1274,9 +1274,9 @@ Help diagnose why animations are not working by showing:
 
 ### Feature: Crop images and videos to geometric shapes
 - ✓ **Shape types**: Circle and Rectangle clip shapes for image and video elements
-- ✓ **Circle clipping**: `border-radius: 50%` + `overflow: hidden` clips media to a perfect circle; element forced to square aspect ratio
+- ✓ **Circle clipping**: `clip-path: circle(closest-side at center)` clips media to a true circle inscribed in the element, without forcing the element to be square
 - ✓ **Rectangle clipping**: Clips with optional border-radius for rounded rectangles
-- ✓ **Shape border**: Configurable border width (0-20px) and color on the shape outline
+- ✓ **Shape border**: Configurable border width (0-20px) and color on the shape outline; circle borders use a separate overlay element since clip-path clips borders
 - ✓ **Content scaling**: Media inside the shape can be scaled (50-200%) for zoom control
 - ✓ **Works with crops**: Shape wrapper sits outside the crop clipper, both features compose correctly
 - ✓ **YouTube support**: YouTube video iframes also clip to shapes
@@ -1290,8 +1290,27 @@ Help diagnose why animations are not working by showing:
 - `shapeScale`: Content scale percentage (default: `100`)
 
 **Updated Files:**
-- `js/models/ImageElement.js`: Added clip shape properties; added `_createShapeWrapper()` and `_createScaleContainer()` helpers; modified `render()` to wrap content in shape wrapper when active
+- `js/models/ImageElement.js`: Added clip shape properties; added `_createShapeWrapper()`, `_createCircleBorder()`, and `_createScaleContainer()` helpers; modified `render()` to wrap content in shape wrapper when active
 - `js/models/VideoElement.js`: Same additions as ImageElement; YouTube overlay placed outside shape wrapper
 - `js/panels/ImagePanel.js`: Added Clip Shape section to Style tab (shape selector, border width/color, content scale); force panel re-render on shape change
 - `js/panels/VideoPanel.js`: Added Clip Shape section to Settings tab with same controls
+- `js/interactions/ResizeHandler.js`: Circle clip no longer forces 1:1 aspect ratio; uses image's natural aspect ratio instead
 - `css/editor.css`: Added `.clip-shape-wrapper` and `.clip-shape-content` CSS classes
+
+---
+
+## Fix: Circle Clip Shape No Longer Forces Square
+
+### Fix: Rectangular images keep their dimensions when clipped to circle
+- ✓ **No square enforcement**: Selecting circle clip shape no longer resizes the element to a square
+- ✓ **True circle clipping**: Uses `clip-path: circle(closest-side at center)` instead of `border-radius: 50%`, which creates a true circle inscribed in the shorter dimension (not an ellipse)
+- ✓ **Natural aspect ratio preserved**: Resize handler uses the image's natural aspect ratio, not a forced 1:1
+- ✓ **Border overlay**: Circle borders use a separate positioned element (`_createCircleBorder()`) since `clip-path` clips CSS borders; the border element uses `aspect-ratio: 1; max-height: 100%` to stay circular and responsive during resize
+- ✓ **Applied to both Image and Video elements**
+
+**Updated Files:**
+- `js/models/ImageElement.js`: Changed `_createShapeWrapper()` to use `clip-path: circle()` for circles; added `_createCircleBorder()` method; updated `render()` to append border element
+- `js/models/VideoElement.js`: Same changes as ImageElement
+- `js/panels/ImagePanel.js`: Removed square enforcement from clip shape change handler
+- `js/panels/VideoPanel.js`: Removed square enforcement from clip shape change handler
+- `js/interactions/ResizeHandler.js`: Removed circle-specific 1:1 aspect ratio lock

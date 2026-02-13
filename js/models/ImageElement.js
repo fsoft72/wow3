@@ -87,6 +87,12 @@ export class ImageElement extends Element {
         scaleContainer.appendChild(content);
         wrapper.appendChild(scaleContainer);
         el.appendChild(wrapper);
+
+        // Add separate border element for circle (clip-path clips borders)
+        if (this.properties.clipShape === 'circle') {
+          const borderEl = this._createCircleBorder();
+          if (borderEl) el.appendChild(borderEl);
+        }
       } else {
         el.appendChild(content);
       }
@@ -129,27 +135,61 @@ export class ImageElement extends Element {
     wrapper.className = 'clip-shape-wrapper';
 
     let borderRadius = '0';
+    let clipPath = '';
     if (this.properties.clipShape === 'circle') {
-      borderRadius = '50%';
+      // Use clip-path for true circle on rectangular elements (border-radius: 50% creates an ellipse)
+      clipPath = 'clip-path: circle(closest-side at center);';
     } else if (this.properties.clipShape === 'rectangle') {
       borderRadius = `${this.properties.borderRadius || 0}px`;
     }
 
     const borderWidth = this.properties.shapeBorderWidth || 0;
     const borderColor = this.properties.shapeBorderColor || '#000000';
-    const borderStyle = borderWidth > 0 ? `border: ${borderWidth}px solid ${borderColor};` : '';
+    // Circle uses a separate border element since clip-path clips borders
+    const borderStyle = (borderWidth > 0 && this.properties.clipShape !== 'circle')
+      ? `border: ${borderWidth}px solid ${borderColor};`
+      : '';
 
     wrapper.style.cssText = `
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
       overflow: hidden;
+      ${clipPath}
       border-radius: ${borderRadius};
       box-sizing: border-box;
       ${borderStyle}
     `;
 
     return wrapper;
+  }
+
+  /**
+   * Create a circular border overlay for circle clip shape.
+   * Needed because clip-path clips borders, so we use a separate element.
+   * @returns {HTMLElement|null} Border element, or null if no border
+   * @private
+   */
+  _createCircleBorder() {
+    const borderWidth = this.properties.shapeBorderWidth || 0;
+    if (!borderWidth) return null;
+
+    const borderColor = this.properties.shapeBorderColor || '#000000';
+    const el = document.createElement('div');
+    el.className = 'clip-shape-border';
+    el.style.cssText = `
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      aspect-ratio: 1;
+      max-height: 100%;
+      border-radius: 50%;
+      border: ${borderWidth}px solid ${borderColor};
+      box-sizing: border-box;
+      pointer-events: none;
+    `;
+    return el;
   }
 
   /**
