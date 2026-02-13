@@ -6,6 +6,7 @@
 import { appEvents, AppEvents } from '../utils/events.js';
 import { prepareElementForAnimation } from '../utils/animations.js';
 import { toast } from '../utils/toasts.js';
+import { CountdownTimerElement } from '../models/CountdownTimerElement.js';
 
 export class PlaybackController {
   /**
@@ -17,6 +18,9 @@ export class PlaybackController {
     this.currentSlideIndex = 0;
     this.isPlaying = false;
     this.presentationView = null;
+
+    /** @type {{ element: Object, startedAt: number, duration: number, remaining: number, intervalId: number|null, audioElement: HTMLAudioElement|null }|null} */
+    this._activeCountdown = null;
   }
 
   /**
@@ -249,6 +253,19 @@ export class PlaybackController {
 
     this.presentationView.appendChild(slideContainer);
 
+    // --- Countdown timer cross-slide logic ---
+    const countdownResolution = this._resolveCountdownForSlide(index);
+
+    if (countdownResolution.action === 'clear') {
+      this._stopCountdown();
+    } else if (countdownResolution.action === 'new') {
+      this._stopCountdown();
+      this._startCountdown(countdownResolution.element, slideContainer);
+    } else if (countdownResolution.action === 'inherit' && this._activeCountdown) {
+      // Re-render the active countdown DOM on the new slide container
+      this._renderCountdownDOM(this._activeCountdown.element, slideContainer, this._activeCountdown.remaining);
+    }
+
     // Add slide number indicator
     const indicator = document.createElement('div');
     indicator.style.cssText = `
@@ -361,6 +378,9 @@ export class PlaybackController {
   stop() {
     this.isPlaying = false;
 
+    // Clean up active countdown timer
+    this._stopCountdown();
+
     // Clean up animation state
     if (this.editor.animationController) {
       this.editor.animationController.cleanup();
@@ -397,6 +417,157 @@ export class PlaybackController {
     }
 
     appEvents.emit(AppEvents.UI_MODE_CHANGED, 'editor');
+  }
+
+  // ==================== COUNTDOWN TIMER ====================
+
+  /**
+   * Determine what countdown action to take for a given slide index.
+   * @param {number} slideIndex - Slide index
+   * @returns {{ action: 'new'|'clear'|'inherit', element?: Object }}
+   * @private
+   */
+  _resolveCountdownForSlide(slideIndex) {
+    const slide = this.editor.presentation.slides[slideIndex];
+    if (!slide) return { action: 'inherit' };
+
+    const timer = slide.elements.find(el => el.type === 'countdown_timer');
+    if (!timer) return { action: 'inherit' };
+    if (timer.properties.clear) return { action: 'clear' };
+    return { action: 'new', element: timer };
+  }
+
+  /**
+   * Start a new countdown from the given element and render it on a container.
+   * @param {Object} element - CountdownTimerElement model
+   * @param {HTMLElement} container - Slide container to append the countdown DOM to
+   * @private
+   */
+  _startCountdown(element, container) {
+    const remaining = element.properties.duration;
+    const domEl = this._renderCountdownDOM(element, container, remaining);
+
+    this._activeCountdown = {
+      element,
+      startedAt: Date.now(),
+      duration: element.properties.duration,
+      remaining,
+      intervalId: null,
+      audioElement: null
+    };
+
+    this._activeCountdown.intervalId = setInterval(() => {
+      if (!this._activeCountdown) return;
+
+      this._activeCountdown.remaining--;
+      const r = this._activeCountdown.remaining;
+
+      // Update displayed text in whatever container is currently showing it
+      const display = this.presentationView?.querySelector('.playback-countdown .timer-display');
+      if (display) {
+        display.textContent = CountdownTimerElement.formatTime(r);
+      }
+
+      if (r <= 0) {
+        clearInterval(this._activeCountdown.intervalId);
+        this._activeCountdown.intervalId = null;
+        this._playCompletionSound(element.properties.soundId);
+      }
+    }, 1000);
+  }
+
+  /**
+   * Stop the active countdown and remove its DOM.
+   * @private
+   */
+  _stopCountdown() {
+    if (!this._activeCountdown) return;
+
+    if (this._activeCountdown.intervalId) {
+      clearInterval(this._activeCountdown.intervalId);
+    }
+    if (this._activeCountdown.audioElement) {
+      this._activeCountdown.audioElement.pause();
+      this._activeCountdown.audioElement = null;
+    }
+
+    // Remove existing playback countdown DOM
+    const existing = this.presentationView?.querySelector('.playback-countdown');
+    if (existing) existing.remove();
+
+    this._activeCountdown = null;
+  }
+
+  /**
+   * Create or update the countdown DOM element in a slide container.
+   * @param {Object} element - CountdownTimerElement model
+   * @param {HTMLElement} container - Slide container
+   * @param {number} remaining - Remaining seconds
+   * @returns {HTMLElement} The countdown DOM element
+   * @private
+   */
+  _renderCountdownDOM(element, container, remaining) {
+    // Remove any existing countdown DOM in the presentation view
+    const existing = this.presentationView?.querySelector('.playback-countdown');
+    if (existing) existing.remove();
+
+    const div = document.createElement('div');
+    div.className = 'playback-countdown';
+    div.style.left = `${element.position.x}px`;
+    div.style.top = `${element.position.y}px`;
+    div.style.width = `${element.position.width}px`;
+    div.style.height = `${element.position.height}px`;
+    div.style.transform = `rotate(${element.position.rotation}deg)`;
+    div.style.background = element.properties.background;
+    div.style.borderColor = element.properties.borderColor;
+    div.style.borderWidth = `${element.properties.borderWidth}px`;
+    div.style.borderStyle = 'solid';
+    div.style.borderRadius = `${element.properties.borderRadius}px`;
+
+    const display = document.createElement('div');
+    display.className = 'timer-display';
+    display.style.fontFamily = element.properties.font.family;
+    display.style.fontSize = `${element.properties.font.size}px`;
+    display.style.color = element.properties.font.color;
+    display.style.fontWeight = element.properties.font.weight || 'normal';
+    display.textContent = CountdownTimerElement.formatTime(remaining);
+
+    div.appendChild(display);
+    container.appendChild(div);
+
+    return div;
+  }
+
+  /**
+   * Play the completion sound when the countdown reaches zero.
+   * @param {string} soundId - Media ID or empty string
+   * @private
+   */
+  async _playCompletionSound(soundId) {
+    if (!soundId) return;
+
+    try {
+      const audio = document.createElement('audio');
+
+      if (soundId.startsWith('media_') && window.MediaDB) {
+        const dataURL = await window.MediaDB.getMediaDataURL(soundId);
+        if (dataURL) {
+          audio.src = dataURL;
+        } else {
+          return;
+        }
+      } else {
+        audio.src = soundId;
+      }
+
+      audio.play().catch(err => console.warn('Countdown sound playback failed:', err));
+
+      if (this._activeCountdown) {
+        this._activeCountdown.audioElement = audio;
+      }
+    } catch (err) {
+      console.warn('Failed to load countdown completion sound:', err);
+    }
   }
 
   /**

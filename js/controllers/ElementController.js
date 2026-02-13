@@ -10,7 +10,8 @@ import {
   AudioElement,
   ShapeElement,
   ListElement,
-  LinkElement
+  LinkElement,
+  CountdownTimerElement
 } from '../models/index.js';
 import { appEvents, AppEvents } from '../utils/events.js';
 import { centerOnCanvas } from '../utils/positioning.js';
@@ -133,7 +134,8 @@ export class ElementController {
       audio: AudioElement,
       shape: ShapeElement,
       list: ListElement,
-      link: LinkElement
+      link: LinkElement,
+      countdown_timer: CountdownTimerElement
     };
 
     return classes[type] || TextElement;

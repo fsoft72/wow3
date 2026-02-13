@@ -1,0 +1,91 @@
+/* ============================================
+   Countdown Timer Element Styles
+   ============================================ */
+
+/* Base countdown timer element */
+.countdown-timer-element {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Timer text display */
+.countdown-timer-element .timer-display {
+  pointer-events: none;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Clear variant (timer that stops/hides the active countdown) */
+.countdown-timer-element.clear-timer {
+  position: relative;
+}
+
+/* Red diagonal cross for clear variant */
+.countdown-timer-element .clear-cross {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.countdown-timer-element .clear-cross::before,
+.countdown-timer-element .clear-cross::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 141%;
+  height: 3px;
+  background: #e53935;
+  transform-origin: center;
+}
+
+.countdown-timer-element .clear-cross::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.countdown-timer-element .clear-cross::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/* Ghost rendering for inherited timer in editor */
+.countdown-timer-ghost {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  border: 2px dashed #999 !important;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  pointer-events: auto;
+}
+
+.countdown-timer-ghost:hover {
+  opacity: 0.7;
+}
+
+.countdown-timer-ghost .timer-display {
+  pointer-events: none;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Playback countdown overlay */
+.playback-countdown {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 9000;
+}
+
+.playback-countdown .timer-display {
+  line-height: 1;
+  white-space: nowrap;
+}

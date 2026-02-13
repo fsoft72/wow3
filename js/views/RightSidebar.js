@@ -4,7 +4,7 @@
  */
 
 import { FONT_FAMILIES, TEXT_ALIGNMENTS } from '../utils/constants.js';
-import { TextPanel, ImagePanel, VideoPanel, AudioPanel } from '../panels/index.js';
+import { TextPanel, ImagePanel, VideoPanel, AudioPanel, CountdownTimerPanel } from '../panels/index.js';
 import { toast } from '../utils/toasts.js';
 
 export class RightSidebar {
@@ -80,6 +80,11 @@ export class RightSidebar {
       case 'audio':
         panel = AudioPanel;
         panelHTML = AudioPanel.render(element);
+        break;
+
+      case 'countdown_timer':
+        panel = CountdownTimerPanel;
+        panelHTML = CountdownTimerPanel.render(element);
         break;
 
       case 'shape':

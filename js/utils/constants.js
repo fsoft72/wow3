@@ -33,7 +33,8 @@ export const ElementType = {
   AUDIO: 'audio',
   LIST: 'list',
   LINK: 'link',
-  SHAPE: 'shape'
+  SHAPE: 'shape',
+  COUNTDOWN_TIMER: 'countdown_timer'
 };
 
 // Slide directions
@@ -59,7 +60,8 @@ export const DEFAULT_SIZE = {
   AUDIO: { width: 400, height: 60 },
   SHAPE: { width: 200, height: 200 },
   LIST: { width: 300, height: 200 },
-  LINK: { width: 200, height: 50 }
+  LINK: { width: 200, height: 50 },
+  COUNTDOWN_TIMER: { width: 200, height: 100 }
 };
 
 // Default values

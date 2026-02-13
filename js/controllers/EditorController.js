@@ -128,6 +128,11 @@ export class EditorController {
       addAudioBtn.addEventListener('click', () => this.addElement('audio'));
     }
 
+    const addCountdownBtn = document.getElementById('add-countdown-btn');
+    if (addCountdownBtn) {
+      addCountdownBtn.addEventListener('click', () => this.addElement('countdown_timer'));
+    }
+
     // Slide background color
     const slideBackground = document.getElementById('slide-background');
     if (slideBackground) {

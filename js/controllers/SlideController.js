@@ -5,6 +5,7 @@
 
 import { appEvents, AppEvents } from '../utils/events.js';
 import { toast } from '../utils/toasts.js';
+import { CountdownTimerElement } from '../models/CountdownTimerElement.js';
 
 export class SlideController {
   /**
@@ -448,6 +449,11 @@ export class SlideController {
       });
     });
 
+    // Render ghost countdown timer if current slide doesn't have one
+    if (!this.editor.isEditingShell) {
+      this._renderCountdownGhost(canvas, activeSlide);
+    }
+
     // Update elements tree in right sidebar
     if (this.editor.uiManager && this.editor.uiManager.elementsTree) {
       this.editor.uiManager.elementsTree.render(activeSlide.elements);
@@ -654,6 +660,79 @@ export class SlideController {
     } catch (err) {
       console.warn('Thumbnail capture failed:', err);
     }
+  }
+
+  /**
+   * Walk backward from the given slide index to find an inherited countdown timer.
+   * Returns the element if found (without clear), or null if cleared or none exists.
+   * @param {number} slideIndex - Current slide index
+   * @returns {import('../models/CountdownTimerElement.js').CountdownTimerElement|null}
+   * @private
+   */
+  _findInheritedCountdownTimer(slideIndex) {
+    const slides = this.editor.presentation.slides;
+    for (let i = slideIndex - 1; i >= 0; i--) {
+      const timer = slides[i].elements.find(el => el.type === 'countdown_timer');
+      if (!timer) continue;
+      if (timer.properties.clear) return null;
+      return timer;
+    }
+    return null;
+  }
+
+  /**
+   * Render a ghost countdown timer on the canvas if the current slide inherits one.
+   * Clicking the ghost materializes a real CountdownTimerElement on this slide.
+   * @param {HTMLElement} canvas - Slide canvas element
+   * @param {import('../models/Slide.js').Slide} activeSlide - Current slide
+   * @private
+   */
+  _renderCountdownGhost(canvas, activeSlide) {
+    // Skip if the current slide already defines its own countdown timer
+    const hasOwn = activeSlide.elements.some(el => el.type === 'countdown_timer');
+    if (hasOwn) return;
+
+    const currentIndex = this.editor.presentation.currentSlideIndex;
+    const inherited = this._findInheritedCountdownTimer(currentIndex);
+    if (!inherited) return;
+
+    // Build ghost DOM
+    const ghost = document.createElement('div');
+    ghost.className = 'countdown-timer-ghost';
+    ghost.style.left = `${inherited.position.x}px`;
+    ghost.style.top = `${inherited.position.y}px`;
+    ghost.style.width = `${inherited.position.width}px`;
+    ghost.style.height = `${inherited.position.height}px`;
+    ghost.style.transform = `rotate(${inherited.position.rotation}deg)`;
+    ghost.style.background = inherited.properties.background;
+    ghost.style.borderRadius = `${inherited.properties.borderRadius}px`;
+    ghost.style.zIndex = 9999;
+    ghost.title = 'Click to create a countdown timer on this slide';
+
+    const display = document.createElement('div');
+    display.className = 'timer-display';
+    display.style.fontFamily = inherited.properties.font.family;
+    display.style.fontSize = `${inherited.properties.font.size}px`;
+    display.style.color = inherited.properties.font.color;
+    display.textContent = CountdownTimerElement.formatTime(inherited.properties.duration);
+    ghost.appendChild(display);
+
+    // Click → materialize a real element copying position + style from the inherited one
+    ghost.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      const newTimer = new CountdownTimerElement({
+        position: { ...inherited.position },
+        properties: JSON.parse(JSON.stringify(inherited.properties))
+      });
+      activeSlide.addElement(newTimer);
+
+      this.renderCurrentSlide();
+      this.editor.elementController.selectElement(newTimer);
+      this.editor.recordHistory();
+    });
+
+    canvas.appendChild(ghost);
   }
 
   /**

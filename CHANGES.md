@@ -1039,3 +1039,33 @@ Help diagnose why animations are not working by showing:
 
 **Updated Files:**
 - `js/controllers/EditorController.js`: Rewrote `savePresentation()` to pass cached thumbnail; added `_captureSlideThumb()` fallback
+
+---
+
+## Countdown Timer Element
+
+### Feature: Cross-slide countdown timer with live playback
+- **CountdownTimerElement**: New element type that displays a countdown timer on slides
+- **Cross-slide persistence**: Timer starts on the slide that defines it and continues running across subsequent slides, regardless of navigation direction
+- **Inheritance rules**: Slides without a timer inherit the active one; slides with a new timer replace the old; slides with `clear=true` stop and hide the timer
+- **Display format**: `>= 2 min` shows `"X m"`, `60-119s` shows `"1:SS"`, `< 60s` shows `"SS"`, `0` shows `"00"`
+- **Completion sound**: Configurable sound from Media Library plays when timer reaches zero
+- **Ghost rendering**: In the editor, slides that inherit a timer show a semi-transparent ghost at the same position; clicking the ghost materializes a real timer element on that slide
+- **Clear variant**: Timer elements with `clear=true` display a red diagonal cross overlay
+- **Properties panel**: Content tab (duration minutes/seconds, completion sound, clear checkbox) + Style tab (font family/size/color, background, border color/width/radius)
+
+**New Files:**
+- `js/models/CountdownTimerElement.js`: Element subclass with duration, soundId, clear, background, border properties
+- `js/panels/CountdownTimerPanel.js`: Content + Style tab property panel
+- `css/countdown-timer.css`: Styles for timer element, clear cross, ghost, and playback overlay
+
+**Updated Files:**
+- `js/utils/constants.js`: Added `COUNTDOWN_TIMER` to `ElementType` and `DEFAULT_SIZE`
+- `js/models/index.js`: Added `CountdownTimerElement` export
+- `js/panels/index.js`: Added `CountdownTimerPanel` export
+- `js/controllers/ElementController.js`: Added `CountdownTimerElement` to class map
+- `js/views/RightSidebar.js`: Added `countdown_timer` case to `updateProperties()` switch
+- `index.html`: Added toolbar button (timer icon) and CSS link
+- `js/controllers/EditorController.js`: Added click handler for `#add-countdown-btn`
+- `js/controllers/SlideController.js`: Added `_findInheritedCountdownTimer()` and `_renderCountdownGhost()` for ghost rendering in `renderCurrentSlide()`
+- `js/controllers/PlaybackController.js`: Added `_activeCountdown` state, `_resolveCountdownForSlide()`, `_startCountdown()`, `_stopCountdown()`, `_renderCountdownDOM()`, `_playCompletionSound()` for live countdown during playback
