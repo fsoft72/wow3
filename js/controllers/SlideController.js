@@ -489,7 +489,17 @@ export class SlideController {
     `;
 
     // Menu options
+    const slide = this.editor.presentation.slides[index];
     const options = [
+      {
+        label: slide.visible ? 'Hide Slide' : 'Show Slide',
+        icon: slide.visible ? 'visibility_off' : 'visibility',
+        action: () => {
+          slide.visible = !slide.visible;
+          this.editor.recordHistory();
+          this.renderSlides();
+        }
+      },
       {
         label: 'Duplicate',
         icon: 'content_copy',
