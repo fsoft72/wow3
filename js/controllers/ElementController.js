@@ -417,11 +417,15 @@ export class ElementController {
       });
     }
 
-    // Double-click to enter crop mode for images/videos
+    // Double-click on images/videos: open Media Manager if empty, crop mode if has media
     if (element.type === 'image' || element.type === 'video') {
       elementDOM.addEventListener('dblclick', (e) => {
         e.stopPropagation();
-        this.enterCropMode(element);
+        if (!element.properties.url) {
+          this._openMediaManagerFor(element);
+        } else {
+          this.enterCropMode(element);
+        }
       });
     }
 
@@ -882,6 +886,23 @@ export class ElementController {
 
     appEvents.emit(AppEvents.ELEMENT_ADDED, element);
     toast.success(`${type} element added`);
+  }
+
+  /**
+   * Open the Media Manager to pick media for an empty image or video element
+   * @param {Element} element - Image or video element without a URL
+   */
+  _openMediaManagerFor(element) {
+    if (typeof MediaManager === 'undefined') return;
+
+    MediaManager.open(async (data) => {
+      const mediaId = data.localUrl
+        ? data.localUrl.replace('local://', '')
+        : data.originalItem?.id;
+      if (!mediaId) return;
+
+      await this.updateMediaUrl(element, mediaId);
+    });
   }
 
   /**

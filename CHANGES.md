@@ -1187,3 +1187,16 @@ Help diagnose why animations are not working by showing:
 
 **Updated Files:**
 - `js/controllers/ElementController.js`: Added `_resolveImageSize()` and `_autoResizeImage()` helpers; integrated auto-resize into `updateMediaUrl()` and `createMediaElement()`
+
+---
+
+## Double-Click Empty Image/Video Opens Media Manager
+
+### Feature: Double-click on empty image or video element opens Media Manager
+- ✓ **Empty element detection**: Checks `element.properties.url` to determine if element has media assigned
+- ✓ **Media Manager opens**: Double-clicking an empty image or video element opens the Media Manager with a selection callback
+- ✓ **Media assigned on pick**: Selecting a media item assigns it to the element via `updateMediaUrl()` (auto-resize included)
+- ✓ **Crop mode preserved**: Double-clicking an image/video that already has media still enters crop mode as before
+
+**Updated Files:**
+- `js/controllers/ElementController.js`: Modified `attachHandlers()` double-click logic for image/video; added `_openMediaManagerFor()` method
