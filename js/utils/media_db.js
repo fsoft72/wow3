@@ -4,9 +4,10 @@
  */
 
 const MEDIA_DB_NAME = 'wow3_media';
-const MEDIA_DB_VERSION = 3;
+const MEDIA_DB_VERSION = 4;
 const STORE_MEDIA = 'media_items';
 const STORE_FOLDERS = 'media_folders';
+const STORE_THUMBNAILS = 'slide_thumbnails';
 
 let mediaDbPromise = null;
 
@@ -44,6 +45,11 @@ const MediaDB = {
         }
         if (!mediaStore.indexNames.contains('hash')) {
           mediaStore.createIndex('hash', 'hash', { unique: false });
+        }
+
+        // Slide Thumbnails Store
+        if (!db.objectStoreNames.contains(STORE_THUMBNAILS)) {
+          db.createObjectStore(STORE_THUMBNAILS, { keyPath: 'id' });
         }
 
         // Folders Store
@@ -390,6 +396,83 @@ const MediaDB = {
     });
 
     console.log('🗑️ All media cleared from IndexedDB');
+  },
+
+  // ==================== Slide Thumbnails ====================
+
+  /**
+   * Save a slide thumbnail to IndexedDB
+   * @param {string} slideId - Slide ID
+   * @param {string} dataUrl - PNG data URL
+   */
+  async saveThumbnail(slideId, dataUrl) {
+    const db = await this.init();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction([STORE_THUMBNAILS], 'readwrite');
+      const request = tx.objectStore(STORE_THUMBNAILS).put({
+        id: slideId,
+        dataUrl,
+        updatedAt: Date.now()
+      });
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  /**
+   * Load thumbnails for a list of slide IDs
+   * @param {string[]} slideIds - Array of slide IDs to load
+   * @returns {Promise<Map<string, string>>} Map of slideId → dataUrl
+   */
+  async loadThumbnails(slideIds) {
+    if (!slideIds || slideIds.length === 0) return new Map();
+
+    const db = await this.init();
+    const result = new Map();
+
+    return new Promise((resolve) => {
+      const tx = db.transaction([STORE_THUMBNAILS], 'readonly');
+      const store = tx.objectStore(STORE_THUMBNAILS);
+      let pending = slideIds.length;
+
+      for (const id of slideIds) {
+        const request = store.get(id);
+        request.onsuccess = () => {
+          if (request.result) {
+            result.set(id, request.result.dataUrl);
+          }
+          if (--pending === 0) resolve(result);
+        };
+        request.onerror = () => {
+          if (--pending === 0) resolve(result);
+        };
+      }
+    });
+  },
+
+  /**
+   * Delete a slide thumbnail from IndexedDB
+   * @param {string} slideId - Slide ID
+   */
+  async deleteThumbnail(slideId) {
+    const db = await this.init();
+    await new Promise((resolve) => {
+      const tx = db.transaction([STORE_THUMBNAILS], 'readwrite');
+      tx.objectStore(STORE_THUMBNAILS).delete(slideId);
+      tx.oncomplete = () => resolve();
+    });
+  },
+
+  /**
+   * Clear all slide thumbnails from IndexedDB
+   */
+  async clearAllThumbnails() {
+    const db = await this.init();
+    await new Promise((resolve) => {
+      const tx = db.transaction([STORE_THUMBNAILS], 'readwrite');
+      tx.objectStore(STORE_THUMBNAILS).clear();
+      tx.oncomplete = () => resolve();
+    });
   }
 };
 

@@ -36,6 +36,32 @@ export class SlideController {
   }
 
   /**
+   * Load persisted slide thumbnails from IndexedDB into the in-memory cache.
+   * Should be called after a presentation is loaded, before renderSlides().
+   */
+  async loadThumbnailsFromDB() {
+    if (!this.editor.presentation) return;
+
+    const slideIds = this.editor.presentation.slides.map(s => s.id);
+    // Include shell slide if it exists
+    if (this.editor.presentation.shell) {
+      slideIds.push(this.editor.presentation.shell.id);
+    }
+
+    try {
+      const thumbs = await window.MediaDB.loadThumbnails(slideIds);
+      for (const [id, dataUrl] of thumbs) {
+        this._thumbCache.set(id, dataUrl);
+      }
+      if (thumbs.size > 0) {
+        console.log(`📸 Loaded ${thumbs.size} slide thumbnails from IndexedDB`);
+      }
+    } catch (err) {
+      console.warn('Failed to load thumbnails from IndexedDB:', err);
+    }
+  }
+
+  /**
    * Setup slide-related event listeners
    */
   setupSlideEvents() {
@@ -654,6 +680,11 @@ export class SlideController {
 
       const dataUrl = captured.toDataURL('image/png');
       this._thumbCache.set(slideId, dataUrl);
+
+      // Persist to IndexedDB so thumbnails survive reload
+      window.MediaDB.saveThumbnail(slideId, dataUrl).catch(
+        err => console.warn('Failed to persist thumbnail:', err)
+      );
 
       // Update the thumbnail in the sidebar without a full re-render
       this._updateThumbnailDOM(slideId, dataUrl);

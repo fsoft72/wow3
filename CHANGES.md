@@ -1200,3 +1200,19 @@ Help diagnose why animations are not working by showing:
 
 **Updated Files:**
 - `js/controllers/ElementController.js`: Modified `attachHandlers()` double-click logic for image/video/audio; added `_openMediaManagerFor()` method
+
+---
+
+## Persist Slide Thumbnails in IndexedDB
+
+### Fix: Slide thumbnails no longer lost on reload
+- ✓ **IndexedDB persistence**: Thumbnails saved to `slide_thumbnails` store in MediaDB (version 4)
+- ✓ **Save on capture**: Every html2canvas capture is persisted asynchronously to IndexedDB
+- ✓ **Load on startup**: `loadThumbnailsFromDB()` hydrates the in-memory cache from IndexedDB before rendering the sidebar
+- ✓ **Cache cleared on switch**: Loading a different presentation or creating a new one clears the old thumbnail cache
+- ✓ **Instant sidebar**: On reload, previously captured thumbnails appear immediately instead of falling back to simplified previews
+
+**Updated Files:**
+- `js/utils/media_db.js`: Bumped version to 4; added `slide_thumbnails` store; added `saveThumbnail()`, `loadThumbnails()`, `deleteThumbnail()`, `clearAllThumbnails()` methods
+- `js/controllers/SlideController.js`: Added `loadThumbnailsFromDB()`; persist thumbnail in `_captureCurrentSlideThumbnail()`
+- `js/controllers/EditorController.js`: Call `loadThumbnailsFromDB()` in `render()` before `renderSlides()`; clear thumb cache in `createNewPresentation()` and `loadPresentation()`

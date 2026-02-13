@@ -211,6 +211,11 @@ export class EditorController {
     this.resetHistory();
     this.unsavedChanges = false;
 
+    // Clear in-memory thumbnail cache for the old presentation
+    if (this.slideController) {
+      this.slideController._thumbCache.clear();
+    }
+
     // Completely clear the canvas
     const canvas = document.getElementById('slide-canvas');
     if (canvas) {
@@ -233,6 +238,11 @@ export class EditorController {
    */
   async loadPresentation(data) {
     try {
+      // Clear old thumbnail cache before loading new presentation
+      if (this.slideController) {
+        this.slideController._thumbCache.clear();
+      }
+
       this.presentation = Presentation.fromJSON(data);
       this.resetHistory();
       await this.render();
@@ -382,6 +392,11 @@ export class EditorController {
    */
   async render() {
     if (!this.presentation) return;
+
+    // Load persisted thumbnails before rendering sidebar
+    if (this.slideController) {
+      await this.slideController.loadThumbnailsFromDB();
+    }
 
     // Render slides in left sidebar
     if (this.slideController) {
