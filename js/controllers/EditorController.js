@@ -254,25 +254,18 @@ export class EditorController {
     if (!this.presentation) return;
 
     try {
-      // Save current slide index
-      const currentSlideIndex = this.presentation.currentSlideIndex;
+      // Reuse the html2canvas thumbnail already cached for the first slide
+      const firstSlide = this.presentation.slides[0];
+      let thumbnail = firstSlide
+        ? this.slideController._thumbCache.get(firstSlide.id)
+        : null;
 
-      // Temporarily switch to first slide for thumbnail capture
-      if (currentSlideIndex !== 0 && this.presentation.slides.length > 0) {
-        this.presentation.setCurrentSlide(0);
-        await this.slideController.renderCurrentSlide();
-        // Wait for render to complete
-        await new Promise(resolve => setTimeout(resolve, 200));
+      // If no cached thumbnail yet, capture it now via html2canvas
+      if (!thumbnail && firstSlide) {
+        thumbnail = await this._captureSlideThumb(firstSlide);
       }
 
-      // Save presentation (will generate thumbnail from first slide)
-      const success = await savePresentation(this.presentation);
-
-      // Restore original slide
-      if (currentSlideIndex !== 0) {
-        this.presentation.setCurrentSlide(currentSlideIndex);
-        await this.slideController.renderCurrentSlide();
-      }
+      const success = await savePresentation(this.presentation, thumbnail);
 
       if (success) {
         this.unsavedChanges = false;
@@ -284,6 +277,62 @@ export class EditorController {
     } catch (error) {
       console.error('Save error:', error);
       toast.error('Failed to save presentation');
+    }
+  }
+
+  /**
+   * Capture a slide thumbnail via html2canvas when no cache is available.
+   * Temporarily switches to the target slide, captures, then restores.
+   * @param {Slide} slide - The slide to capture
+   * @returns {Promise<string|null>} PNG data URL or null
+   * @private
+   */
+  async _captureSlideThumb(slide) {
+    if (typeof html2canvas === 'undefined') return null;
+
+    const canvas = document.getElementById('slide-canvas');
+    if (!canvas) return null;
+
+    const originalIndex = this.presentation.currentSlideIndex;
+    const targetIndex = this.presentation.slides.indexOf(slide);
+    const needsSwitch = targetIndex !== -1 && targetIndex !== originalIndex;
+
+    try {
+      if (needsSwitch) {
+        this.presentation.setCurrentSlide(targetIndex);
+        await this.slideController.renderCurrentSlide();
+        await new Promise(r => setTimeout(r, 200));
+      }
+
+      const handles = canvas.querySelectorAll('.resize-handle, .rotate-handle, .crop-handle, .crop-corner');
+      const selectedEls = canvas.querySelectorAll('.element.selected');
+      selectedEls.forEach(el => el.classList.add('_thumb-hide-outline'));
+      handles.forEach(h => { h.style.display = 'none'; });
+
+      const captured = await html2canvas(canvas, {
+        scale: 0.25,
+        useCORS: true,
+        logging: false,
+        backgroundColor: null,
+      });
+
+      handles.forEach(h => { h.style.display = ''; });
+      selectedEls.forEach(el => el.classList.remove('_thumb-hide-outline'));
+
+      const dataUrl = captured.toDataURL('image/png');
+
+      // Cache for future sidebar use
+      this.slideController._thumbCache.set(slide.id, dataUrl);
+
+      return dataUrl;
+    } catch (err) {
+      console.warn('Thumbnail capture failed:', err);
+      return null;
+    } finally {
+      if (needsSwitch) {
+        this.presentation.setCurrentSlide(originalIndex);
+        await this.slideController.renderCurrentSlide();
+      }
     }
   }
 

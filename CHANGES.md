@@ -1022,3 +1022,20 @@ Help diagnose why animations are not working by showing:
 - `js/utils/template_manager.js`: Uses `window.toast`, replaced 6 calls
 - `js/utils/presentation_manager.js`: Uses `window.toast`, replaced 5 calls
 - `css/components.css`: Removed old `#toast-container` and `.toast` CSS overrides
+
+---
+
+## Fix: Presentation Manager Thumbnail Matches Sidebar
+
+### Fix: Use html2canvas thumbnail for saved presentations
+- ✓ **Consistent thumbnails**: Presentation Manager now shows the exact same thumbnail as the sidebar
+- ✓ **Reuse cached thumbnail**: Grabs the first slide's html2canvas thumbnail from `SlideController._thumbCache`
+- ✓ **Fallback capture**: If cache is empty, captures a fresh html2canvas thumbnail (switches to first slide, captures, restores)
+- ✓ **No more manual canvas drawing**: Removed reliance on the limited `generateThumbnail()` that only supported text/image/shape
+- ✓ **No slide-switching flicker**: When a cached thumbnail exists, no slide switching is needed at all
+
+**Before:** `generateThumbnail()` manually drew elements onto a 400×300 canvas (skipping video, audio, complex elements)
+**After:** Reuses the html2canvas capture already done for the sidebar, pixel-for-pixel match
+
+**Updated Files:**
+- `js/controllers/EditorController.js`: Rewrote `savePresentation()` to pass cached thumbnail; added `_captureSlideThumb()` fallback
