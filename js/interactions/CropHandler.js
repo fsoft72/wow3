@@ -497,11 +497,14 @@ export class CropHandler {
     const activeSlide = this.elementController.editor.getActiveSlide();
     const zIndex = activeSlide.elements.indexOf(element);
     const nextSibling = oldDOM.nextSibling;
-    oldDOM.remove();
+
+    // Remove ALL DOM nodes with this ID to prevent duplicates
+    // (oldDOM reference may be stale if element was re-rendered while in crop mode)
+    canvas.querySelectorAll(`#${CSS.escape(element.id)}`).forEach(el => el.remove());
 
     const newDOM = element.render(zIndex >= 0 ? zIndex : 0);
 
-    if (nextSibling) {
+    if (nextSibling && nextSibling.parentNode === canvas) {
       canvas.insertBefore(newDOM, nextSibling);
     } else {
       canvas.appendChild(newDOM);

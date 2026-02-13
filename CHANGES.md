@@ -1314,3 +1314,16 @@ Help diagnose why animations are not working by showing:
 - `js/panels/ImagePanel.js`: Removed square enforcement from clip shape change handler
 - `js/panels/VideoPanel.js`: Removed square enforcement from clip shape change handler
 - `js/interactions/ResizeHandler.js`: Removed circle-specific 1:1 aspect ratio lock
+
+---
+
+## Fix: Prevent Element Duplication on Re-render
+
+### Fix: Defensive cleanup in element re-render paths
+- ✓ **Remove all stale nodes**: `updateElementProperty` now uses `querySelectorAll` to remove ALL DOM nodes with the element's ID before appending the new one, preventing duplicate elements from accumulating
+- ✓ **Validate nextSibling**: Checks that `nextSibling` is still a child of the canvas before using `insertBefore`, falling back to `appendChild` if the reference is stale
+- ✓ **CropHandler hardened**: Same defensive cleanup applied to `_reRenderElement` in CropHandler, which is vulnerable to stale DOM references if the element was re-rendered while crop mode was active
+
+**Updated Files:**
+- `js/controllers/ElementController.js`: Defensive `querySelectorAll` cleanup + `nextSibling` validation in `updateElementProperty`
+- `js/interactions/CropHandler.js`: Same defensive cleanup in `_reRenderElement`

@@ -562,7 +562,9 @@ export class ElementController {
       const activeSlide = this.editor.getActiveSlide();
       const zIndex = activeSlide.elements.indexOf(this.selectedElement);
       const nextSibling = oldDOM.nextSibling;
-      oldDOM.remove();
+
+      // Remove ALL DOM nodes with this ID to prevent duplicates
+      canvas.querySelectorAll(`#${CSS.escape(this.selectedElement.id)}`).forEach(el => el.remove());
 
       const newDOM = this.selectedElement.render(zIndex >= 0 ? zIndex : 0);
 
@@ -573,7 +575,7 @@ export class ElementController {
         this.attachHandlers(childDOM, child);
       });
 
-      if (nextSibling) {
+      if (nextSibling && nextSibling.parentNode === canvas) {
         canvas.insertBefore(newDOM, nextSibling);
       } else {
         canvas.appendChild(newDOM);
