@@ -124,10 +124,29 @@
   opacity: 0;
   transition: opacity 0.15s ease;
   pointer-events: none;
+  cursor: text;
 }
 
 .slide-thumbnail:hover .slide-name-label {
   opacity: 1;
+  pointer-events: auto;
+}
+
+/* Inline edit input for slide name */
+.slide-name-input {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 3px 8px;
+  font-size: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  outline: none;
+  z-index: 3;
+  box-sizing: border-box;
+  font-family: inherit;
 }
 
 .slide-preview {

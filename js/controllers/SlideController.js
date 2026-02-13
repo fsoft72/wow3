@@ -253,10 +253,14 @@ export class SlideController {
 
     div.appendChild(preview);
 
-    // Slide name label (shown on hover)
+    // Slide name label (shown on hover, click to edit)
     const nameLabel = document.createElement('div');
     nameLabel.className = 'slide-name-label';
     nameLabel.textContent = slide.title || 'Untitled Slide';
+    nameLabel.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this._startInlineRename(div, slide, nameLabel);
+    });
     div.appendChild(nameLabel);
 
     // Click to select slide
@@ -271,6 +275,59 @@ export class SlideController {
     });
 
     return div;
+  }
+
+  /**
+   * Start inline renaming of a slide directly on its thumbnail
+   * @param {HTMLElement} thumbnailDiv - The thumbnail container element
+   * @param {Slide} slide - The slide being renamed
+   * @param {HTMLElement} nameLabel - The label element to replace with input
+   */
+  _startInlineRename(thumbnailDiv, slide, nameLabel) {
+    // Prevent opening multiple inputs
+    if (thumbnailDiv.querySelector('.slide-name-input')) return;
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'slide-name-input';
+    input.value = slide.title || '';
+
+    /** Commit the rename and restore the label */
+    const commit = () => {
+      const newTitle = input.value.trim() || 'Untitled Slide';
+      slide.setTitle(newTitle);
+      nameLabel.textContent = newTitle;
+      input.replaceWith(nameLabel);
+
+      // Keep the right-sidebar title input in sync
+      const slideTitleInput = document.getElementById('slide-title');
+      if (slideTitleInput && this.editor.presentation.getCurrentSlide() === slide) {
+        slideTitleInput.value = newTitle;
+      }
+
+      this.editor.recordHistory();
+    };
+
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        input.blur();
+      }
+      if (e.key === 'Escape') {
+        // Restore original value and cancel
+        input.value = slide.title || 'Untitled Slide';
+        input.blur();
+      }
+    });
+
+    // Prevent thumbnail click / drag while editing
+    input.addEventListener('click', (e) => e.stopPropagation());
+    input.addEventListener('mousedown', (e) => e.stopPropagation());
+
+    nameLabel.replaceWith(input);
+    input.focus();
+    input.select();
   }
 
   /**

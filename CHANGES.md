@@ -1,5 +1,12 @@
 # WOW3 Development Changelog
 
+## 2026-02-13
+
+### Inline Slide Rename
+- Click on the slide name label (shown on thumbnail hover) to edit the name in place
+- Press Enter or click away to confirm, Escape to cancel
+- Right-sidebar title input stays in sync with inline edits
+
 ## 2026-02-12
 
 ### Initial Setup
