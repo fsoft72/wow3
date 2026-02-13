@@ -13,6 +13,7 @@ import { AudioElement } from './AudioElement.js';
 import { ShapeElement } from './ShapeElement.js';
 import { ListElement } from './ListElement.js';
 import { LinkElement } from './LinkElement.js';
+import { CountdownTimerElement } from './CountdownTimerElement.js';
 
 export class Slide {
   /**
@@ -221,7 +222,8 @@ const getElementClass = (type) => {
     audio: AudioElement,
     shape: ShapeElement,
     list: ListElement,
-    link: LinkElement
+    link: LinkElement,
+    countdown_timer: CountdownTimerElement
   };
 
   return classes[type] || Element;

@@ -1097,3 +1097,16 @@ Help diagnose why animations are not working by showing:
 
 **Updated Files:**
 - `js/controllers/PlaybackController.js`: Fixed `_resolveCountdownForSlide()` same-element check; added static `.countdown-timer-element` hiding in `showSlide()`
+
+---
+
+## Fix: Countdown Timer Lost on Reload
+
+### Fix: Timer elements properly deserialized from saved presentations
+- `Slide.js` had its own `getElementClass()` function (separate from `Element._classRegistry`) that did not include `countdown_timer`
+- On reload, timer elements were deserialized as base `Element` instances, losing their custom rendering and behavior
+- The `type` string was preserved (`'countdown_timer'`), so ghost inheritance detection still worked, causing ghosts to appear without a visible timer
+- Added `CountdownTimerElement` import and entry to the `getElementClass` map in `Slide.js`
+
+**Updated Files:**
+- `js/models/Slide.js`: Added `CountdownTimerElement` import and `countdown_timer` entry to `getElementClass()`
