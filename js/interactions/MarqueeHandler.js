@@ -46,8 +46,8 @@ export class MarqueeHandler {
     this._startY = e.clientY - canvasRect.top;
     this._isDrawing = true;
 
-    // If no Ctrl key, deselect everything first
-    if (!e.ctrlKey && !e.metaKey) {
+    // If no modifier key, deselect everything first
+    if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
       this.elementController.deselectAll();
     }
 
@@ -99,7 +99,7 @@ export class MarqueeHandler {
 
       // If marquee is too small (<3px), treat as a click → deselect
       if (w < 3 && h < 3) {
-        if (!e.ctrlKey && !e.metaKey) {
+        if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
           this.elementController.deselectAll();
         }
         return;

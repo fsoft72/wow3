@@ -402,7 +402,7 @@ export class ElementController {
       // Don't re-select while in crop mode (would exit crop via deselectAll)
       if (this._cropMode) return;
 
-      if (e.ctrlKey || e.metaKey) {
+      if (e.ctrlKey || e.metaKey || e.shiftKey) {
         this.toggleSelection(element);
       } else {
         this.selectElement(element);
