@@ -36,18 +36,30 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+#top-menu .nav-wrapper {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 16px;
+}
+
+#top-menu .brand-logo {
+  position: static;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
 #presentation-title-input {
-  position: absolute;
-  left: 140px;
-  top: 50%;
-  transform: translateY(-50%);
+  position: static;
+  transform: none;
   padding: 6px 12px;
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 4px;
   color: white;
   font-size: 15px;
-  width: 300px;
+  width: 240px;
+  flex-shrink: 0;
   outline: none;
   transition: all 0.2s;
 }
@@ -61,11 +73,56 @@ body {
   color: rgba(255, 255, 255, 0.6);
 }
 
-.divider-vertical {
+/* Toolbar groups */
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
   height: 100%;
+}
+
+.toolbar-group li {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.toolbar-group li a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.9);
+  transition: background 0.15s;
+}
+
+.toolbar-group li a:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.toolbar-left {
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.toolbar-center {
+  flex: 1;
+  justify-content: center;
+}
+
+.toolbar-right {
+  flex-shrink: 0;
+}
+
+.divider-vertical {
+  height: 28px;
   width: 1px;
   background: rgba(255, 255, 255, 0.2);
-  margin: 0 8px;
+  margin: 0 4px;
+  align-self: center;
 }
 
 /* ==================== APP CONTAINER ==================== */
