@@ -106,7 +106,7 @@ class WOW3App {
       const modals = document.querySelectorAll('.modal');
       M.Modal.init(modals);
 
-      const selects = document.querySelectorAll('select');
+      const selects = document.querySelectorAll('select:not(.browser-default)');
       M.FormSelect.init(selects);
 
       const dropdowns = document.querySelectorAll('.dropdown-trigger');
