@@ -1171,3 +1171,19 @@ Help diagnose why animations are not working by showing:
 
 **Updated Files:**
 - `js/utils/media_db.js`: Bumped DB version to 3; added `hash` index; added `_computeHash()` and `findByHash()` methods; modified `addMedia()` to hash-and-deduplicate
+
+---
+
+## Auto-Resize Image Elements to Actual Dimensions
+
+### Feature: Image elements automatically resize to match the actual image size
+- ✓ **Auto-resize on drop**: Dragging an image file onto the canvas creates an element sized to the image's natural dimensions
+- ✓ **Auto-resize on assign**: Selecting an image from Media Manager or uploading via the panel resizes the element to match
+- ✓ **Scale to fit canvas**: Images larger than 1280x720 are scaled down proportionally to fit within the canvas
+- ✓ **Small images kept as-is**: Images smaller than the canvas use their natural dimensions (no upscaling)
+- ✓ **Aspect ratio stored**: `properties.aspectRatio` is set from the actual image dimensions
+- ✓ **Position clamped**: After resize, element position is clamped so it stays within canvas bounds
+- ✓ **Drop centering preserved**: Drag-and-drop path resizes before positioning, so the element is centered on the drop point at its actual size
+
+**Updated Files:**
+- `js/controllers/ElementController.js`: Added `_resolveImageSize()` and `_autoResizeImage()` helpers; integrated auto-resize into `updateMediaUrl()` and `createMediaElement()`

@@ -853,6 +853,18 @@ export class ElementController {
     const ElementClass = this.getElementClass(type);
     const element = new ElementClass();
 
+    // Add to current slide
+    const currentSlide = this.editor.getActiveSlide();
+    currentSlide.addElement(element);
+
+    // Upload file to MediaDB and set URL
+    await element.setUrl(file);
+
+    // Auto-resize image to actual dimensions before positioning
+    if (type === 'image') {
+      await this._autoResizeImage(element, file);
+    }
+
     // Center element on drop point, clamped to canvas bounds
     element.position.x = Math.max(0, Math.min(
       dropPosition.x - element.position.width / 2,
@@ -863,12 +875,10 @@ export class ElementController {
       CANVAS.HEIGHT - element.position.height
     ));
 
-    // Add to current slide
-    const currentSlide = this.editor.getActiveSlide();
-    currentSlide.addElement(element);
-
-    // Upload file to MediaDB and set URL
-    await this.updateMediaUrl(element, file);
+    // Render and select
+    await this.editor.slideController.renderCurrentSlide();
+    this.selectElement(element);
+    this.editor.recordHistory();
 
     appEvents.emit(AppEvents.ELEMENT_ADDED, element);
     toast.success(`${type} element added`);
@@ -884,6 +894,12 @@ export class ElementController {
 
     try {
       await element.setUrl(source);
+
+      // Auto-resize image elements to match actual image dimensions
+      if (element.type === 'image') {
+        await this._autoResizeImage(element, source);
+      }
+
       await this.editor.slideController.renderCurrentSlide();
       this.selectElement(element);
       this.editor.recordHistory();
@@ -891,6 +907,73 @@ export class ElementController {
       console.error('Failed to update media URL:', error);
       toast.error('Failed to update media');
     }
+  }
+
+  /**
+   * Resolve the natural dimensions of an image from a File, media ID, or URL
+   * @param {Element} element - Image element (used to read properties.url as fallback)
+   * @param {string|File|Blob} source - Original source passed to setUrl
+   * @returns {Promise<{ width: number, height: number }|null>}
+   */
+  async _resolveImageSize(element, source) {
+    let src;
+    let objectUrl = null;
+
+    if (source instanceof File || source instanceof Blob) {
+      objectUrl = URL.createObjectURL(source);
+      src = objectUrl;
+    } else {
+      const url = element.properties.url;
+      if (!url) return null;
+      if (url.startsWith('media_')) {
+        src = await window.MediaDB.getMediaDataURL(url);
+      } else {
+        src = url;
+      }
+    }
+
+    if (!src) return null;
+
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      };
+      img.onerror = () => {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        resolve(null);
+      };
+      img.src = src;
+    });
+  }
+
+  /**
+   * Auto-resize an image element to match its actual image dimensions
+   * Scales down to fit within canvas bounds, preserving aspect ratio.
+   * @param {Element} element - Image element to resize
+   * @param {string|File|Blob} source - Original source passed to setUrl
+   */
+  async _autoResizeImage(element, source) {
+    const size = await this._resolveImageSize(element, source);
+    if (!size) return;
+
+    let { width, height } = size;
+
+    // Scale down to fit within canvas if the image is larger
+    if (width > CANVAS.WIDTH || height > CANVAS.HEIGHT) {
+      const scale = Math.min(CANVAS.WIDTH / width, CANVAS.HEIGHT / height);
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
+    }
+
+    element.position.width = width;
+    element.position.height = height;
+    element.properties.aspectRatio = size.width / size.height;
+
+    // Clamp position so element stays within canvas
+    element.position.x = Math.max(0, Math.min(element.position.x, CANVAS.WIDTH - width));
+    element.position.y = Math.max(0, Math.min(element.position.y, CANVAS.HEIGHT - height));
   }
 }
 
