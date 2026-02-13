@@ -439,6 +439,11 @@ export class ElementController {
       });
     }
 
+    // Attach drag handler so any element can initiate a drag (including multi-selection)
+    if (this.dragHandler) {
+      this.dragHandler.attach(elementDOM, element);
+    }
+
     // Prevent default drag on images
     if (element.type === 'image') {
       const img = elementDOM.querySelector('img');
@@ -479,11 +484,6 @@ export class ElementController {
     // Attach rotate handler
     if (this.rotateHandler) {
       this.rotateHandler.attach(rotateHandle, this.selectedElement);
-    }
-
-    // Attach drag handler to element
-    if (this.dragHandler) {
-      this.dragHandler.attach(elementDOM, this.selectedElement);
     }
   }
 
