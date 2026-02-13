@@ -67,8 +67,8 @@ export class CropHandler {
     elementDOM.classList.add('crop-mode');
     elementDOM.classList.remove('selected');
 
-    // Apply overflow hidden and position content
-    elementDOM.style.overflow = 'hidden';
+    // Ensure a crop-clipper container exists (handles overflow hidden without clipping handles)
+    this._ensureClipper(elementDOM);
     this._applyContentStyles();
 
     // Add crop handles (4 side + 4 corner)
@@ -108,6 +108,34 @@ export class CropHandler {
     this.isCropMode = false;
     this._element = null;
     this._elementDOM = null;
+  }
+
+  /**
+   * Ensure a .crop-clipper wrapper exists around the media element.
+   * If the element was rendered without crop (no clipper), wrap the media now.
+   * @param {HTMLElement} elementDOM
+   * @private
+   */
+  _ensureClipper(elementDOM) {
+    let clipper = elementDOM.querySelector('.crop-clipper');
+    if (clipper) return;
+
+    const media = elementDOM.querySelector('img, video');
+    if (!media) return;
+
+    clipper = document.createElement('div');
+    clipper.className = 'crop-clipper';
+    clipper.style.cssText = `
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    `;
+
+    // Move media into clipper
+    media.parentNode.insertBefore(clipper, media);
+    clipper.appendChild(media);
   }
 
   /**

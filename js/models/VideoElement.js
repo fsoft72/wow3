@@ -87,25 +87,6 @@ export class VideoElement extends Element {
         video.loop = this.properties.loop;
         video.muted = this.properties.muted;
 
-        if (crop) {
-          // Cropped mode: overflow hidden on wrapper, absolute positioned content
-          el.style.overflow = 'hidden';
-          video.style.cssText = `
-            position: absolute;
-            left: ${crop.contentLeft}px;
-            top: ${crop.contentTop}px;
-            width: ${crop.contentWidth}px;
-            height: ${crop.contentHeight}px;
-            object-fit: fill;
-          `;
-        } else {
-          video.style.cssText = `
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-          `;
-        }
-
         if (type === 'local') {
           const mediaId = url.replace('local://', '');
           this.loadFromMediaDB(video, mediaId);
@@ -125,7 +106,35 @@ export class VideoElement extends Element {
           el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f5f5f5;color:#999;">Video not found</div>';
         };
 
-        el.appendChild(video);
+        if (crop) {
+          // Cropped mode: inner clipper div with overflow hidden (element itself must not clip handles)
+          const clipper = document.createElement('div');
+          clipper.className = 'crop-clipper';
+          clipper.style.cssText = `
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+          `;
+          video.style.cssText = `
+            position: absolute;
+            left: ${crop.contentLeft}px;
+            top: ${crop.contentTop}px;
+            width: ${crop.contentWidth}px;
+            height: ${crop.contentHeight}px;
+            object-fit: fill;
+          `;
+          clipper.appendChild(video);
+          el.appendChild(clipper);
+        } else {
+          video.style.cssText = `
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          `;
+          el.appendChild(video);
+        }
       }
     } else {
       el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f5f5f5;color:#999;border:2px dashed #ccc;"><i class="material-icons" style="font-size:48px;">videocam</i></div>';

@@ -40,8 +40,16 @@ export class ImageElement extends Element {
       img.alt = 'Image';
 
       if (crop) {
-        // Cropped mode: overflow hidden on wrapper, absolute positioned content
-        el.style.overflow = 'hidden';
+        // Cropped mode: inner clipper div with overflow hidden (element itself must not clip handles)
+        const clipper = document.createElement('div');
+        clipper.className = 'crop-clipper';
+        clipper.style.cssText = `
+          position: absolute;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          overflow: hidden;
+          pointer-events: none;
+        `;
         img.style.cssText = `
           position: absolute;
           left: ${crop.contentLeft}px;
@@ -51,6 +59,8 @@ export class ImageElement extends Element {
           pointer-events: none;
           object-fit: fill;
         `;
+        clipper.appendChild(img);
+        el.appendChild(clipper);
       } else {
         // Normal mode: 100% fill with object-fit
         img.style.cssText = `
@@ -59,6 +69,7 @@ export class ImageElement extends Element {
           object-fit: ${this.properties.objectFit};
           pointer-events: none;
         `;
+        el.appendChild(img);
       }
 
       // Check if URL is a media ID or external URL
@@ -81,8 +92,6 @@ export class ImageElement extends Element {
         // Show error placeholder
         el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f5f5f5;color:#999;">Image not found</div>';
       };
-
-      el.appendChild(img);
     } else {
       // Show placeholder
       el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f5f5f5;color:#999;border:2px dashed #ccc;">No image selected</div>';
