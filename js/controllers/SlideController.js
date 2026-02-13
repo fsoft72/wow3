@@ -360,9 +360,14 @@ export class SlideController {
     item.addEventListener('mouseenter', () => { item.style.background = '#f5f5f5'; });
     item.addEventListener('mouseleave', () => { item.style.background = 'white'; });
     item.addEventListener('click', () => {
+      const shellId = this.editor.presentation.shell?.id;
       this.editor.presentation.removeShell();
       this.editor.exitShellEditing();
       this.editor.recordHistory();
+      if (shellId) {
+        this._thumbCache.delete(shellId);
+        window.MediaDB.deleteThumbnail(shellId).catch(() => {});
+      }
       menu.remove();
     });
 

@@ -1215,5 +1215,6 @@ Help diagnose why animations are not working by showing:
 **Updated Files:**
 - `js/utils/media_db.js`: Bumped version to 4; added `slide_thumbnails` store; added `saveThumbnail()`, `loadThumbnails()`, `deleteThumbnail()`, `clearAllThumbnails()` methods
 - `js/controllers/SlideController.js`: Added `loadThumbnailsFromDB()`; persist thumbnail in `_captureCurrentSlideThumbnail()`
-- `js/controllers/EditorController.js`: Call `loadThumbnailsFromDB()` in `render()` before `renderSlides()`; clear thumb cache in `createNewPresentation()` and `loadPresentation()`; delete thumbnail from cache and IndexedDB in `deleteSlide()`
+- `js/controllers/EditorController.js`: Call `loadThumbnailsFromDB()` in `render()` before `renderSlides()`; clear thumb cache in `createNewPresentation()` and `loadPresentation()`; delete thumbnail from cache and IndexedDB in `deleteSlide()` and remove-shell button
+- `js/controllers/SlideController.js`: Added `loadThumbnailsFromDB()`; persist thumbnail in `_captureCurrentSlideThumbnail()`; delete shell thumbnail in context menu "Remove Shell"
 - `js/utils/presentation_manager.js`: Delete all slide thumbnails from IndexedDB when a presentation is deleted

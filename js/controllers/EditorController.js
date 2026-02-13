@@ -174,9 +174,14 @@ export class EditorController {
     const removeShellBtn = document.getElementById('remove-shell-btn');
     if (removeShellBtn) {
       removeShellBtn.addEventListener('click', () => {
+        const shellId = this.presentation.shell?.id;
         this.presentation.removeShell();
         this.exitShellEditing();
         this.recordHistory();
+        if (shellId) {
+          this.slideController._thumbCache.delete(shellId);
+          window.MediaDB.deleteThumbnail(shellId).catch(() => {});
+        }
       });
     }
 
