@@ -133,11 +133,13 @@ window.PanelUtils = {
   bindColorPicker(id, onChange) {
     const colorInput = document.getElementById(id);
     const textInput = document.getElementById(`${id}-text`);
+    const preview = colorInput?.parentElement;
 
     if (!colorInput || !textInput) return;
 
     colorInput.addEventListener('change', (e) => {
       textInput.value = e.target.value;
+      if (preview) preview.style.background = e.target.value;
       if (onChange) onChange(e.target.value);
     });
 
@@ -147,6 +149,7 @@ window.PanelUtils = {
         if (value.startsWith('#')) {
           colorInput.value = value;
         }
+        if (preview) preview.style.background = value;
         if (onChange) onChange(value);
       }
     });
