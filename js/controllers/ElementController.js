@@ -4,6 +4,7 @@
  */
 
 import {
+  Element,
   TextElement,
   ImageElement,
   VideoElement,
@@ -13,6 +14,7 @@ import {
   LinkElement,
   CountdownTimerElement
 } from '../models/index.js';
+import { generateId } from '../utils/dom.js';
 import { appEvents, AppEvents } from '../utils/events.js';
 import { centerOnCanvas } from '../utils/positioning.js';
 import { toast } from '../utils/toasts.js';
@@ -37,7 +39,7 @@ export class ElementController {
     /** @type {boolean} Whether crop mode is active */
     this._cropMode = false;
 
-    // Clipboard
+    /** @type {{ elements: Object[], boundingBox: { x: number, y: number, width: number, height: number } } | null} */
     this.clipboard = null;
   }
 
@@ -607,58 +609,170 @@ export class ElementController {
   }
 
   /**
-   * Copy selected element
+   * Compute the axis-aligned bounding box for an array of elements
+   * @param {Element[]} elements - Elements to measure
+   * @returns {{ x: number, y: number, width: number, height: number }}
+   * @private
    */
-  copySelectedElement() {
-    if (this.selectedElement) {
-      this.clipboard = this.selectedElement.clone();
-      toast.success('Element copied');
+  _computeBoundingBox(elements) {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    for (const el of elements) {
+      const { x, y, width, height } = el.position;
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x + width > maxX) maxX = x + width;
+      if (y + height > maxY) maxY = y + height;
+    }
+
+    return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+  }
+
+  /**
+   * Copy all selected elements to clipboard
+   */
+  copySelectedElements() {
+    if (this._selectedElements.size === 0) return;
+
+    const elements = this.selectedElements;
+    const snapshots = elements.map((el) => el.toJSON());
+    const boundingBox = this._computeBoundingBox(elements);
+
+    this.clipboard = { elements: snapshots, boundingBox };
+
+    const label = elements.length === 1 ? 'Element copied' : `${elements.length} elements copied`;
+    toast.success(label);
+  }
+
+  /**
+   * Cut all selected elements (copy + delete)
+   */
+  cutSelectedElements() {
+    if (this._selectedElements.size === 0) return;
+
+    const elements = this.selectedElements;
+    const snapshots = elements.map((el) => el.toJSON());
+    const boundingBox = this._computeBoundingBox(elements);
+
+    this.clipboard = { elements: snapshots, boundingBox };
+
+    // Delete all selected elements from the slide
+    const currentSlide = this.editor.getActiveSlide();
+    const ids = elements.map((el) => el.id);
+
+    ids.forEach((id) => {
+      currentSlide.removeElement(id);
+      appEvents.emit(AppEvents.ELEMENT_REMOVED, id);
+    });
+
+    this._selectedElements.clear();
+    this.editor.slideController.renderCurrentSlide();
+    this._updateSelectionUI();
+    this.editor.recordHistory();
+
+    const label = ids.length === 1 ? 'Element cut' : `${ids.length} elements cut`;
+    toast.success(label);
+  }
+
+  /**
+   * Paste elements from clipboard onto the active slide
+   */
+  pasteElements() {
+    if (!this.clipboard) return;
+
+    const { elements: snapshots, boundingBox } = this.clipboard;
+    const currentSlide = this.editor.getActiveSlide();
+    const pasted = [];
+
+    for (const snapshot of snapshots) {
+      // Deep-clone the snapshot and mint fresh IDs
+      const data = JSON.parse(JSON.stringify(snapshot));
+      data.id = generateId('element');
+      if (data.children) {
+        data.children = data.children.map((child) => ({
+          ...child,
+          id: generateId('element')
+        }));
+      }
+
+      // Offset relative to bounding-box origin + 20px paste offset
+      data.position.x = (data.position.x - boundingBox.x) + boundingBox.x + 20;
+      data.position.y = (data.position.y - boundingBox.y) + boundingBox.y + 20;
+
+      const element = Element.fromJSON(data);
+      currentSlide.addElement(element);
+      pasted.push(element);
+    }
+
+    // Shift bounding box so successive pastes cascade (+20, +40, +60...)
+    this.clipboard.boundingBox = {
+      ...boundingBox,
+      x: boundingBox.x + 20,
+      y: boundingBox.y + 20
+    };
+
+    this.editor.slideController.renderCurrentSlide();
+
+    // Select all pasted elements
+    if (pasted.length === 1) {
+      this.selectElement(pasted[0]);
+    } else {
+      this.deselectAll();
+      for (const el of pasted) {
+        this.addToSelection(el);
+      }
+    }
+
+    this.editor.recordHistory();
+
+    const label = pasted.length === 1 ? 'Element pasted' : `${pasted.length} elements pasted`;
+    toast.success(label);
+
+    for (const el of pasted) {
+      appEvents.emit(AppEvents.ELEMENT_ADDED, el);
     }
   }
 
   /**
-   * Paste element from clipboard
+   * Duplicate all selected elements with a +20px offset
    */
-  pasteElement() {
-    if (this.clipboard) {
-      const cloned = this.clipboard.clone();
+  duplicateSelectedElements() {
+    if (this._selectedElements.size === 0) return;
 
-      // Offset position slightly
+    const elements = this.selectedElements;
+    const currentSlide = this.editor.getActiveSlide();
+    const duplicates = [];
+
+    for (const el of elements) {
+      const cloned = el.clone();
       cloned.position.x += 20;
       cloned.position.y += 20;
-
-      const currentSlide = this.editor.getActiveSlide();
       currentSlide.addElement(cloned);
-
-      this.editor.slideController.renderCurrentSlide();
-      this.selectElement(cloned);
-      this.editor.recordHistory();
-
-      toast.success('Element pasted');
-      appEvents.emit(AppEvents.ELEMENT_ADDED, cloned);
+      duplicates.push(cloned);
     }
-  }
 
-  /**
-   * Duplicate selected element
-   */
-  duplicateSelectedElement() {
-    if (this.selectedElement) {
-      const cloned = this.selectedElement.clone();
+    this.editor.slideController.renderCurrentSlide();
 
-      // Offset position
-      cloned.position.x += 20;
-      cloned.position.y += 20;
+    // Select all duplicates
+    if (duplicates.length === 1) {
+      this.selectElement(duplicates[0]);
+    } else {
+      this.deselectAll();
+      for (const el of duplicates) {
+        this.addToSelection(el);
+      }
+    }
 
-      const currentSlide = this.editor.getActiveSlide();
-      currentSlide.addElement(cloned);
+    this.editor.recordHistory();
 
-      this.editor.slideController.renderCurrentSlide();
-      this.selectElement(cloned);
-      this.editor.recordHistory();
+    const label = duplicates.length === 1 ? 'Element duplicated' : `${duplicates.length} elements duplicated`;
+    toast.success(label);
 
-      toast.success('Element duplicated');
-      appEvents.emit(AppEvents.ELEMENT_ADDED, cloned);
+    for (const el of duplicates) {
+      appEvents.emit(AppEvents.ELEMENT_ADDED, el);
     }
   }
 

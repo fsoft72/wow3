@@ -1110,3 +1110,27 @@ Help diagnose why animations are not working by showing:
 
 **Updated Files:**
 - `js/models/Slide.js`: Added `CountdownTimerElement` import and `countdown_timer` entry to `getElementClass()`
+
+---
+
+## Multi-Element Copy / Cut / Paste / Duplicate
+
+### Feature: Clipboard operations now work with single and multi-element selections
+- ✓ **Multi-element copy (Ctrl+C)**: Copies all selected elements with their relative positions preserved via bounding-box tracking
+- ✓ **Cut (Ctrl+X)**: New shortcut — copies selected elements to clipboard, then removes them from the slide
+- ✓ **Multi-element paste (Ctrl+V)**: Pastes all clipboard elements with fresh IDs (parent + children), offset +20px from original position
+- ✓ **Cascading paste offset**: Successive pastes cascade at +20px increments (+20, +40, +60...)
+- ✓ **Multi-element duplicate (Ctrl+D)**: Duplicates all selected elements at once with +20px offset
+- ✓ **Cross-slide paste**: Clipboard persists on ElementController across slide navigations
+- ✓ **Cross-presentation paste**: Clipboard persists across presentation loads (same session)
+- ✓ **Selection after paste/duplicate**: All pasted/duplicated elements are auto-selected (single → selectElement, multi → addToSelection loop)
+
+**Clipboard data format:**
+```js
+{ elements: Object[] /* toJSON snapshots */, boundingBox: { x, y, width, height } }
+```
+
+**Updated Files:**
+- `js/controllers/ElementController.js`: Added `Element` and `generateId` imports; added `_computeBoundingBox()` helper; replaced `copySelectedElement()` → `copySelectedElements()`, `pasteElement()` → `pasteElements()`, `duplicateSelectedElement()` → `duplicateSelectedElements()`; added `cutSelectedElements()`
+- `js/app.js`: Renamed method calls for Ctrl+C/V/D; added Ctrl+X shortcut for cut
+- `js/controllers/EditorController.js`: Removed unused `this.clipboard = null`

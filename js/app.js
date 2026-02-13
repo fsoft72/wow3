@@ -246,21 +246,28 @@ class WOW3App {
       else if (ctrl && e.key === 'c') {
         e.preventDefault();
         if (this.editor && this.editor.elementController) {
-          this.editor.elementController.copySelectedElement();
+          this.editor.elementController.copySelectedElements();
+        }
+      }
+      // Cut: Ctrl+X
+      else if (ctrl && e.key === 'x') {
+        e.preventDefault();
+        if (this.editor && this.editor.elementController) {
+          this.editor.elementController.cutSelectedElements();
         }
       }
       // Paste: Ctrl+V
       else if (ctrl && e.key === 'v') {
         e.preventDefault();
         if (this.editor && this.editor.elementController) {
-          this.editor.elementController.pasteElement();
+          this.editor.elementController.pasteElements();
         }
       }
       // Duplicate: Ctrl+D
       else if (ctrl && e.key === 'd') {
         e.preventDefault();
         if (this.editor && this.editor.elementController) {
-          this.editor.elementController.duplicateSelectedElement();
+          this.editor.elementController.duplicateSelectedElements();
         }
       }
       // Play: F5

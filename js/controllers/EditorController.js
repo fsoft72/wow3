@@ -40,9 +40,6 @@ export class EditorController {
 
     // Shell editing state
     this.isEditingShell = false;
-
-    // Clipboard
-    this.clipboard = null;
   }
 
   /**
