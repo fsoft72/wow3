@@ -968,3 +968,21 @@ Help diagnose why animations are not working by showing:
 - `js/panels/ImagePanel.js`: Reset Crop button
 - `js/panels/VideoPanel.js`: Reset Crop button
 - `css/editor.css`: Crop mode styles, crop handle styles, crop corner styles
+
+---
+
+## html2canvas Slide Thumbnails
+
+### Feature: Auto-capture slide thumbnails using html2canvas with 5s debounce
+- ✓ **html2canvas integration**: Slide thumbnails in the sidebar are now captured from the actual canvas
+- ✓ **Debounced capture**: Thumbnail regeneration is debounced at 5 seconds after the last edit
+- ✓ **Per-slide caching**: Thumbnails are cached by slide ID for instant display
+- ✓ **Graceful fallback**: Simplified DOM-based previews shown until first capture completes
+- ✓ **Clean captures**: Selection handles and outlines hidden during capture
+- ✓ **Initial capture**: Thumbnails captured on first slide render with a 500ms delay for image loading
+
+**Updated Files:**
+- `index.html`: Added html2canvas CDN (v1.4.1)
+- `js/controllers/SlideController.js`: Added `_thumbCache`, `scheduleThumbnailCapture()`, `_captureCurrentSlideThumbnail()`, `_updateThumbnailDOM()`; modified `createSlideThumbnail()` to use cached images
+- `js/controllers/EditorController.js`: Call `scheduleThumbnailCapture()` from `recordHistory()`
+- `css/editor.css`: Added `._thumb-hide-outline` class for clean captures

@@ -13,6 +13,15 @@ export class SlideController {
   constructor(editorController) {
     this.editor = editorController;
     this.draggedSlide = null;
+
+    /** @type {Map<string, string>} Cached thumbnail data URLs keyed by slide id */
+    this._thumbCache = new Map();
+
+    /** @type {number|null} Debounce timer for thumbnail capture */
+    this._thumbTimer = null;
+
+    /** @type {number} Debounce delay in ms */
+    this.THUMB_DEBOUNCE_MS = 5000;
   }
 
   /**
@@ -201,6 +210,7 @@ export class SlideController {
     // Thumbnail preview
     const preview = document.createElement('div');
     preview.className = 'slide-preview';
+    preview.dataset.slideId = slide.id;
     preview.style.cssText = `
       width: 100%;
       height: 100%;
@@ -209,13 +219,22 @@ export class SlideController {
       overflow: hidden;
     `;
 
-    // Render simplified version of elements
-    slide.elements.forEach((element, idx) => {
-      const elementPreview = this.createElementPreview(element, idx);
-      if (elementPreview) {
-        preview.appendChild(elementPreview);
-      }
-    });
+    // Use cached html2canvas thumbnail if available, otherwise simplified preview
+    const cachedThumb = this._thumbCache.get(slide.id);
+    if (cachedThumb) {
+      const img = document.createElement('img');
+      img.src = cachedThumb;
+      img.style.cssText = 'width:100%;height:100%;object-fit:fill;display:block;';
+      preview.appendChild(img);
+    } else {
+      // Simplified fallback
+      slide.elements.forEach((element, idx) => {
+        const elementPreview = this.createElementPreview(element, idx);
+        if (elementPreview) {
+          preview.appendChild(elementPreview);
+        }
+      });
+    }
 
     div.appendChild(preview);
 
@@ -444,6 +463,11 @@ export class SlideController {
     }
 
     appEvents.emit(AppEvents.SLIDE_CHANGED, activeSlide);
+
+    // Capture thumbnail shortly after render (allow images to load)
+    if (!this._thumbCache.has(activeSlide.id)) {
+      setTimeout(() => this._captureCurrentSlideThumbnail(), 500);
+    }
   }
 
   /**
@@ -557,6 +581,83 @@ export class SlideController {
    */
   deleteSlide(index) {
     this.editor.deleteSlide(index);
+  }
+
+  /**
+   * Schedule a debounced thumbnail capture for the current slide.
+   * Resets the timer on every call so only the last edit within the
+   * debounce window triggers a capture.
+   */
+  scheduleThumbnailCapture() {
+    if (this._thumbTimer) clearTimeout(this._thumbTimer);
+
+    this._thumbTimer = setTimeout(() => {
+      this._thumbTimer = null;
+      this._captureCurrentSlideThumbnail();
+    }, this.THUMB_DEBOUNCE_MS);
+  }
+
+  /**
+   * Capture the current slide canvas as a thumbnail using html2canvas
+   * and update the sidebar preview.
+   * @private
+   */
+  async _captureCurrentSlideThumbnail() {
+    const canvas = document.getElementById('slide-canvas');
+    if (!canvas) return;
+    if (typeof html2canvas === 'undefined') return;
+
+    const activeSlide = this.editor.getActiveSlide();
+    if (!activeSlide) return;
+
+    // Remember which slide we are capturing (it might change before the async returns)
+    const slideId = activeSlide.id;
+
+    try {
+      // Temporarily hide selection handles so they don't appear in the thumbnail
+      const handles = canvas.querySelectorAll(
+        '.resize-handle, .rotate-handle, .crop-handle, .crop-corner'
+      );
+      const selectedEls = canvas.querySelectorAll('.element.selected');
+      selectedEls.forEach(el => el.classList.add('_thumb-hide-outline'));
+      handles.forEach(h => { h.style.display = 'none'; });
+
+      const captured = await html2canvas(canvas, {
+        scale: 0.25,
+        useCORS: true,
+        logging: false,
+        backgroundColor: null
+      });
+
+      // Restore handles
+      handles.forEach(h => { h.style.display = ''; });
+      selectedEls.forEach(el => el.classList.remove('_thumb-hide-outline'));
+
+      const dataUrl = captured.toDataURL('image/png');
+      this._thumbCache.set(slideId, dataUrl);
+
+      // Update the thumbnail in the sidebar without a full re-render
+      this._updateThumbnailDOM(slideId, dataUrl);
+    } catch (err) {
+      console.warn('Thumbnail capture failed:', err);
+    }
+  }
+
+  /**
+   * Update a single slide thumbnail in the sidebar DOM with a captured image
+   * @param {string} slideId - Slide id
+   * @param {string} dataUrl - PNG data URL
+   * @private
+   */
+  _updateThumbnailDOM(slideId, dataUrl) {
+    const preview = document.querySelector(`.slide-preview[data-slide-id="${slideId}"]`);
+    if (!preview) return;
+
+    preview.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.style.cssText = 'width:100%;height:100%;object-fit:fill;display:block;';
+    preview.appendChild(img);
   }
 }
 

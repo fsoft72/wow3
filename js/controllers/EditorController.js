@@ -551,6 +551,11 @@ export class EditorController {
       canUndo: this.canUndo(),
       canRedo: this.canRedo()
     });
+
+    // Schedule debounced thumbnail capture for the active slide
+    if (this.slideController) {
+      this.slideController.scheduleThumbnailCapture();
+    }
   }
 
   /**

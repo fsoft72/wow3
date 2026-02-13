@@ -30,6 +30,11 @@
   z-index: 1000;
 }
 
+/* Temporarily hide selection outline during thumbnail capture */
+.element._thumb-hide-outline {
+  outline: none !important;
+}
+
 .element.dragging {
   opacity: 0.7;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
