@@ -188,6 +188,14 @@ const PresentationManager = {
     deletePresentation: async function(id) {
         if (await Dialog.confirm("Delete this presentation permanently?", "Delete Presentation")) {
             try {
+                // Delete slide thumbnails before removing the presentation
+                const data = await PresentationsDB.getPresentation(id);
+                if (data && data.slides) {
+                    const ids = data.slides.map(s => s.id).filter(Boolean);
+                    if (data.shell?.id) ids.push(data.shell.id);
+                    await Promise.all(ids.map(sid => MediaDB.deleteThumbnail(sid).catch(() => {})));
+                }
+
                 await PresentationsDB.deletePresentation(id);
                 toast.success('Presentation deleted');
                 await this.refresh();
