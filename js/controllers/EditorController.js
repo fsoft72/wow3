@@ -548,13 +548,13 @@ export class EditorController {
    * Delete slide
    * @param {number} index - Slide index
    */
-  deleteSlide(index) {
+  async deleteSlide(index) {
     if (this.presentation.slides.length <= 1) {
       toast.warning('Cannot delete last slide');
       return;
     }
 
-    const confirmed = confirm('Delete this slide?');
+    const confirmed = await Dialog.confirm('Delete this slide?', 'Delete Slide');
     if (!confirmed) return;
 
     const success = this.presentation.removeSlide(index);
