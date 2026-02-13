@@ -26,6 +26,7 @@ export class Slide {
     this.background = properties.background || DEFAULTS.BACKGROUND_COLOR;
     this.visible = properties.visible !== false; // default true
     this.hideShell = properties.hideShell || false;
+    this.thumbnailId = properties.thumbnailId || null;
     this.elements = [];
 
     // Load elements if provided
@@ -172,6 +173,7 @@ export class Slide {
   clone() {
     const data = this.toJSON();
     data.id = generateId('slide');
+    data.thumbnailId = null; // Cloned slides should not reference the original's thumbnail
     // Generate new IDs for all elements
     data.elements = data.elements.map(elData => ({
       ...elData,
@@ -195,6 +197,7 @@ export class Slide {
       background: this.background,
       visible: this.visible,
       hideShell: this.hideShell,
+      thumbnailId: this.thumbnailId,
       elements: this.elements.map(el => el.toJSON())
     };
   }

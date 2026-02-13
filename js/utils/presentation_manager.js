@@ -191,9 +191,9 @@ const PresentationManager = {
                 // Delete slide thumbnails before removing the presentation
                 const data = await PresentationsDB.getPresentation(id);
                 if (data && data.slides) {
-                    const ids = data.slides.map(s => s.id).filter(Boolean);
-                    if (data.shell?.id) ids.push(data.shell.id);
-                    await Promise.all(ids.map(sid => MediaDB.deleteThumbnail(sid).catch(() => {})));
+                    const thumbIds = data.slides.map(s => s.thumbnailId).filter(Boolean);
+                    if (data.shell?.thumbnailId) thumbIds.push(data.shell.thumbnailId);
+                    await Promise.all(thumbIds.map(tid => MediaDB.deleteThumbnail(tid).catch(() => {})));
                 }
 
                 await PresentationsDB.deletePresentation(id);

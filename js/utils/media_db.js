@@ -402,15 +402,15 @@ const MediaDB = {
 
   /**
    * Save a slide thumbnail to IndexedDB
-   * @param {string} slideId - Slide ID
+   * @param {string} thumbnailId - Unique thumbnail key
    * @param {string} dataUrl - PNG data URL
    */
-  async saveThumbnail(slideId, dataUrl) {
+  async saveThumbnail(thumbnailId, dataUrl) {
     const db = await this.init();
     await new Promise((resolve, reject) => {
       const tx = db.transaction([STORE_THUMBNAILS], 'readwrite');
       const request = tx.objectStore(STORE_THUMBNAILS).put({
-        id: slideId,
+        id: thumbnailId,
         dataUrl,
         updatedAt: Date.now()
       });
@@ -420,12 +420,12 @@ const MediaDB = {
   },
 
   /**
-   * Load thumbnails for a list of slide IDs
-   * @param {string[]} slideIds - Array of slide IDs to load
-   * @returns {Promise<Map<string, string>>} Map of slideId → dataUrl
+   * Load thumbnails for a list of thumbnail IDs
+   * @param {string[]} thumbnailIds - Array of thumbnail IDs to load
+   * @returns {Promise<Map<string, string>>} Map of thumbnailId → dataUrl
    */
-  async loadThumbnails(slideIds) {
-    if (!slideIds || slideIds.length === 0) return new Map();
+  async loadThumbnails(thumbnailIds) {
+    if (!thumbnailIds || thumbnailIds.length === 0) return new Map();
 
     const db = await this.init();
     const result = new Map();
@@ -433,9 +433,9 @@ const MediaDB = {
     return new Promise((resolve) => {
       const tx = db.transaction([STORE_THUMBNAILS], 'readonly');
       const store = tx.objectStore(STORE_THUMBNAILS);
-      let pending = slideIds.length;
+      let pending = thumbnailIds.length;
 
-      for (const id of slideIds) {
+      for (const id of thumbnailIds) {
         const request = store.get(id);
         request.onsuccess = () => {
           if (request.result) {
@@ -452,13 +452,14 @@ const MediaDB = {
 
   /**
    * Delete a slide thumbnail from IndexedDB
-   * @param {string} slideId - Slide ID
+   * @param {string} thumbnailId - Unique thumbnail key
    */
-  async deleteThumbnail(slideId) {
+  async deleteThumbnail(thumbnailId) {
+    if (!thumbnailId) return;
     const db = await this.init();
     await new Promise((resolve) => {
       const tx = db.transaction([STORE_THUMBNAILS], 'readwrite');
-      tx.objectStore(STORE_THUMBNAILS).delete(slideId);
+      tx.objectStore(STORE_THUMBNAILS).delete(thumbnailId);
       tx.oncomplete = () => resolve();
     });
   },

@@ -42,16 +42,25 @@ export class SlideController {
   async loadThumbnailsFromDB() {
     if (!this.editor.presentation) return;
 
-    const slideIds = this.editor.presentation.slides.map(s => s.id);
+    // Build a map of thumbnailId → slideId for reverse lookup
+    const thumbToSlide = new Map();
+    for (const slide of this.editor.presentation.slides) {
+      if (slide.thumbnailId) thumbToSlide.set(slide.thumbnailId, slide.id);
+    }
     // Include shell slide if it exists
-    if (this.editor.presentation.shell) {
-      slideIds.push(this.editor.presentation.shell.id);
+    const shell = this.editor.presentation.shell;
+    if (shell && shell.thumbnailId) {
+      thumbToSlide.set(shell.thumbnailId, shell.id);
     }
 
+    const thumbnailIds = [...thumbToSlide.keys()];
+    if (thumbnailIds.length === 0) return;
+
     try {
-      const thumbs = await window.MediaDB.loadThumbnails(slideIds);
-      for (const [id, dataUrl] of thumbs) {
-        this._thumbCache.set(id, dataUrl);
+      const thumbs = await window.MediaDB.loadThumbnails(thumbnailIds);
+      for (const [thumbId, dataUrl] of thumbs) {
+        const slideId = thumbToSlide.get(thumbId);
+        if (slideId) this._thumbCache.set(slideId, dataUrl);
       }
       if (thumbs.size > 0) {
         console.log(`📸 Loaded ${thumbs.size} slide thumbnails from IndexedDB`);
@@ -423,13 +432,17 @@ export class SlideController {
     item.addEventListener('mouseenter', () => { item.style.background = '#f5f5f5'; });
     item.addEventListener('mouseleave', () => { item.style.background = 'white'; });
     item.addEventListener('click', () => {
-      const shellId = this.editor.presentation.shell?.id;
+      const shell = this.editor.presentation.shell;
+      const shellId = shell?.id;
+      const shellThumbId = shell?.thumbnailId;
       this.editor.presentation.removeShell();
       this.editor.exitShellEditing();
       this.editor.recordHistory();
       if (shellId) {
         this._thumbCache.delete(shellId);
-        window.MediaDB.deleteThumbnail(shellId).catch(() => {});
+      }
+      if (shellThumbId) {
+        window.MediaDB.deleteThumbnail(shellThumbId).catch(() => {});
       }
       menu.remove();
     });
@@ -752,12 +765,25 @@ export class SlideController {
       selectedEls.forEach(el => el.classList.remove('_thumb-hide-outline'));
 
       const dataUrl = captured.toDataURL('image/png');
-      this._thumbCache.set(slideId, dataUrl);
 
-      // Persist to IndexedDB so thumbnails survive reload
-      window.MediaDB.saveThumbnail(slideId, dataUrl).catch(
+      // Generate a unique thumbnail key and persist to IndexedDB
+      const newThumbId = 'thumb_' + Date.now();
+
+      window.MediaDB.saveThumbnail(newThumbId, dataUrl).catch(
         err => console.warn('Failed to persist thumbnail:', err)
       );
+
+      // Delete old thumbnail if the slide had one
+      const oldThumbId = activeSlide.thumbnailId;
+      if (oldThumbId) {
+        window.MediaDB.deleteThumbnail(oldThumbId).catch(() => {});
+      }
+
+      // Update slide reference
+      activeSlide.thumbnailId = newThumbId;
+
+      // Update in-memory cache (keyed by slideId for sidebar lookup)
+      this._thumbCache.set(slideId, dataUrl);
 
       // Update the thumbnail in the sidebar without a full re-render
       this._updateThumbnailDOM(slideId, dataUrl);

@@ -177,13 +177,17 @@ export class EditorController {
     const removeShellBtn = document.getElementById('remove-shell-btn');
     if (removeShellBtn) {
       removeShellBtn.addEventListener('click', () => {
-        const shellId = this.presentation.shell?.id;
+        const shell = this.presentation.shell;
+        const shellId = shell?.id;
+        const shellThumbId = shell?.thumbnailId;
         this.presentation.removeShell();
         this.exitShellEditing();
         this.recordHistory();
         if (shellId) {
           this.slideController._thumbCache.delete(shellId);
-          window.MediaDB.deleteThumbnail(shellId).catch(() => {});
+        }
+        if (shellThumbId) {
+          window.MediaDB.deleteThumbnail(shellThumbId).catch(() => {});
         }
       });
     }
@@ -606,13 +610,17 @@ export class EditorController {
     const confirmed = await Dialog.confirm('Delete this slide?', 'Delete Slide');
     if (!confirmed) return;
 
-    const slideId = this.presentation.slides[index]?.id;
+    const slide = this.presentation.slides[index];
+    const slideId = slide?.id;
+    const thumbId = slide?.thumbnailId;
     const success = this.presentation.removeSlide(index);
     if (success) {
       // Clean up persisted thumbnail
       if (slideId) {
         this.slideController._thumbCache.delete(slideId);
-        window.MediaDB.deleteThumbnail(slideId).catch(() => {});
+      }
+      if (thumbId) {
+        window.MediaDB.deleteThumbnail(thumbId).catch(() => {});
       }
 
       this.recordHistory();

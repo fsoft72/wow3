@@ -2,6 +2,21 @@
 
 ## 2026-02-13
 
+### Unique Thumbnail Keys for Slide Thumbnails
+- Slide thumbnails in IndexedDB are now stored with unique `thumb_<timestamp>` keys instead of being keyed by slide ID
+- Added `thumbnailId` property to Slide model, serialized in `toJSON()` and cleared in `clone()`
+- `_captureCurrentSlideThumbnail()` generates a new unique key on each capture, deletes the old entry, and updates the slide's `thumbnailId`
+- `loadThumbnailsFromDB()` maps thumbnail IDs back to slide IDs for the in-memory sidebar cache
+- Slide deletion, shell removal, and presentation deletion all use `thumbnailId` to clean up from IndexedDB
+- `MediaDB.deleteThumbnail()` now guards against null/undefined IDs
+
+**Updated Files:**
+- `js/models/Slide.js`: Added `thumbnailId` property, included in `toJSON()`, cleared in `clone()`
+- `js/utils/media_db.js`: Updated JSDoc param names; added null guard to `deleteThumbnail()`
+- `js/controllers/SlideController.js`: Updated `loadThumbnailsFromDB()`, `_captureCurrentSlideThumbnail()`, and shell context menu deletion
+- `js/controllers/EditorController.js`: Updated `deleteSlide()` and remove-shell button to use `thumbnailId`
+- `js/utils/presentation_manager.js`: Updated `deletePresentation()` to collect `thumbnailId` from slides/shell
+
 ### Shell Preview Toggle in Editor
 - Added a toggle button in the status bar to show/hide shell slide elements while editing a regular slide
 - Shell elements are rendered as a read-only overlay with 30% opacity (`pointer-events: none`)
