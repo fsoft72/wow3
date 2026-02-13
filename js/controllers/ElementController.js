@@ -882,9 +882,9 @@ export class ElementController {
     // Upload file to MediaDB and set URL
     await element.setUrl(file);
 
-    // Auto-resize image to actual dimensions before positioning
-    if (type === 'image') {
-      await this._autoResizeImage(element, file);
+    // Auto-resize image/video to actual dimensions before positioning
+    if (type === 'image' || type === 'video') {
+      await this._autoResizeMedia(element, file);
     }
 
     // Center element on drop point, clamped to canvas bounds
@@ -934,9 +934,9 @@ export class ElementController {
     try {
       await element.setUrl(source);
 
-      // Auto-resize image elements to match actual image dimensions
-      if (element.type === 'image') {
-        await this._autoResizeImage(element, source);
+      // Auto-resize image/video elements to match actual dimensions
+      if (element.type === 'image' || element.type === 'video') {
+        await this._autoResizeMedia(element, source);
       }
 
       await this.editor.slideController.renderCurrentSlide();
@@ -949,12 +949,12 @@ export class ElementController {
   }
 
   /**
-   * Resolve the natural dimensions of an image from a File, media ID, or URL
-   * @param {Element} element - Image element (used to read properties.url as fallback)
+   * Resolve a source (File, Blob, media ID, or URL) to a usable src string
+   * @param {Element} element - Element (used to read properties.url as fallback)
    * @param {string|File|Blob} source - Original source passed to setUrl
-   * @returns {Promise<{ width: number, height: number }|null>}
+   * @returns {Promise<{ src: string, objectUrl: string|null }|null>}
    */
-  async _resolveImageSize(element, source) {
+  async _resolveMediaSrc(element, source) {
     let src;
     let objectUrl = null;
 
@@ -972,6 +972,20 @@ export class ElementController {
     }
 
     if (!src) return null;
+    return { src, objectUrl };
+  }
+
+  /**
+   * Resolve the natural dimensions of an image from a File, media ID, or URL
+   * @param {Element} element - Image element (used to read properties.url as fallback)
+   * @param {string|File|Blob} source - Original source passed to setUrl
+   * @returns {Promise<{ width: number, height: number }|null>}
+   */
+  async _resolveImageSize(element, source) {
+    const resolved = await this._resolveMediaSrc(element, source);
+    if (!resolved) return null;
+
+    const { src, objectUrl } = resolved;
 
     return new Promise((resolve) => {
       const img = new Image();
@@ -988,18 +1002,47 @@ export class ElementController {
   }
 
   /**
-   * Auto-resize an image element to match its actual image dimensions
+   * Resolve the natural dimensions of a video from a File, media ID, or URL
+   * @param {Element} element - Video element (used to read properties.url as fallback)
+   * @param {string|File|Blob} source - Original source passed to setUrl
+   * @returns {Promise<{ width: number, height: number }|null>}
+   */
+  async _resolveVideoSize(element, source) {
+    const resolved = await this._resolveMediaSrc(element, source);
+    if (!resolved) return null;
+
+    const { src, objectUrl } = resolved;
+
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        resolve({ width: video.videoWidth, height: video.videoHeight });
+      };
+      video.onerror = () => {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        resolve(null);
+      };
+      video.src = src;
+    });
+  }
+
+  /**
+   * Auto-resize a media element to match its actual dimensions.
    * Scales down to fit within canvas bounds, preserving aspect ratio.
-   * @param {Element} element - Image element to resize
+   * @param {Element} element - Image or video element to resize
    * @param {string|File|Blob} source - Original source passed to setUrl
    */
-  async _autoResizeImage(element, source) {
-    const size = await this._resolveImageSize(element, source);
+  async _autoResizeMedia(element, source) {
+    const size = element.type === 'video'
+      ? await this._resolveVideoSize(element, source)
+      : await this._resolveImageSize(element, source);
     if (!size) return;
 
     let { width, height } = size;
 
-    // Scale down to fit within canvas if the image is larger
+    // Scale down to fit within canvas if larger
     if (width > CANVAS.WIDTH || height > CANVAS.HEIGHT) {
       const scale = Math.min(CANVAS.WIDTH / width, CANVAS.HEIGHT / height);
       width = Math.round(width * scale);
