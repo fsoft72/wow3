@@ -1199,4 +1199,4 @@ Help diagnose why animations are not working by showing:
 - ✓ **Crop mode preserved**: Double-clicking an image/video that already has media still enters crop mode as before
 
 **Updated Files:**
-- `js/controllers/ElementController.js`: Modified `attachHandlers()` double-click logic for image/video; added `_openMediaManagerFor()` method
+- `js/controllers/ElementController.js`: Modified `attachHandlers()` double-click logic for image/video/audio; added `_openMediaManagerFor()` method

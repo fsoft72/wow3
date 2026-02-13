@@ -429,6 +429,16 @@ export class ElementController {
       });
     }
 
+    // Double-click on empty audio: open Media Manager
+    if (element.type === 'audio') {
+      elementDOM.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        if (!element.properties.url) {
+          this._openMediaManagerFor(element);
+        }
+      });
+    }
+
     // Prevent default drag on images
     if (element.type === 'image') {
       const img = elementDOM.querySelector('img');
