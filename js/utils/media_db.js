@@ -4,7 +4,7 @@
  */
 
 const MEDIA_DB_NAME = 'wow3_media';
-const MEDIA_DB_VERSION = 4;
+const MEDIA_DB_VERSION = 5;
 const STORE_MEDIA = 'media_items';
 const STORE_FOLDERS = 'media_folders';
 const STORE_THUMBNAILS = 'slide_thumbnails';
