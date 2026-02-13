@@ -717,20 +717,67 @@ export class SlideController {
     display.textContent = CountdownTimerElement.formatTime(inherited.properties.duration);
     ghost.appendChild(display);
 
-    // Click → materialize a real element copying position + style from the inherited one
-    ghost.addEventListener('click', (e) => {
+    // --- Drag + click logic ---
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let ghostX = inherited.position.x;
+    let ghostY = inherited.position.y;
+
+    const onMouseDown = (e) => {
       e.stopPropagation();
+      e.preventDefault();
+      isDragging = false;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
 
-      const newTimer = new CountdownTimerElement({
-        position: { ...inherited.position },
-        properties: JSON.parse(JSON.stringify(inherited.properties))
-      });
-      activeSlide.addElement(newTimer);
+      // Compute canvas scale so mouse deltas map to canvas coordinates
+      const canvasRect = canvas.getBoundingClientRect();
+      const scaleX = canvas.offsetWidth / canvasRect.width;
+      const scaleY = canvas.offsetHeight / canvasRect.height;
 
-      this.renderCurrentSlide();
-      this.editor.elementController.selectElement(newTimer);
-      this.editor.recordHistory();
-    });
+      const onMouseMove = (ev) => {
+        const dx = (ev.clientX - dragStartX) * scaleX;
+        const dy = (ev.clientY - dragStartY) * scaleY;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) isDragging = true;
+        ghost.style.left = `${ghostX + dx}px`;
+        ghost.style.top = `${ghostY + dy}px`;
+      };
+
+      const onMouseUp = (ev) => {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+
+        if (isDragging) {
+          // Commit the new position
+          const canvasRect2 = canvas.getBoundingClientRect();
+          const sx = canvas.offsetWidth / canvasRect2.width;
+          const sy = canvas.offsetHeight / canvasRect2.height;
+          ghostX += (ev.clientX - dragStartX) * sx;
+          ghostY += (ev.clientY - dragStartY) * sy;
+        } else {
+          // Click (no significant drag) → materialize a real element
+          const newTimer = new CountdownTimerElement({
+            position: {
+              ...inherited.position,
+              x: ghostX,
+              y: ghostY
+            },
+            properties: JSON.parse(JSON.stringify(inherited.properties))
+          });
+          activeSlide.addElement(newTimer);
+
+          this.renderCurrentSlide();
+          this.editor.elementController.selectElement(newTimer);
+          this.editor.recordHistory();
+        }
+      };
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    };
+
+    ghost.addEventListener('mousedown', onMouseDown);
 
     canvas.appendChild(ghost);
   }

@@ -60,9 +60,10 @@
   justify-content: center;
   opacity: 0.5;
   border: 2px dashed #999 !important;
-  cursor: pointer;
+  cursor: move;
   transition: opacity 0.15s ease;
   pointer-events: auto;
+  user-select: none;
 }
 
 .countdown-timer-ghost:hover {
