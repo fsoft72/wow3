@@ -393,6 +393,9 @@ export class ElementController {
     elementDOM.addEventListener('click', (e) => {
       e.stopPropagation();
 
+      // Don't re-select while in crop mode (would exit crop via deselectAll)
+      if (this._cropMode) return;
+
       if (e.ctrlKey || e.metaKey) {
         this.toggleSelection(element);
       } else {
