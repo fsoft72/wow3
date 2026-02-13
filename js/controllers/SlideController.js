@@ -195,19 +195,6 @@ export class SlideController {
     });
     div.appendChild(eyeBtn);
 
-    // Save as template button
-    const saveTemplateBtn = document.createElement('button');
-    saveTemplateBtn.className = 'slide-save-template-btn';
-    saveTemplateBtn.title = 'Save as template';
-    saveTemplateBtn.innerHTML = '<i class="material-icons">add_circle</i>';
-    saveTemplateBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (window.TemplateManager) {
-        TemplateManager.saveSlideAsTemplate(index);
-      }
-    });
-    div.appendChild(saveTemplateBtn);
-
     // Thumbnail preview
     const preview = document.createElement('div');
     preview.className = 'slide-preview';
