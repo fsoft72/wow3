@@ -4,7 +4,7 @@
  */
 
 const MEDIA_DB_NAME = 'wow3_media';
-const MEDIA_DB_VERSION = 2;
+const MEDIA_DB_VERSION = 3;
 const STORE_MEDIA = 'media_items';
 const STORE_FOLDERS = 'media_folders';
 
@@ -41,6 +41,9 @@ const MediaDB = {
         }
         if (!mediaStore.indexNames.contains('createdAt')) {
           mediaStore.createIndex('createdAt', 'createdAt', { unique: false });
+        }
+        if (!mediaStore.indexNames.contains('hash')) {
+          mediaStore.createIndex('hash', 'hash', { unique: false });
         }
 
         // Folders Store
@@ -130,14 +133,65 @@ const MediaDB = {
   },
 
   /**
-   * Add media file to IndexedDB
+   * Compute SHA-256 hash of a File or Blob
+   * @param {File|Blob} file - File or Blob to hash
+   * @returns {Promise<string>} Hex-encoded SHA-256 hash
+   */
+  async _computeHash(file) {
+    const buffer = await file.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  },
+
+  /**
+   * Find an existing media item by content hash
+   * @param {string} hash - SHA-256 hex hash
+   * @returns {Promise<Object|null>} Existing media item or null
+   */
+  async findByHash(hash) {
+    if (!hash) return null;
+
+    const db = await this.init();
+    return new Promise((resolve) => {
+      const tx = db.transaction([STORE_MEDIA], 'readonly');
+      const store = tx.objectStore(STORE_MEDIA);
+
+      // Use hash index if available, otherwise fall back to cursor scan
+      if (store.indexNames.contains('hash')) {
+        const request = store.index('hash').get(hash);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => resolve(null);
+      } else {
+        // Fallback for pre-v3 databases (before index is created)
+        const request = store.getAll();
+        request.onsuccess = () => {
+          const match = (request.result || []).find(item => item.hash === hash);
+          resolve(match || null);
+        };
+        request.onerror = () => resolve(null);
+      }
+    });
+  },
+
+  /**
+   * Add media file to IndexedDB (deduplicates by content hash)
    * @param {File|Blob} file - File or Blob object
    * @param {string|null} folderId - Folder ID or null for root
    * @param {Object} metadata - Additional metadata
-   * @returns {Promise<Object>} Media item with id
+   * @returns {Promise<Object>} Media item with id (existing if duplicate)
    */
   async addMedia(file, folderId = null, metadata = {}) {
     const db = await this.init();
+
+    // Compute content hash and check for duplicates
+    const hash = await this._computeHash(file);
+    const existing = await this.findByHash(hash);
+    if (existing) {
+      console.log('♻️ Media already exists, reusing:', existing.id);
+      return existing;
+    }
+
     const id = 'media_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
     const item = {
@@ -146,6 +200,7 @@ const MediaDB = {
       type: file.type || 'application/octet-stream',
       size: file.size,
       blob: file,
+      hash,
       folderId: folderId || null,
       createdAt: Date.now(),
       metadata: metadata

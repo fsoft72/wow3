@@ -1156,3 +1156,18 @@ Help diagnose why animations are not working by showing:
 - `js/interactions/index.js`: Export `CanvasDropHandler`
 - `js/app.js`: Import and initialize `CanvasDropHandler` after MarqueeHandler
 - `css/editor.css`: Added `.canvas-drop-active` style for drag-over visual feedback
+
+---
+
+## Media Deduplication via Content Hash
+
+### Feature: Avoid duplicate media files in MediaDB using SHA-256 content hashing
+- ✓ **SHA-256 hashing**: Every file uploaded to MediaDB gets a content hash via Web Crypto API
+- ✓ **Deduplication**: `addMedia()` checks for an existing item with the same hash before inserting
+- ✓ **Reuse existing**: If a duplicate is found, the existing media item is returned (no new entry created)
+- ✓ **Hash index**: New `hash` index on the `media_items` store for fast lookups (DB version 2→3)
+- ✓ **Backward compatible**: Falls back to cursor scan if the hash index doesn't exist yet
+- ✓ **Transparent**: Works for all upload paths (drag-and-drop, file picker, import) since dedup lives in `addMedia()`
+
+**Updated Files:**
+- `js/utils/media_db.js`: Bumped DB version to 3; added `hash` index; added `_computeHash()` and `findByHash()` methods; modified `addMedia()` to hash-and-deduplicate
