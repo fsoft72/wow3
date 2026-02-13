@@ -112,8 +112,17 @@ export class CountdownTimerPanel {
    * @param {import('../models/CountdownTimerElement.js').CountdownTimerElement} element
    */
   static bindEvents(element) {
+    const ec = window.app.editor.elementController;
+
+    /** Update a property on the selected element only */
     const updateProperty = (path, value) => {
-      window.app.editor.elementController.updateElementProperty(path, value);
+      ec.updateElementProperty(path, value);
+    };
+
+    /** Update a style property on the selected element AND sync to all other timers */
+    const updateStyleProperty = (path, value) => {
+      ec.updateElementProperty(path, value);
+      ec.syncCountdownTimerStyle(path, value);
     };
 
     // --- Tab switching ---
@@ -175,57 +184,57 @@ export class CountdownTimerPanel {
       });
     }
 
-    // --- Style: Font family ---
+    // --- Style: Font family (global) ---
     const ctFontFamily = document.getElementById('ct-font-family');
     if (ctFontFamily) {
-      ctFontFamily.addEventListener('change', (e) => updateProperty('properties.font.family', e.target.value));
+      ctFontFamily.addEventListener('change', (e) => updateStyleProperty('properties.font.family', e.target.value));
     }
 
-    // --- Style: Font size slider ---
+    // --- Style: Font size slider (global) ---
     const ctFontSize = document.getElementById('ct-font-size');
     const ctFontSizeVal = document.getElementById('ct-font-size-val');
     if (ctFontSize) {
       ctFontSize.addEventListener('input', (e) => {
         if (ctFontSizeVal) ctFontSizeVal.textContent = e.target.value;
-        updateProperty('properties.font.size', parseInt(e.target.value, 10));
+        updateStyleProperty('properties.font.size', parseInt(e.target.value, 10));
       });
     }
 
-    // --- Style: Font color ---
+    // --- Style: Font color (global) ---
     const ctFontColor = document.getElementById('ct-font-color');
     if (ctFontColor) {
-      ctFontColor.addEventListener('change', (e) => updateProperty('properties.font.color', e.target.value));
+      ctFontColor.addEventListener('change', (e) => updateStyleProperty('properties.font.color', e.target.value));
     }
 
-    // --- Style: Background ---
+    // --- Style: Background (global) ---
     const ctBackground = document.getElementById('ct-background');
     if (ctBackground) {
-      ctBackground.addEventListener('change', (e) => updateProperty('properties.background', e.target.value));
+      ctBackground.addEventListener('change', (e) => updateStyleProperty('properties.background', e.target.value));
     }
 
-    // --- Style: Border color ---
+    // --- Style: Border color (global) ---
     const ctBorderColor = document.getElementById('ct-border-color');
     if (ctBorderColor) {
-      ctBorderColor.addEventListener('change', (e) => updateProperty('properties.borderColor', e.target.value));
+      ctBorderColor.addEventListener('change', (e) => updateStyleProperty('properties.borderColor', e.target.value));
     }
 
-    // --- Style: Border width slider ---
+    // --- Style: Border width slider (global) ---
     const ctBorderWidth = document.getElementById('ct-border-width');
     const ctBorderWidthVal = document.getElementById('ct-border-width-val');
     if (ctBorderWidth) {
       ctBorderWidth.addEventListener('input', (e) => {
         if (ctBorderWidthVal) ctBorderWidthVal.textContent = e.target.value;
-        updateProperty('properties.borderWidth', parseInt(e.target.value, 10));
+        updateStyleProperty('properties.borderWidth', parseInt(e.target.value, 10));
       });
     }
 
-    // --- Style: Border radius slider ---
+    // --- Style: Border radius slider (global) ---
     const ctBorderRadius = document.getElementById('ct-border-radius');
     const ctBorderRadiusVal = document.getElementById('ct-border-radius-val');
     if (ctBorderRadius) {
       ctBorderRadius.addEventListener('input', (e) => {
         if (ctBorderRadiusVal) ctBorderRadiusVal.textContent = e.target.value;
-        updateProperty('properties.borderRadius', parseInt(e.target.value, 10));
+        updateStyleProperty('properties.borderRadius', parseInt(e.target.value, 10));
       });
     }
 

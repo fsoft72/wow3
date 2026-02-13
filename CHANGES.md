@@ -1069,3 +1069,16 @@ Help diagnose why animations are not working by showing:
 - `js/controllers/EditorController.js`: Added click handler for `#add-countdown-btn`
 - `js/controllers/SlideController.js`: Added `_findInheritedCountdownTimer()` and `_renderCountdownGhost()` for ghost rendering in `renderCurrentSlide()`
 - `js/controllers/PlaybackController.js`: Added `_activeCountdown` state, `_resolveCountdownForSlide()`, `_startCountdown()`, `_stopCountdown()`, `_renderCountdownDOM()`, `_playCompletionSound()` for live countdown during playback
+
+---
+
+## Global Countdown Timer Style
+
+### Feature: Timer style settings are shared across all timers in the presentation
+- Changing any style property (font family, font size, font color, background, border color/width/radius) on one countdown timer automatically propagates the change to all other countdown timer elements in the presentation
+- Content properties (duration, sound, clear) remain per-element
+- Style tab controls in the panel now call `syncCountdownTimerStyle()` which walks all slides (and shell) to update every timer
+
+**Updated Files:**
+- `js/controllers/ElementController.js`: Added `syncCountdownTimerStyle(property, value)` method
+- `js/panels/CountdownTimerPanel.js`: Style controls now use `updateStyleProperty()` which calls both `updateElementProperty()` and `syncCountdownTimerStyle()`

@@ -567,6 +567,46 @@ export class ElementController {
   }
 
   /**
+   * Sync a style property across ALL countdown_timer elements in the presentation.
+   * Called by the panel after changing a visual property so every timer looks identical.
+   * @param {string} property - Property path relative to the element (e.g. 'properties.font.size')
+   * @param {*} value - New value
+   */
+  syncCountdownTimerStyle(property, value) {
+    const presentation = this.editor.presentation;
+    if (!presentation) return;
+
+    const paths = property.split('.');
+
+    const applyToElement = (el) => {
+      if (el.type !== 'countdown_timer') return;
+      // Skip the currently selected element (already updated by updateElementProperty)
+      if (this.selectedElement && el.id === this.selectedElement.id) return;
+
+      let target = el;
+      for (let i = 0; i < paths.length - 1; i++) {
+        target = target[paths[i]];
+        if (!target) return;
+      }
+      target[paths[paths.length - 1]] = value;
+    };
+
+    // Walk all slides
+    for (const slide of presentation.slides) {
+      for (const el of slide.elements) {
+        applyToElement(el);
+      }
+    }
+
+    // Walk shell if it exists
+    if (presentation.shell) {
+      for (const el of presentation.shell.elements) {
+        applyToElement(el);
+      }
+    }
+  }
+
+  /**
    * Copy selected element
    */
   copySelectedElement() {
