@@ -44,13 +44,17 @@ export class ResizeHandler {
     const startY = e.clientY;
     const startPos = { ...element.position };
 
-    // Check if CTRL is pressed for aspect ratio lock
+    // Cropped elements always lock to the cropped wrapper's aspect ratio;
+    // uncropped images/videos lock to their natural aspect ratio (or Ctrl)
+    const hasCrop = element.properties.crop != null;
     const lockAspectRatio =
+      hasCrop ||
       e.ctrlKey ||
       element.properties.aspectRatio !== null && element.properties.aspectRatio !== undefined;
 
-    const aspectRatio =
-      element.properties.aspectRatio || startPos.width / startPos.height;
+    const aspectRatio = hasCrop
+      ? startPos.width / startPos.height
+      : (element.properties.aspectRatio || startPos.width / startPos.height);
 
     const elementDOM = document.getElementById(element.id);
 
@@ -147,14 +151,13 @@ export class ResizeHandler {
       newWidth = Math.max(UI.MIN_ELEMENT_SIZE, newWidth);
       newHeight = Math.max(UI.MIN_ELEMENT_SIZE, newHeight);
 
-      // Scale crop proportionally when resizing a cropped element
+      // Scale crop proportionally when resizing a cropped element (uniform scale)
       if (startCrop && element.properties.crop) {
-        const scaleX = newWidth / startPos.width;
-        const scaleY = newHeight / startPos.height;
-        element.properties.crop.contentWidth = startCrop.contentWidth * scaleX;
-        element.properties.crop.contentHeight = startCrop.contentHeight * scaleY;
-        element.properties.crop.contentLeft = startCrop.contentLeft * scaleX;
-        element.properties.crop.contentTop = startCrop.contentTop * scaleY;
+        const scale = newWidth / startPos.width;
+        element.properties.crop.contentWidth = startCrop.contentWidth * scale;
+        element.properties.crop.contentHeight = startCrop.contentHeight * scale;
+        element.properties.crop.contentLeft = startCrop.contentLeft * scale;
+        element.properties.crop.contentTop = startCrop.contentTop * scale;
 
         // Update content DOM styles
         const media = elementDOM.querySelector('img, video');
