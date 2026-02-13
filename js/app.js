@@ -15,7 +15,8 @@ import {
   DragHandler,
   ResizeHandler,
   RotateHandler,
-  MarqueeHandler
+  MarqueeHandler,
+  CropHandler
 } from './interactions/index.js';
 
 class WOW3App {
@@ -58,6 +59,7 @@ class WOW3App {
       this.editor.elementController.dragHandler = new DragHandler(this.editor.elementController);
       this.editor.elementController.resizeHandler = new ResizeHandler(this.editor.elementController);
       this.editor.elementController.rotateHandler = new RotateHandler(this.editor.elementController);
+      this.editor.elementController.cropHandler = new CropHandler(this.editor.elementController);
 
       // Initialize marquee handler
       const marqueeHandler = new MarqueeHandler(this.editor.elementController);
@@ -267,10 +269,12 @@ class WOW3App {
           this.editor.animationController.enterPlayMode();
         }
       }
-      // Escape: Exit play mode or deselect
+      // Escape: Exit play mode, exit crop mode, or deselect
       else if (e.key === 'Escape') {
         if (this.editor && this.editor.animationController && this.editor.animationController.playMode) {
           this.editor.animationController.exitPlayMode();
+        } else if (this.editor && this.editor.elementController && this.editor.elementController._cropMode) {
+          this.editor.elementController.exitCropMode();
         } else if (this.editor && this.editor.elementController) {
           this.editor.elementController.deselectElement();
         }

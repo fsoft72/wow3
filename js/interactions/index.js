@@ -8,3 +8,4 @@ export { ResizeHandler } from './ResizeHandler.js';
 export { RotateHandler } from './RotateHandler.js';
 export { AlignmentGuides } from './AlignmentGuides.js';
 export { MarqueeHandler } from './MarqueeHandler.js';
+export { CropHandler } from './CropHandler.js';

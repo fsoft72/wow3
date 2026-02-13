@@ -23,6 +23,9 @@ export class VideoElement extends Element {
     this.properties.loop = properties.properties?.loop || false;
     this.properties.muted = properties.properties?.muted || false;
     this.properties.controls = properties.properties?.controls !== false;
+
+    // Crop state: null = no crop, object = cropped
+    this.properties.crop = properties.properties?.crop || null;
   }
 
   /**
@@ -77,16 +80,31 @@ export class VideoElement extends Element {
           el.appendChild(overlay);
         }
       } else {
+        const crop = this.properties.crop;
         const video = document.createElement('video');
         video.controls = this.properties.controls;
         video.autoplay = this.properties.autoplay;
         video.loop = this.properties.loop;
         video.muted = this.properties.muted;
-        video.style.cssText = `
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        `;
+
+        if (crop) {
+          // Cropped mode: overflow hidden on wrapper, absolute positioned content
+          el.style.overflow = 'hidden';
+          video.style.cssText = `
+            position: absolute;
+            left: ${crop.contentLeft}px;
+            top: ${crop.contentTop}px;
+            width: ${crop.contentWidth}px;
+            height: ${crop.contentHeight}px;
+            object-fit: fill;
+          `;
+        } else {
+          video.style.cssText = `
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          `;
+        }
 
         if (type === 'local') {
           const mediaId = url.replace('local://', '');

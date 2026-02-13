@@ -30,6 +30,10 @@ export class ElementController {
     this.dragHandler = null;
     this.resizeHandler = null;
     this.rotateHandler = null;
+    this.cropHandler = null;
+
+    /** @type {boolean} Whether crop mode is active */
+    this._cropMode = false;
 
     // Clipboard
     this.clipboard = null;
@@ -261,6 +265,11 @@ export class ElementController {
    * Deselect all elements
    */
   deselectAll() {
+    // Exit crop mode first if active
+    if (this._cropMode) {
+      this.exitCropMode();
+    }
+
     for (const el of this._selectedElements) {
       const dom = document.getElementById(el.id);
       if (dom) {
@@ -284,6 +293,38 @@ export class ElementController {
    */
   deselectElement() {
     this.deselectAll();
+  }
+
+  /**
+   * Enter crop mode for the given element
+   * @param {Element} element - Element to crop
+   */
+  enterCropMode(element) {
+    if (!this.cropHandler || !this.cropHandler.canCrop(element)) return;
+
+    const dom = document.getElementById(element.id);
+    if (!dom) return;
+
+    this._cropMode = true;
+
+    // Remove existing transform handles
+    this.removeHandles(dom);
+
+    // Enter crop mode in the handler
+    this.cropHandler.enterCropMode(element, dom);
+  }
+
+  /**
+   * Exit crop mode and return to normal transform mode
+   */
+  exitCropMode() {
+    if (!this._cropMode) return;
+
+    this._cropMode = false;
+
+    if (this.cropHandler) {
+      this.cropHandler.exitCropMode();
+    }
   }
 
   /**
@@ -367,6 +408,14 @@ export class ElementController {
       });
     }
 
+    // Double-click to enter crop mode for images/videos
+    if (element.type === 'image' || element.type === 'video') {
+      elementDOM.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        this.enterCropMode(element);
+      });
+    }
+
     // Prevent default drag on images
     if (element.type === 'image') {
       const img = elementDOM.querySelector('img');
@@ -381,6 +430,9 @@ export class ElementController {
    * @param {HTMLElement} elementDOM - Element DOM
    */
   addHandles(elementDOM) {
+    // Skip if crop mode is active (crop handles managed by CropHandler)
+    if (this._cropMode) return;
+
     // Add resize handles
     const handles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
 

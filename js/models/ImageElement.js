@@ -20,6 +20,9 @@ export class ImageElement extends Element {
     this.properties.url = properties.properties?.url || '';
     this.properties.aspectRatio = properties.properties?.aspectRatio || null;
     this.properties.objectFit = properties.properties?.objectFit || 'cover';
+
+    // Crop state: null = no crop, object = cropped
+    this.properties.crop = properties.properties?.crop || null;
   }
 
   /**
@@ -32,14 +35,31 @@ export class ImageElement extends Element {
     el.classList.add('image-element');
 
     if (this.properties.url) {
+      const crop = this.properties.crop;
       const img = document.createElement('img');
       img.alt = 'Image';
-      img.style.cssText = `
-        width: 100%;
-        height: 100%;
-        object-fit: ${this.properties.objectFit};
-        pointer-events: none;
-      `;
+
+      if (crop) {
+        // Cropped mode: overflow hidden on wrapper, absolute positioned content
+        el.style.overflow = 'hidden';
+        img.style.cssText = `
+          position: absolute;
+          left: ${crop.contentLeft}px;
+          top: ${crop.contentTop}px;
+          width: ${crop.contentWidth}px;
+          height: ${crop.contentHeight}px;
+          pointer-events: none;
+          object-fit: fill;
+        `;
+      } else {
+        // Normal mode: 100% fill with object-fit
+        img.style.cssText = `
+          width: 100%;
+          height: 100%;
+          object-fit: ${this.properties.objectFit};
+          pointer-events: none;
+        `;
+      }
 
       // Check if URL is a media ID or external URL
       if (this.properties.url.startsWith('media_')) {

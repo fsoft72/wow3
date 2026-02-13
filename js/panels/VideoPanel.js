@@ -35,6 +35,14 @@ export class VideoPanel {
         </div>
       </div>
 
+      ${props.crop ? `
+        <div class="control-group" style="margin-top:8px;">
+          <button id="btn-reset-crop" class="btn-small orange white-text" style="width:100%;">
+            <i class="material-icons left" style="margin-right:4px;">crop_free</i>Reset Crop
+          </button>
+        </div>
+      ` : ''}
+
       <div class="panel-tab-content" data-tab-content="settings">
         <div class="control-group">
           <label>
@@ -163,6 +171,14 @@ export class VideoPanel {
             M.toast({ html: 'Failed to upload video', classes: 'red' });
           }
         }
+      });
+    }
+
+    // Reset crop
+    const btnResetCrop = document.getElementById('btn-reset-crop');
+    if (btnResetCrop) {
+      btnResetCrop.addEventListener('click', () => {
+        updateProperty('properties.crop', null);
       });
     }
 

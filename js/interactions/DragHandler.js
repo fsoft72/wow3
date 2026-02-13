@@ -35,10 +35,15 @@ export class DragHandler {
     elementDOM._dragHandlerAttached = true;
 
     elementDOM.addEventListener('mousedown', (e) => {
+      // Don't drag if in crop mode
+      if (this.elementController.cropHandler?.isCropMode) return;
+
       // Don't drag if clicking on handles
       if (
         e.target.classList.contains('resize-handle') ||
-        e.target.classList.contains('rotate-handle')
+        e.target.classList.contains('rotate-handle') ||
+        e.target.classList.contains('crop-handle') ||
+        e.target.classList.contains('crop-corner')
       ) {
         return;
       }

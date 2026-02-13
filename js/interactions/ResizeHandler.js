@@ -54,6 +54,11 @@ export class ResizeHandler {
 
     const elementDOM = document.getElementById(element.id);
 
+    // Capture initial crop state for proportional scaling
+    const startCrop = element.properties.crop
+      ? { ...element.properties.crop }
+      : null;
+
     const onMouseMove = (e) => {
       if (!this.isResizing) return;
 
@@ -141,6 +146,25 @@ export class ResizeHandler {
       // Minimum size constraints
       newWidth = Math.max(UI.MIN_ELEMENT_SIZE, newWidth);
       newHeight = Math.max(UI.MIN_ELEMENT_SIZE, newHeight);
+
+      // Scale crop proportionally when resizing a cropped element
+      if (startCrop && element.properties.crop) {
+        const scaleX = newWidth / startPos.width;
+        const scaleY = newHeight / startPos.height;
+        element.properties.crop.contentWidth = startCrop.contentWidth * scaleX;
+        element.properties.crop.contentHeight = startCrop.contentHeight * scaleY;
+        element.properties.crop.contentLeft = startCrop.contentLeft * scaleX;
+        element.properties.crop.contentTop = startCrop.contentTop * scaleY;
+
+        // Update content DOM styles
+        const media = elementDOM.querySelector('img, video');
+        if (media) {
+          media.style.width = `${element.properties.crop.contentWidth}px`;
+          media.style.height = `${element.properties.crop.contentHeight}px`;
+          media.style.left = `${element.properties.crop.contentLeft}px`;
+          media.style.top = `${element.properties.crop.contentTop}px`;
+        }
+      }
 
       // Update element
       element.updatePosition({

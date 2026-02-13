@@ -934,3 +934,37 @@ Help diagnose why animations are not working by showing:
 - `index.html`: Added JSZip CDN (`jszip/3.10.1`); renamed button tooltips to "Export Presentation" / "Import Presentation"
 - `js/utils/storage.js`: Rewrote `exportPresentation()` (async, ZIP-based) and `importPresentation()` (ZIP + legacy JSON); added helpers `collectMediaIds()`, `rewriteMediaUrls()`, `importZip()`, `mimeFromFilename()`
 - `js/controllers/EditorController.js`: Made `exportPresentation()` async to await the storage function
+
+---
+
+## Crop Mode for Image/Video Elements
+
+### Feature: Double-click to crop images and videos
+- ✓ **Double-click to enter crop mode**: Double-click on an image or video to enter crop mode with orange dashed outline
+- ✓ **Side crop handles**: 4 side handles (top, right, bottom, left) resize the visible wrapper area
+- ✓ **Content panning**: Drag the media content to reposition it within the crop frame
+- ✓ **Content scaling**: 4 corner handles scale the content while keeping the wrapper size
+- ✓ **Click-outside to exit**: Click outside the element or press Escape to exit crop mode
+- ✓ **Proportional resize**: Resizing a cropped element in transform mode scales crop proportionally
+- ✓ **Reset crop**: "Reset Crop" button in Image/Video panels to clear crop state
+- ✓ **Persistence**: Crop state serialized automatically via toJSON()
+- ✓ **YouTube excluded**: YouTube videos (iframes) cannot be cropped
+
+**Data Model:**
+- `crop: null` = no crop (normal rendering with object-fit)
+- `crop: { contentWidth, contentHeight, contentLeft, contentTop }` = cropped state
+
+**New Files:**
+- `js/interactions/CropHandler.js`: New handler for crop mode interactions
+
+**Updated Files:**
+- `js/models/ImageElement.js`: Added crop property and cropped rendering
+- `js/models/VideoElement.js`: Added crop property and cropped rendering
+- `js/interactions/ResizeHandler.js`: Proportional crop scaling during transform resize
+- `js/interactions/DragHandler.js`: Skip drag when in crop mode
+- `js/interactions/index.js`: Export CropHandler
+- `js/controllers/ElementController.js`: Crop mode management (enter/exit, double-click binding)
+- `js/app.js`: CropHandler initialization and Escape key handling
+- `js/panels/ImagePanel.js`: Reset Crop button
+- `js/panels/VideoPanel.js`: Reset Crop button
+- `css/editor.css`: Crop mode styles, crop handle styles, crop corner styles
