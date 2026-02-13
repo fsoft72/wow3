@@ -14,6 +14,7 @@ import {
 } from '../models/index.js';
 import { appEvents, AppEvents } from '../utils/events.js';
 import { centerOnCanvas } from '../utils/positioning.js';
+import { toast } from '../utils/toasts.js';
 
 export class ElementController {
   /**
@@ -116,7 +117,7 @@ export class ElementController {
 
     appEvents.emit(AppEvents.ELEMENT_ADDED, element);
 
-    M.toast({ html: `${type} element added`, classes: 'green' });
+    toast.success(`${type} element added`);
   }
 
   /**
@@ -158,7 +159,7 @@ export class ElementController {
       this.editor.slideController.renderCurrentSlide();
       appEvents.emit(AppEvents.ELEMENT_REMOVED, elementId);
 
-      M.toast({ html: 'Element deleted', classes: 'green' });
+      toast.success('Element deleted');
     }
   }
 
@@ -183,7 +184,7 @@ export class ElementController {
     this.editor.recordHistory();
 
     const label = ids.length === 1 ? 'Element deleted' : `${ids.length} elements deleted`;
-    M.toast({ html: label, classes: 'green' });
+    toast.success(label);
   }
 
   /**
@@ -569,7 +570,7 @@ export class ElementController {
   copySelectedElement() {
     if (this.selectedElement) {
       this.clipboard = this.selectedElement.clone();
-      M.toast({ html: 'Element copied', classes: 'green' });
+      toast.success('Element copied');
     }
   }
 
@@ -591,7 +592,7 @@ export class ElementController {
       this.selectElement(cloned);
       this.editor.recordHistory();
 
-      M.toast({ html: 'Element pasted', classes: 'green' });
+      toast.success('Element pasted');
       appEvents.emit(AppEvents.ELEMENT_ADDED, cloned);
     }
   }
@@ -614,7 +615,7 @@ export class ElementController {
       this.selectElement(cloned);
       this.editor.recordHistory();
 
-      M.toast({ html: 'Element duplicated', classes: 'green' });
+      toast.success('Element duplicated');
       appEvents.emit(AppEvents.ELEMENT_ADDED, cloned);
     }
   }
@@ -700,7 +701,7 @@ export class ElementController {
       this.editor.recordHistory();
     } catch (error) {
       console.error('Failed to update media URL:', error);
-      M.toast({ html: 'Failed to update media', classes: 'red' });
+      toast.error('Failed to update media');
     }
   }
 }

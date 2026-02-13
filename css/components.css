@@ -314,19 +314,6 @@
   z-index: 1000;
 }
 
-/* ==================== TOASTS ==================== */
-
-#toast-container {
-  top: auto !important;
-  bottom: 48px;
-  right: 24px;
-}
-
-.toast {
-  border-radius: 4px;
-  font-size: 14px;
-}
-
 /* ==================== SWITCHES ==================== */
 
 .switch label {

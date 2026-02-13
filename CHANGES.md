@@ -986,3 +986,39 @@ Help diagnose why animations are not working by showing:
 - `js/controllers/SlideController.js`: Added `_thumbCache`, `scheduleThumbnailCapture()`, `_captureCurrentSlideThumbnail()`, `_updateThumbnailDOM()`; modified `createSlideThumbnail()` to use cached images
 - `js/controllers/EditorController.js`: Call `scheduleThumbnailCapture()` from `recordHistory()`
 - `css/editor.css`: Added `._thumb-hide-outline` class for clean captures
+
+---
+
+## Custom Toast Notification System
+
+### Feature: Replace MaterializeCSS toasts with custom standalone system
+- ✓ **New toast module**: `js/utils/toasts.js` — zero-dependency ES6 module
+- ✓ **4 toast types**: `toast.success()`, `toast.error()`, `toast.warning()`, `toast.info()`
+- ✓ **Rich animations**: Slide-in/slide-out with CSS keyframes, height collapse on exit
+- ✓ **Progress bar**: Shows remaining time, pauses on hover
+- ✓ **Hover pause**: Hovering a toast pauses auto-dismiss timer and progress bar
+- ✓ **Close button**: Dismissible via × button with smooth animation
+- ✓ **Stacking**: Multiple toasts stack with gap, bottom positions stack upward
+- ✓ **6 positions**: TL, TC, TR, BL, BC, BR (default: bottom-right)
+- ✓ **SVG icons**: Inline per-type icons (checkmark, X-circle, triangle, info-circle)
+- ✓ **Self-contained CSS**: Styles injected lazily on first use, scoped with `.wow3-toast-*` prefix
+- ✓ **Global access**: Exposed as `window.toast` for non-module scripts
+
+**New Files:**
+- `js/utils/toasts.js`: Complete toast notification system
+
+**Updated Files (M.toast → toast.*):**
+- `js/app.js`: Import toast, replaced 2 calls
+- `js/views/UIManager.js`: Import toast, rewrote `showToast()` with color→type mapping
+- `js/views/RightSidebar.js`: Import toast, replaced 3 calls
+- `js/controllers/EditorController.js`: Import toast, replaced 10 calls
+- `js/controllers/SlideController.js`: Import toast, replaced 1 call
+- `js/controllers/ElementController.js`: Import toast, replaced 8 calls
+- `js/controllers/PlaybackController.js`: Import toast, replaced 2 calls
+- `js/controllers/AnimationController.js`: Import toast, replaced 1 call
+- `js/panels/ImagePanel.js`: Import toast, replaced 6 calls
+- `js/panels/VideoPanel.js`: Import toast, replaced 6 calls
+- `js/panels/AudioPanel.js`: Import toast, replaced 6 calls
+- `js/utils/template_manager.js`: Uses `window.toast`, replaced 6 calls
+- `js/utils/presentation_manager.js`: Uses `window.toast`, replaced 5 calls
+- `css/components.css`: Removed old `#toast-container` and `.toast` CSS overrides

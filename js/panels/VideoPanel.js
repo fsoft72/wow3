@@ -1,6 +1,7 @@
 /**
  * Video Element Property Panel
  */
+import { toast } from '../utils/toasts.js';
 
 export class VideoPanel {
   static render(element) {
@@ -133,13 +134,13 @@ export class VideoPanel {
       fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file) {
-          M.toast({ html: 'Uploading video...', classes: 'blue' });
+          toast.info('Uploading video...');
           try {
             await updateMediaUrl(file);
-            M.toast({ html: 'Video uploaded successfully!', classes: 'green' });
+            toast.success('Video uploaded successfully!');
           } catch (error) {
             console.error('Upload failed:', error);
-            M.toast({ html: 'Failed to upload video', classes: 'red' });
+            toast.error('Failed to upload video');
           }
         }
       });
@@ -162,13 +163,13 @@ export class VideoPanel {
 
         const file = e.dataTransfer.files[0];
         if (file && file.type.startsWith('video/')) {
-          M.toast({ html: 'Uploading video...', classes: 'blue' });
+          toast.info('Uploading video...');
           try {
             await updateMediaUrl(file);
-            M.toast({ html: 'Video uploaded successfully!', classes: 'green' });
+            toast.success('Video uploaded successfully!');
           } catch (error) {
             console.error('Upload failed:', error);
-            M.toast({ html: 'Failed to upload video', classes: 'red' });
+            toast.error('Failed to upload video');
           }
         }
       });

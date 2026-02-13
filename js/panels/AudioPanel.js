@@ -1,6 +1,7 @@
 /**
  * Audio Element Property Panel
  */
+import { toast } from '../utils/toasts.js';
 
 export class AudioPanel {
   static render(element) {
@@ -123,13 +124,13 @@ export class AudioPanel {
       fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file) {
-          M.toast({ html: 'Uploading audio...', classes: 'blue' });
+          toast.info('Uploading audio...');
           try {
             await updateMediaUrl(file);
-            M.toast({ html: 'Audio uploaded successfully!', classes: 'green' });
+            toast.success('Audio uploaded successfully!');
           } catch (error) {
             console.error('Upload failed:', error);
-            M.toast({ html: 'Failed to upload audio', classes: 'red' });
+            toast.error('Failed to upload audio');
           }
         }
       });
@@ -152,13 +153,13 @@ export class AudioPanel {
 
         const file = e.dataTransfer.files[0];
         if (file && file.type.startsWith('audio/')) {
-          M.toast({ html: 'Uploading audio...', classes: 'blue' });
+          toast.info('Uploading audio...');
           try {
             await updateMediaUrl(file);
-            M.toast({ html: 'Audio uploaded successfully!', classes: 'green' });
+            toast.success('Audio uploaded successfully!');
           } catch (error) {
             console.error('Upload failed:', error);
-            M.toast({ html: 'Failed to upload audio', classes: 'red' });
+            toast.error('Failed to upload audio');
           }
         }
       });

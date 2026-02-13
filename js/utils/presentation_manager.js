@@ -181,7 +181,7 @@ const PresentationManager = {
             }
         } catch (error) {
             console.error('Failed to open presentation:', error);
-            M.toast({ html: 'Failed to open presentation', classes: 'red' });
+            toast.error('Failed to open presentation');
         }
     },
 
@@ -189,11 +189,11 @@ const PresentationManager = {
         if (await Dialog.confirm("Delete this presentation permanently?", "Delete Presentation")) {
             try {
                 await PresentationsDB.deletePresentation(id);
-                M.toast({ html: 'Presentation deleted', classes: 'green' });
+                toast.success('Presentation deleted');
                 await this.refresh();
             } catch (error) {
                 console.error('Failed to delete presentation:', error);
-                M.toast({ html: 'Failed to delete presentation', classes: 'red' });
+                toast.error('Failed to delete presentation');
             }
         }
     },
@@ -229,12 +229,12 @@ const PresentationManager = {
                 data.title = newName.trim();
                 data.metadata.modified = new Date().toISOString();
                 await PresentationsDB.savePresentation(data);
-                M.toast({ html: 'Presentation renamed', classes: 'green' });
+                toast.success('Presentation renamed');
                 await this.refresh();
             }
         } catch (error) {
             console.error('Failed to rename presentation:', error);
-            M.toast({ html: 'Failed to rename presentation', classes: 'red' });
+            toast.error('Failed to rename presentation');
         }
     }
 };

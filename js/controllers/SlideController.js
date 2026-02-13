@@ -4,6 +4,7 @@
  */
 
 import { appEvents, AppEvents } from '../utils/events.js';
+import { toast } from '../utils/toasts.js';
 
 export class SlideController {
   /**
@@ -575,7 +576,7 @@ export class SlideController {
    */
   duplicateSlide(index) {
     this.editor.duplicateSlide(index);
-    M.toast({ html: 'Slide duplicated', classes: 'green' });
+    toast.success('Slide duplicated');
   }
 
   /**

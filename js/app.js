@@ -4,6 +4,7 @@
  */
 
 import { UIManager } from './views/UIManager.js';
+import { toast } from './utils/toasts.js';
 import {
   EditorController,
   SlideController,
@@ -78,10 +79,10 @@ class WOW3App {
       console.log('WOW3 initialized successfully');
 
       // Show welcome message
-      M.toast({ html: 'WOW3 Ready!', classes: 'green' });
+      toast.success('WOW3 Ready!');
     } catch (error) {
       console.error('Failed to initialize WOW3:', error);
-      M.toast({ html: 'Failed to initialize WOW3', classes: 'red' });
+      toast.error('Failed to initialize WOW3');
     }
   }
 

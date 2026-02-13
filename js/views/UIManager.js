@@ -6,6 +6,7 @@
 import { RightSidebar } from './RightSidebar.js';
 import { StatusBar } from './StatusBar.js';
 import { ElementsTree } from './ElementsTree.js';
+import { toast } from '../utils/toasts.js';
 
 export class UIManager {
   constructor() {
@@ -209,10 +210,12 @@ export class UIManager {
   /**
    * Show toast message
    * @param {string} message - Message to show
-   * @param {string} classes - CSS classes (e.g., 'green', 'red')
+   * @param {string} type - Toast type: 'green'→success, 'red'→error, 'orange'→warning, 'blue'→info
    */
-  showToast(message, classes = '') {
-    M.toast({ html: message, classes });
+  showToast(message, type = '') {
+    const COLOR_MAP = { green: 'success', red: 'error', orange: 'warning', blue: 'info' };
+    const fn = toast[COLOR_MAP[type]] || toast.info;
+    fn(message);
   }
 
   /**

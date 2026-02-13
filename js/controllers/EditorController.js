@@ -15,6 +15,7 @@ import {
   clearSnapshot
 } from '../utils/storage.js';
 import { appEvents, AppEvents } from '../utils/events.js';
+import { toast } from '../utils/toasts.js';
 
 export class EditorController {
   /**
@@ -220,7 +221,7 @@ export class EditorController {
     // Save snapshot of new presentation
     saveSnapshot(this.presentation);
 
-    M.toast({ html: 'New presentation created', classes: 'green' });
+    toast.success('New presentation created');
     appEvents.emit(AppEvents.PRESENTATION_CREATED, this.presentation);
   }
 
@@ -237,11 +238,11 @@ export class EditorController {
       // Update localStorage snapshot to reflect the newly loaded presentation
       saveSnapshot(this.presentation);
 
-      M.toast({ html: 'Presentation loaded', classes: 'green' });
+      toast.success('Presentation loaded');
       appEvents.emit(AppEvents.PRESENTATION_LOADED, this.presentation);
     } catch (error) {
       console.error('Failed to load presentation:', error);
-      M.toast({ html: 'Failed to load presentation', classes: 'red' });
+      toast.error('Failed to load presentation');
     }
   }
 
@@ -275,14 +276,14 @@ export class EditorController {
 
       if (success) {
         this.unsavedChanges = false;
-        M.toast({ html: '💾 Presentation saved to IndexedDB', classes: 'green' });
+        toast.success('Presentation saved');
         appEvents.emit(AppEvents.PRESENTATION_SAVED, this.presentation);
       } else {
-        M.toast({ html: '❌ Failed to save presentation', classes: 'red' });
+        toast.error('Failed to save presentation');
       }
     } catch (error) {
       console.error('Save error:', error);
-      M.toast({ html: '❌ Failed to save presentation', classes: 'red' });
+      toast.error('Failed to save presentation');
     }
   }
 
@@ -305,10 +306,10 @@ export class EditorController {
 
     try {
       await exportPresentation(this.presentation);
-      M.toast({ html: 'Presentation exported', classes: 'green' });
+      toast.success('Presentation exported');
     } catch (error) {
       console.error('Failed to export presentation:', error);
-      M.toast({ html: 'Failed to export presentation', classes: 'red' });
+      toast.error('Failed to export presentation');
     }
   }
 
@@ -321,7 +322,7 @@ export class EditorController {
       await this.loadPresentation(data);
     } catch (error) {
       console.error('Failed to import presentation:', error);
-      M.toast({ html: 'Failed to import presentation', classes: 'red' });
+      toast.error('Failed to import presentation');
     }
   }
 
@@ -490,7 +491,7 @@ export class EditorController {
     this.recordHistory();
     this.render();
 
-    M.toast({ html: 'Slide created from template', classes: 'green' });
+    toast.success('Slide created from template');
     appEvents.emit(AppEvents.SLIDE_ADDED, newSlide);
   }
 
@@ -500,7 +501,7 @@ export class EditorController {
    */
   deleteSlide(index) {
     if (this.presentation.slides.length <= 1) {
-      M.toast({ html: 'Cannot delete last slide', classes: 'orange' });
+      toast.warning('Cannot delete last slide');
       return;
     }
 

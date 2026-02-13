@@ -1,6 +1,7 @@
 /**
  * Image Element Property Panel
  */
+import { toast } from '../utils/toasts.js';
 
 export class ImagePanel {
   static render(element) {
@@ -117,13 +118,13 @@ export class ImagePanel {
       fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file) {
-          M.toast({ html: 'Uploading image...', classes: 'blue' });
+          toast.info('Uploading image...');
           try {
             await updateMediaUrl(file);
-            M.toast({ html: 'Image uploaded successfully!', classes: 'green' });
+            toast.success('Image uploaded successfully!');
           } catch (error) {
             console.error('Upload failed:', error);
-            M.toast({ html: 'Failed to upload image', classes: 'red' });
+            toast.error('Failed to upload image');
           }
         }
       });
@@ -146,13 +147,13 @@ export class ImagePanel {
 
         const file = e.dataTransfer.files[0];
         if (file && file.type.startsWith('image/')) {
-          M.toast({ html: 'Uploading image...', classes: 'blue' });
+          toast.info('Uploading image...');
           try {
             await updateMediaUrl(file);
-            M.toast({ html: 'Image uploaded successfully!', classes: 'green' });
+            toast.success('Image uploaded successfully!');
           } catch (error) {
             console.error('Upload failed:', error);
-            M.toast({ html: 'Failed to upload image', classes: 'red' });
+            toast.error('Failed to upload image');
           }
         }
       });

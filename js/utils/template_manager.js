@@ -612,10 +612,10 @@ const TemplateManager = {
 
     try {
       await TemplatesDB.save(template);
-      M.toast({ html: 'Template saved', classes: 'green' });
+      toast.success('Template saved');
     } catch (error) {
       console.error('Failed to save template:', error);
-      M.toast({ html: 'Failed to save template', classes: 'red' });
+      toast.error('Failed to save template');
     }
   },
 
@@ -629,11 +629,11 @@ const TemplateManager = {
 
     try {
       await TemplatesDB.delete(id);
-      M.toast({ html: 'Template deleted', classes: 'green' });
+      toast.success('Template deleted');
       await this.refresh();
     } catch (error) {
       console.error('Failed to delete template:', error);
-      M.toast({ html: 'Failed to delete template', classes: 'red' });
+      toast.error('Failed to delete template');
     }
   },
 
@@ -650,11 +650,11 @@ const TemplateManager = {
       if (!newName || !newName.trim()) return;
 
       await TemplatesDB.rename(id, newName.trim());
-      M.toast({ html: 'Template renamed', classes: 'green' });
+      toast.success('Template renamed');
       await this.refresh();
     } catch (error) {
       console.error('Failed to rename template:', error);
-      M.toast({ html: 'Failed to rename template', classes: 'red' });
+      toast.error('Failed to rename template');
     }
   },
 

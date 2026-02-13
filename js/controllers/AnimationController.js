@@ -11,6 +11,7 @@ import {
 } from '../utils/animations.js';
 import { AnimationType, AnimationTrigger } from '../utils/constants.js';
 import { appEvents, AppEvents } from '../utils/events.js';
+import { toast } from '../utils/toasts.js';
 
 export class AnimationController {
   /**
@@ -213,10 +214,7 @@ export class AnimationController {
       animation
     });
 
-    M.toast({
-      html: `${this.currentMode === 'in' ? 'In' : 'Out'} animation ${animation.type !== 0 ? 'set' : 'removed'}`,
-      classes: 'green'
-    });
+    toast.success(`${this.currentMode === 'in' ? 'In' : 'Out'} animation ${animation.type !== 0 ? 'set' : 'removed'}`);
   }
 
   /**

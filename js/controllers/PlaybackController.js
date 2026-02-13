@@ -5,6 +5,7 @@
 
 import { appEvents, AppEvents } from '../utils/events.js';
 import { prepareElementForAnimation } from '../utils/animations.js';
+import { toast } from '../utils/toasts.js';
 
 export class PlaybackController {
   /**
@@ -84,7 +85,7 @@ export class PlaybackController {
     }
 
     if (startSlide === -1) {
-      M.toast({ html: 'All slides are hidden', classes: 'orange' });
+      toast.warning('All slides are hidden');
       this.stop();
       return;
     }
@@ -340,7 +341,7 @@ export class PlaybackController {
     if (next !== -1) {
       this.showSlide(next);
     } else {
-      M.toast({ html: 'End of presentation', classes: 'blue' });
+      toast.info('End of presentation');
     }
   }
 

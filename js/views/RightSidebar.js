@@ -5,6 +5,7 @@
 
 import { FONT_FAMILIES, TEXT_ALIGNMENTS } from '../utils/constants.js';
 import { TextPanel, ImagePanel, VideoPanel, AudioPanel } from '../panels/index.js';
+import { toast } from '../utils/toasts.js';
 
 export class RightSidebar {
   constructor() {
@@ -397,7 +398,7 @@ export class RightSidebar {
       if (file) {
         try {
           // Show loading state
-          M.toast({ html: `Uploading ${element.type}...`, classes: 'blue' });
+          toast.info(`Uploading ${element.type}...`);
 
           // Upload to MediaDB via element's setUrl method
           await element.setUrl(file);
@@ -407,10 +408,10 @@ export class RightSidebar {
           window.app.editor.elementController.selectElement(element);
           window.app.editor.recordHistory();
 
-          M.toast({ html: `${element.type} uploaded successfully!`, classes: 'green' });
+          toast.success(`${element.type} uploaded successfully!`);
         } catch (error) {
           console.error('Upload failed:', error);
-          M.toast({ html: `Failed to upload ${element.type}`, classes: 'red' });
+          toast.error(`Failed to upload ${element.type}`);
         }
       }
     });
