@@ -464,3 +464,11 @@
   border-radius: 2px;
   z-index: 1002;
 }
+
+/* ==================== CANVAS DROP FEEDBACK ==================== */
+
+.slide-canvas.canvas-drop-active {
+  outline: 3px dashed #2196F3;
+  outline-offset: -3px;
+  background-color: rgba(33, 150, 243, 0.05);
+}

@@ -9,3 +9,4 @@ export { RotateHandler } from './RotateHandler.js';
 export { AlignmentGuides } from './AlignmentGuides.js';
 export { MarqueeHandler } from './MarqueeHandler.js';
 export { CropHandler } from './CropHandler.js';
+export { CanvasDropHandler } from './CanvasDropHandler.js';

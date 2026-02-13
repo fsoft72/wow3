@@ -18,6 +18,7 @@ import { generateId } from '../utils/dom.js';
 import { appEvents, AppEvents } from '../utils/events.js';
 import { centerOnCanvas } from '../utils/positioning.js';
 import { toast } from '../utils/toasts.js';
+import { CANVAS } from '../utils/constants.js';
 
 export class ElementController {
   /**
@@ -840,6 +841,37 @@ export class ElementController {
     if (elementDOM) {
       element.updateFromDOM(elementDOM);
     }
+  }
+
+  /**
+   * Create a media element at a specific position and upload the file
+   * @param {string} type - Element type ('image', 'video', 'audio')
+   * @param {File} file - File object to upload
+   * @param {{ x: number, y: number }} dropPosition - Canvas-relative drop coordinates
+   */
+  async createMediaElement(type, file, dropPosition) {
+    const ElementClass = this.getElementClass(type);
+    const element = new ElementClass();
+
+    // Center element on drop point, clamped to canvas bounds
+    element.position.x = Math.max(0, Math.min(
+      dropPosition.x - element.position.width / 2,
+      CANVAS.WIDTH - element.position.width
+    ));
+    element.position.y = Math.max(0, Math.min(
+      dropPosition.y - element.position.height / 2,
+      CANVAS.HEIGHT - element.position.height
+    ));
+
+    // Add to current slide
+    const currentSlide = this.editor.getActiveSlide();
+    currentSlide.addElement(element);
+
+    // Upload file to MediaDB and set URL
+    await this.updateMediaUrl(element, file);
+
+    appEvents.emit(AppEvents.ELEMENT_ADDED, element);
+    toast.success(`${type} element added`);
   }
 
   /**

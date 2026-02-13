@@ -1134,3 +1134,25 @@ Help diagnose why animations are not working by showing:
 - `js/controllers/ElementController.js`: Added `Element` and `generateId` imports; added `_computeBoundingBox()` helper; replaced `copySelectedElement()` → `copySelectedElements()`, `pasteElement()` → `pasteElements()`, `duplicateSelectedElement()` → `duplicateSelectedElements()`; added `cutSelectedElements()`
 - `js/app.js`: Renamed method calls for Ctrl+C/V/D; added Ctrl+X shortcut for cut
 - `js/controllers/EditorController.js`: Removed unused `this.clipboard = null`
+
+---
+
+## Drag-and-Drop Media Files onto Canvas
+
+### Feature: Drag files from the file system directly onto the canvas
+- ✓ **HTML5 drag-and-drop**: Drag image, video, or audio files from the file system onto the canvas
+- ✓ **Auto-detect type**: MIME type prefix (`image/`, `video/`, `audio/`) determines element type
+- ✓ **Drop position**: Element centered on the drop point, clamped to canvas bounds
+- ✓ **MediaDB upload**: Files automatically uploaded to IndexedDB via existing `updateMediaUrl()` pipeline
+- ✓ **Multi-file drop**: Dropping multiple files creates one element per file
+- ✓ **Visual feedback**: Blue dashed outline on canvas while dragging files over it
+- ✓ **Non-media ignored**: Unsupported file types (e.g. .txt) are silently ignored
+
+**New Files:**
+- `js/interactions/CanvasDropHandler.js`: HTML5 drag-and-drop handler for external files
+
+**Updated Files:**
+- `js/controllers/ElementController.js`: Added `createMediaElement(type, file, dropPosition)` method; imported `CANVAS` constants
+- `js/interactions/index.js`: Export `CanvasDropHandler`
+- `js/app.js`: Import and initialize `CanvasDropHandler` after MarqueeHandler
+- `css/editor.css`: Added `.canvas-drop-active` style for drag-over visual feedback

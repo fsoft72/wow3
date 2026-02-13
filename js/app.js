@@ -17,7 +17,8 @@ import {
   ResizeHandler,
   RotateHandler,
   MarqueeHandler,
-  CropHandler
+  CropHandler,
+  CanvasDropHandler
 } from './interactions/index.js';
 
 class WOW3App {
@@ -65,6 +66,10 @@ class WOW3App {
       // Initialize marquee handler
       const marqueeHandler = new MarqueeHandler(this.editor.elementController);
       marqueeHandler.init();
+
+      // Initialize canvas drop handler (drag-and-drop media files)
+      const canvasDropHandler = new CanvasDropHandler(this.editor.elementController);
+      canvasDropHandler.init();
 
       // Load or create presentation
       await this.loadPresentation();
