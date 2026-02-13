@@ -395,12 +395,18 @@ export class ElementController {
    * @param {Element} element - Element model
    */
   attachHandlers(elementDOM, element) {
-    // Click to select (with Ctrl+Click support)
+    // Click to select (with Ctrl/Shift+Click support)
     elementDOM.addEventListener('click', (e) => {
       e.stopPropagation();
 
       // Don't re-select while in crop mode (would exit crop via deselectAll)
       if (this._cropMode) return;
+
+      // If the drag handler already changed selection on mousedown, skip
+      if (this.dragHandler && this.dragHandler._handledSelection) {
+        this.dragHandler._handledSelection = false;
+        return;
+      }
 
       if (e.ctrlKey || e.metaKey || e.shiftKey) {
         this.toggleSelection(element);

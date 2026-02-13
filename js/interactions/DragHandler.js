@@ -68,10 +68,19 @@ export class DragHandler {
     e.stopPropagation();
 
     const ec = this.elementController;
+    const hasModifier = e.shiftKey || e.ctrlKey || e.metaKey;
 
-    // If dragged element is NOT in selection, select it first (single drag)
+    // Track whether mousedown changed the selection so the click handler can skip
+    this._handledSelection = false;
+
     if (!ec.isSelected(element)) {
-      ec.selectElement(element);
+      this._handledSelection = true;
+      if (hasModifier) {
+        // Modifier held: add to existing selection (don't replace)
+        ec.addToSelection(element);
+      } else {
+        ec.selectElement(element);
+      }
     }
 
     this.isDragging = true;
