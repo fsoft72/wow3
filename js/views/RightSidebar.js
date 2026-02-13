@@ -197,15 +197,15 @@ export class RightSidebar {
     grid.className = 'property-row two-col';
 
     grid.appendChild(
-      this.createNumberInput('X', element.position.x, (val) => {
-        window.app.editor.elementController.updateElementProperty('position.x', parseFloat(val));
-      })
+      this.createNumberInput('X', Math.round(element.position.x), (val) => {
+        window.app.editor.elementController.updateElementProperty('position.x', parseInt(val));
+      }, { step: 1 })
     );
 
     grid.appendChild(
-      this.createNumberInput('Y', element.position.y, (val) => {
-        window.app.editor.elementController.updateElementProperty('position.y', parseFloat(val));
-      })
+      this.createNumberInput('Y', Math.round(element.position.y), (val) => {
+        window.app.editor.elementController.updateElementProperty('position.y', parseInt(val));
+      }, { step: 1 })
     );
 
     section.appendChild(grid);
@@ -214,15 +214,15 @@ export class RightSidebar {
     grid2.className = 'property-row two-col';
 
     grid2.appendChild(
-      this.createNumberInput('Width', element.position.width, (val) => {
-        window.app.editor.elementController.updateElementProperty('position.width', parseFloat(val));
-      })
+      this.createNumberInput('Width', Math.round(element.position.width), (val) => {
+        window.app.editor.elementController.updateElementProperty('position.width', parseInt(val));
+      }, { min: 1, step: 1 })
     );
 
     grid2.appendChild(
-      this.createNumberInput('Height', element.position.height, (val) => {
-        window.app.editor.elementController.updateElementProperty('position.height', parseFloat(val));
-      })
+      this.createNumberInput('Height', Math.round(element.position.height), (val) => {
+        window.app.editor.elementController.updateElementProperty('position.height', parseInt(val));
+      }, { min: 1, step: 1 })
     );
 
     section.appendChild(grid2);
