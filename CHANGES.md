@@ -915,3 +915,22 @@ Help diagnose why animations are not working by showing:
 
 **Updated Files:**
 - `js/views/RightSidebar.js`: Refactored `addShapeProperties()` to use three-col row; removed MaterializeCSS FormSelect initialization from `createSelect()`
+
+---
+
+## Self-Contained .wow3 ZIP Export/Import
+
+### Feature: Export and import presentations as portable .wow3 ZIP files
+- ✓ **ZIP export**: Export produces a `.wow3` file (ZIP) containing `presentation.json` + `assets/` folder with all referenced media blobs
+- ✓ **ZIP import**: Import extracts assets, ingests them into MediaDB with new IDs, and rewrites paths back to media references
+- ✓ **Legacy support**: `.json` / `.wow3.json` files still imported via the original plain-JSON path
+- ✓ **Smart media collection**: Traverses slides, shell, and nested children to find all `media_*` and `local://media_*` references
+- ✓ **External URLs preserved**: HTTP(S), YouTube, and data URLs are left untouched during export
+- ✓ **Graceful missing media**: If a referenced media item no longer exists in IndexedDB, its URL is left unchanged with a console warning
+- ✓ **Duplicate filename handling**: Assets with the same filename get `_1`, `_2` suffixes
+- ✓ **MIME type restoration**: On import, MIME types are inferred from file extension (jpg, png, mp4, mp3, etc.)
+
+**Updated Files:**
+- `index.html`: Added JSZip CDN (`jszip/3.10.1`); renamed button tooltips to "Export Presentation" / "Import Presentation"
+- `js/utils/storage.js`: Rewrote `exportPresentation()` (async, ZIP-based) and `importPresentation()` (ZIP + legacy JSON); added helpers `collectMediaIds()`, `rewriteMediaUrls()`, `importZip()`, `mimeFromFilename()`
+- `js/controllers/EditorController.js`: Made `exportPresentation()` async to await the storage function

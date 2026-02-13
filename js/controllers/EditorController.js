@@ -298,13 +298,13 @@ export class EditorController {
   }
 
   /**
-   * Export presentation as JSON
+   * Export presentation as .wow3 ZIP
    */
-  exportPresentation() {
+  async exportPresentation() {
     if (!this.presentation) return;
 
     try {
-      exportPresentation(this.presentation);
+      await exportPresentation(this.presentation);
       M.toast({ html: 'Presentation exported', classes: 'green' });
     } catch (error) {
       console.error('Failed to export presentation:', error);

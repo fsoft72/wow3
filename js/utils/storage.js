@@ -332,54 +332,294 @@ const cleanupOldSnapshots = () => {
 // ==================== IMPORT/EXPORT ====================
 
 /**
- * Export presentation as JSON file
- * @param {Object} presentation - Presentation object
+ * Collect all media IDs referenced in the presentation JSON.
+ * Traverses slides, shell, and all nested children looking for
+ * properties.url values that point to local media.
+ * @param {Object} jsonData - Serialized presentation object
+ * @returns {Set<string>} Set of media IDs (without local:// prefix)
  */
-export const exportPresentation = (presentation) => {
-  const data = JSON.stringify(presentation.toJSON ? presentation.toJSON() : presentation, null, 2);
-  const blob = new Blob([data], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
+const collectMediaIds = (jsonData) => {
+  const ids = new Set();
 
+  /**
+   * Extract a media ID from a URL string if it's a local reference
+   * @param {string} url - URL to inspect
+   */
+  const extractId = (url) => {
+    if (!url || typeof url !== 'string') return;
+    if (url.startsWith('local://')) {
+      const id = url.replace('local://', '');
+      if (id.startsWith('media_')) ids.add(id);
+    } else if (url.startsWith('media_')) {
+      ids.add(url);
+    }
+  };
+
+  /**
+   * Recursively scan an element and its children for media references
+   * @param {Object} el - Serialized element
+   */
+  const scanElement = (el) => {
+    if (!el) return;
+    if (el.properties && el.properties.url) {
+      extractId(el.properties.url);
+    }
+    if (Array.isArray(el.children)) {
+      el.children.forEach(scanElement);
+    }
+  };
+
+  /**
+   * Scan a slide's elements array
+   * @param {Object} slide - Serialized slide
+   */
+  const scanSlide = (slide) => {
+    if (!slide) return;
+    if (Array.isArray(slide.elements)) {
+      slide.elements.forEach(scanElement);
+    }
+  };
+
+  if (Array.isArray(jsonData.slides)) {
+    jsonData.slides.forEach(scanSlide);
+  }
+  if (jsonData.shell) {
+    scanSlide(jsonData.shell);
+  }
+
+  return ids;
+};
+
+/**
+ * Rewrite media URLs in the JSON tree, replacing local media references
+ * with asset paths (for export) or new media IDs (for import).
+ * @param {Object} jsonData - Serialized presentation (mutated in place)
+ * @param {Map<string, string>} urlMap - Old URL → new URL mapping
+ */
+const rewriteMediaUrls = (jsonData, urlMap) => {
+  /**
+   * Rewrite URL in an element's properties
+   * @param {Object} el - Serialized element
+   */
+  const rewriteElement = (el) => {
+    if (!el) return;
+    if (el.properties && el.properties.url) {
+      const url = el.properties.url;
+      // Try direct match first, then strip local:// prefix
+      if (urlMap.has(url)) {
+        el.properties.url = urlMap.get(url);
+      } else if (url.startsWith('local://')) {
+        const bare = url.replace('local://', '');
+        if (urlMap.has(bare)) {
+          el.properties.url = urlMap.get(bare);
+        }
+      }
+    }
+    if (Array.isArray(el.children)) {
+      el.children.forEach(rewriteElement);
+    }
+  };
+
+  const rewriteSlide = (slide) => {
+    if (!slide || !Array.isArray(slide.elements)) return;
+    slide.elements.forEach(rewriteElement);
+  };
+
+  if (Array.isArray(jsonData.slides)) {
+    jsonData.slides.forEach(rewriteSlide);
+  }
+  if (jsonData.shell) {
+    rewriteSlide(jsonData.shell);
+  }
+};
+
+/**
+ * Export presentation as a self-contained .wow3 ZIP file.
+ * The ZIP contains presentation.json at root and an assets/ folder
+ * with all referenced media blobs.
+ * @param {Object} presentation - Presentation object
+ * @returns {Promise<void>}
+ */
+export const exportPresentation = async (presentation) => {
+  const jsonData = JSON.parse(JSON.stringify(
+    presentation.toJSON ? presentation.toJSON() : presentation
+  ));
+
+  // Collect all local media IDs used in the presentation
+  const mediaIds = collectMediaIds(jsonData);
+
+  // Fetch blobs and build filename map
+  const mediaMap = new Map(); // mediaId → { filename, blob }
+  const usedFilenames = new Set();
+
+  for (const id of mediaIds) {
+    try {
+      const item = await window.MediaDB.getMediaItem(id);
+      if (!item || !item.blob) {
+        console.warn(`⚠️ Media item not found, skipping: ${id}`);
+        continue;
+      }
+
+      let filename = item.name || id;
+      // Handle duplicate filenames by appending _N suffix
+      if (usedFilenames.has(filename)) {
+        const dotIdx = filename.lastIndexOf('.');
+        const base = dotIdx > 0 ? filename.slice(0, dotIdx) : filename;
+        const ext = dotIdx > 0 ? filename.slice(dotIdx) : '';
+        let counter = 1;
+        while (usedFilenames.has(`${base}_${counter}${ext}`)) counter++;
+        filename = `${base}_${counter}${ext}`;
+      }
+      usedFilenames.add(filename);
+      mediaMap.set(id, { filename, blob: item.blob });
+    } catch (err) {
+      console.warn(`⚠️ Failed to fetch media ${id}:`, err);
+    }
+  }
+
+  // Build URL rewrite map: mediaId → assets/filename (and local:// variant)
+  const urlMap = new Map();
+  for (const [id, { filename }] of mediaMap) {
+    const assetPath = `assets/${filename}`;
+    urlMap.set(id, assetPath);
+    urlMap.set(`local://${id}`, assetPath);
+  }
+  rewriteMediaUrls(jsonData, urlMap);
+
+  // Build ZIP
+  const zip = new JSZip();
+  zip.file('presentation.json', JSON.stringify(jsonData, null, 2));
+
+  const assetsFolder = zip.folder('assets');
+  for (const [, { filename, blob }] of mediaMap) {
+    assetsFolder.file(filename, blob);
+  }
+
+  const zipBlob = await zip.generateAsync({ type: 'blob' });
+
+  // Trigger download
+  const url = URL.createObjectURL(zipBlob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${presentation.title.replace(/[^a-z0-9]/gi, '_')}.wow3.json`;
+  a.download = `${presentation.title.replace(/[^a-z0-9]/gi, '_')}.wow3`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
-  console.log('📥 Presentation exported to JSON');
+  console.log(`📦 Presentation exported as .wow3 (${mediaMap.size} assets)`);
+};
+
+/** MIME type lookup by file extension for imported assets */
+const MIME_TYPES = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  svg: 'image/svg+xml',
+  mp4: 'video/mp4',
+  webm: 'video/webm',
+  ogg: 'video/ogg',
+  mp3: 'audio/mpeg',
+  wav: 'audio/wav',
+  flac: 'audio/flac',
+  aac: 'audio/aac',
 };
 
 /**
- * Import presentation from JSON file
- * @returns {Promise<Object>} Promise that resolves with presentation data
+ * Guess MIME type from a filename extension
+ * @param {string} filename - Asset filename
+ * @returns {string} MIME type string
+ */
+const mimeFromFilename = (filename) => {
+  const ext = (filename.split('.').pop() || '').toLowerCase();
+  return MIME_TYPES[ext] || 'application/octet-stream';
+};
+
+/**
+ * Import a .wow3 ZIP file: extract presentation.json, ingest assets
+ * into MediaDB, and rewrite asset paths back to media IDs.
+ * @param {File} file - The .wow3 ZIP file
+ * @returns {Promise<Object>} Presentation JSON data
+ */
+const importZip = async (file) => {
+  const zip = await JSZip.loadAsync(file);
+
+  // Extract presentation.json
+  const presFile = zip.file('presentation.json');
+  if (!presFile) throw new Error('Invalid .wow3 file: missing presentation.json');
+
+  const jsonData = JSON.parse(await presFile.async('string'));
+
+  // Import each asset and build filename → newMediaId map
+  const filenameToId = new Map();
+  const assetsFolder = zip.folder('assets');
+
+  if (assetsFolder) {
+    const assetFiles = [];
+    assetsFolder.forEach((relativePath, entry) => {
+      if (!entry.dir) assetFiles.push({ relativePath, entry });
+    });
+
+    for (const { relativePath, entry } of assetFiles) {
+      try {
+        const blob = await entry.async('blob');
+        const mimeType = mimeFromFilename(relativePath);
+        const mediaFile = new File([blob], relativePath, { type: mimeType });
+        const item = await window.MediaDB.addMedia(mediaFile);
+        filenameToId.set(relativePath, item.id);
+      } catch (err) {
+        console.warn(`⚠️ Failed to import asset ${relativePath}:`, err);
+      }
+    }
+  }
+
+  // Rewrite assets/filename paths back to media IDs
+  const urlMap = new Map();
+  for (const [filename, newId] of filenameToId) {
+    urlMap.set(`assets/${filename}`, newId);
+  }
+  rewriteMediaUrls(jsonData, urlMap);
+
+  console.log(`📦 Imported .wow3 (${filenameToId.size} assets)`);
+  return jsonData;
+};
+
+/**
+ * Import presentation from a .wow3 ZIP or legacy .json file.
+ * Opens a file picker, then processes the selected file.
+ * @returns {Promise<Object>} Presentation JSON data
  */
 export const importPresentation = () => {
   return new Promise((resolve, reject) => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.json,.wow3.json';
+    input.accept = '.wow3,.json,.wow3.json';
 
-    input.addEventListener('change', (e) => {
+    input.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) {
         reject(new Error('No file selected'));
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target.result);
-          console.log('📤 Presentation imported from JSON');
+      try {
+        const isLegacy = file.name.endsWith('.json');
+        if (isLegacy) {
+          // Legacy JSON import
+          const text = await file.text();
+          const data = JSON.parse(text);
+          console.log('📤 Presentation imported from JSON (legacy)');
           resolve(data);
-        } catch (error) {
-          reject(error);
+        } else {
+          // ZIP import
+          const data = await importZip(file);
+          resolve(data);
         }
-      };
-      reader.onerror = () => reject(reader.error);
-      reader.readAsText(file);
+      } catch (error) {
+        reject(error);
+      }
     });
 
     input.click();
