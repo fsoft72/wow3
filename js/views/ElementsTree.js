@@ -158,12 +158,10 @@ export class ElementsTree {
    */
   openAnimationInspector(element) {
     if (window.app && window.app.editor && window.app.editor.animationEditorController) {
-      // Switch to animation tab
-      const tabInstance = M.Tabs.getInstance(document.querySelector('.tabs'));
-      if (tabInstance) {
-        tabInstance.select('tab-animation');
-      }
-      window.app.editor.animationEditorController.showInspector(element);
+      const animCtrl = window.app.editor.animationEditorController;
+      animCtrl.showPanel();
+      animCtrl.switchPanelTab('anim');
+      animCtrl.showInspector(element);
     }
   }
 

@@ -221,15 +221,15 @@
   color: #e53935;
 }
 
-/* ==================== BUILD ORDER PANEL ==================== */
+/* ==================== FLOATING ANIMATIONS PANEL ==================== */
 
-#build-order-panel {
+#animations-panel {
   position: fixed;
   bottom: 32px;
   left: 50%;
   transform: translateX(-50%) translateY(calc(100% + 40px));
-  width: 500px;
-  max-height: 350px;
+  width: 520px;
+  max-height: 450px;
   background: #fff;
   border-radius: 8px 8px 0 0;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
@@ -240,24 +240,125 @@
   flex-direction: column;
 }
 
-#build-order-panel.visible {
+#animations-panel.visible {
   transform: translateX(-50%) translateY(0);
 }
 
-.build-order-header {
+.animations-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 0 4px 0 0;
   background: #1565c0;
   color: #fff;
   font-size: 13px;
   font-weight: 500;
-  cursor: pointer;
+  flex-shrink: 0;
 }
 
-.build-order-header i {
+.animations-panel-tabs {
+  display: flex;
+  flex: 1;
+}
+
+.animations-panel-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.animations-panel-tab i {
+  font-size: 18px;
+}
+
+.animations-panel-tab:hover:not(:disabled) {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.animations-panel-tab.active {
+  color: #fff;
+  border-bottom-color: #fff;
+}
+
+.animations-panel-tab:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.animations-panel-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.15s;
+}
+
+.animations-panel-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.animations-panel-close i {
   font-size: 20px;
+}
+
+.animations-panel-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.animations-panel-content {
+  display: none;
+}
+
+.animations-panel-content.active {
+  display: block;
+}
+
+/* ==================== STATUS BAR TOGGLE BUTTON ==================== */
+
+.animations-panel-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 1;
+  transition: all 0.2s;
+}
+
+.animations-panel-toggle i {
+  font-size: 16px;
+}
+
+.animations-panel-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.animations-panel-toggle.active {
+  background: rgba(21, 101, 192, 0.6);
+  border-color: #1565c0;
+  color: white;
 }
 
 #build-order-list {
@@ -403,7 +504,7 @@
 /* ==================== REDUCED MOTION ==================== */
 
 @media (prefers-reduced-motion: reduce) {
-  #build-order-panel {
+  #animations-panel {
     transition: none;
   }
 }

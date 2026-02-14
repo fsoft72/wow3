@@ -2,6 +2,28 @@
 
 ## 2026-02-14
 
+### Floating Animations Panel
+
+Unified the animation editing UI into a single floating "Animations" panel with two tabs (Sequence and Anim), replacing the old right sidebar Animations tab and the separate Build Order floating panel.
+
+**Changes:**
+- Removed `Animations` tab from right sidebar (3 tabs → 2: Slide, Element)
+- Removed `#build-order-panel` and replaced with `#animations-panel` floating panel
+- Added status bar "Animations" toggle button to open/close the panel
+- Panel has two tabs: **Sequence** (full slide animation sequence) and **Anim** (element-specific animation editor)
+- Anim tab auto-enables when an element is selected, auto-disables and switches to Sequence when deselected
+- Clicking an element while the panel is open auto-switches to Anim tab
+- Animation badge in elements tree opens the panel and switches to Anim tab
+
+**Updated Files:**
+- `index.html`: Removed animation tab + build order panel, added floating panel + status bar button
+- `css/animation-editor.css`: Replaced build-order-panel styles with new floating panel styles, added toggle button style
+- `js/controllers/AnimationEditorController.js`: New panel/tab management with `togglePanel()`, `showPanel()`, `hidePanel()`, `switchPanelTab()`, `_updateAnimTabState()`
+- `js/views/ElementsTree.js`: `openAnimationInspector()` now targets floating panel instead of sidebar tab
+- `js/views/RightSidebar.js`: Removed `animationTab` property
+
+---
+
 ### Replace Animation System with WAAPI-powered Engine
 
 Replaced the entire CSS class-based animation system with a Web Animations API (WAAPI) engine. Animations are now stored on the **Slide** as an ordered `animationSequence[]` rather than on individual elements.

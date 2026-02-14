@@ -25,6 +25,8 @@ export class AnimationEditorController {
     this._currentElement = null;
     this._currentCategory = ANIMATION_CATEGORY.BUILD_IN;
     this._previewManager = null;
+    this._panelVisible = false;
+    this._activeTab = 'sequence';
   }
 
   /**
@@ -32,8 +34,7 @@ export class AnimationEditorController {
    */
   async init() {
     console.log('Initializing AnimationEditorController...');
-    this._setupTabContent();
-    this._setupBuildOrderPanel();
+    this._setupFloatingPanel();
 
     // Listen for element selection to update the inspector
     appEvents.on(AppEvents.ELEMENT_SELECTED, (element) => {
@@ -62,6 +63,11 @@ export class AnimationEditorController {
     this._currentCategory = ANIMATION_CATEGORY.BUILD_IN;
     this._renderInspector();
     this._renderBuildOrder();
+    this._updateAnimTabState();
+
+    if (this._panelVisible) {
+      this.switchPanelTab('anim');
+    }
   }
 
   /**
@@ -73,6 +79,7 @@ export class AnimationEditorController {
     if (container) {
       container.innerHTML = '<p class="grey-text center-align" style="padding: 20px;">Select an element to add animations</p>';
     }
+    this._updateAnimTabState();
   }
 
   /**
@@ -202,34 +209,99 @@ export class AnimationEditorController {
   // ==================== PRIVATE ====================
 
   /**
-   * Setup the animation tab content area
-   * @private
+   * Toggle the floating animations panel open/closed
    */
-  _setupTabContent() {
-    const tabContent = document.getElementById('tab-animation');
-    if (!tabContent) return;
-
-    tabContent.innerHTML = `
-      <div id="animation-inspector">
-        <p class="grey-text center-align" style="padding: 20px;">Select an element to add animations</p>
-      </div>
-    `;
+  togglePanel() {
+    if (this._panelVisible) {
+      this.hidePanel();
+    } else {
+      this.showPanel();
+    }
   }
 
   /**
-   * Setup the build order panel
-   * @private
+   * Show the floating animations panel
    */
-  _setupBuildOrderPanel() {
-    const panel = document.getElementById('build-order-panel');
+  showPanel() {
+    const panel = document.getElementById('animations-panel');
+    const btn = document.getElementById('animations-panel-btn');
     if (!panel) return;
 
-    // Toggle visibility
-    const toggleBtn = document.getElementById('toggle-build-order');
+    panel.classList.add('visible');
+    if (btn) btn.classList.add('active');
+    this._panelVisible = true;
+  }
+
+  /**
+   * Hide the floating animations panel
+   */
+  hidePanel() {
+    const panel = document.getElementById('animations-panel');
+    const btn = document.getElementById('animations-panel-btn');
+    if (!panel) return;
+
+    panel.classList.remove('visible');
+    if (btn) btn.classList.remove('active');
+    this._panelVisible = false;
+  }
+
+  /**
+   * Switch the active tab in the floating panel
+   * @param {string} tabName - Tab name: 'sequence' or 'anim'
+   */
+  switchPanelTab(tabName) {
+    this._activeTab = tabName;
+
+    // Update tab buttons
+    document.querySelectorAll('.animations-panel-tab').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.panelTab === tabName);
+    });
+
+    // Update content panes
+    document.querySelectorAll('.animations-panel-content').forEach((pane) => {
+      pane.classList.toggle('active', pane.id === `animations-panel-${tabName}`);
+    });
+  }
+
+  /**
+   * Setup the floating animations panel: bind toggle, close, and tab buttons
+   * @private
+   */
+  _setupFloatingPanel() {
+    const toggleBtn = document.getElementById('animations-panel-btn');
     if (toggleBtn) {
-      toggleBtn.addEventListener('click', () => {
-        panel.classList.toggle('visible');
+      toggleBtn.addEventListener('click', () => this.togglePanel());
+    }
+
+    const closeBtn = document.querySelector('.animations-panel-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => this.hidePanel());
+    }
+
+    document.querySelectorAll('.animations-panel-tab').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (btn.disabled) return;
+        this.switchPanelTab(btn.dataset.panelTab);
       });
+    });
+  }
+
+  /**
+   * Enable or disable the "Anim" tab based on whether an element is selected.
+   * If disabling while on the anim tab, auto-switch to sequence.
+   * @private
+   */
+  _updateAnimTabState() {
+    const animTab = document.querySelector('.animations-panel-tab[data-panel-tab="anim"]');
+    if (!animTab) return;
+
+    if (this._currentElement) {
+      animTab.disabled = false;
+    } else {
+      animTab.disabled = true;
+      if (this._activeTab === 'anim') {
+        this.switchPanelTab('sequence');
+      }
     }
   }
 

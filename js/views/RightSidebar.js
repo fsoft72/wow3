@@ -11,7 +11,6 @@ export class RightSidebar {
   constructor() {
     this.slideTab = null;
     this.elementTab = null;
-    this.animationTab = null;
     this.activeTab = null; // Track active panel tab
     this.currentElementId = null; // Track currently displayed element
   }
@@ -24,7 +23,6 @@ export class RightSidebar {
 
     this.slideTab = document.getElementById('tab-slide');
     this.elementTab = document.getElementById('tab-element');
-    this.animationTab = document.getElementById('tab-animation');
 
     console.log('RightSidebar initialized');
   }
