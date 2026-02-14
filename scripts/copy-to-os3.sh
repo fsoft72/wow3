@@ -3,7 +3,7 @@
 set -e
 
 ARCHIVE="/ramdisk/wow3.tar.bz2"
-DEST_DIR="~/dev/web/os3-website-cf/tools/wow3"
+DEST_DIR="/home/fabio/dev/web/os3-website-cf/tools/wow3"
 
 tar cfj $ARCHIVE  css js index.html
 
