@@ -254,6 +254,19 @@
   font-size: 13px;
   font-weight: 500;
   flex-shrink: 0;
+  cursor: grab;
+}
+
+.animations-panel-header:active {
+  cursor: grabbing;
+}
+
+#animations-panel.dragged {
+  transition: none;
+  bottom: auto;
+  left: auto;
+  transform: none;
+  border-radius: 8px;
 }
 
 .animations-panel-tabs {

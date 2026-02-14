@@ -233,7 +233,7 @@ export class AnimationEditorController {
   }
 
   /**
-   * Hide the floating animations panel
+   * Hide the floating animations panel and reset drag position
    */
   hidePanel() {
     const panel = document.getElementById('animations-panel');
@@ -241,6 +241,9 @@ export class AnimationEditorController {
     if (!panel) return;
 
     panel.classList.remove('visible');
+    panel.classList.remove('dragged');
+    panel.style.left = '';
+    panel.style.top = '';
     if (btn) btn.classList.remove('active');
     this._panelVisible = false;
   }
@@ -264,7 +267,7 @@ export class AnimationEditorController {
   }
 
   /**
-   * Setup the floating animations panel: bind toggle, close, and tab buttons
+   * Setup the floating animations panel: bind toggle, close, tab buttons, and drag
    * @private
    */
   _setupFloatingPanel() {
@@ -283,6 +286,53 @@ export class AnimationEditorController {
         if (btn.disabled) return;
         this.switchPanelTab(btn.dataset.panelTab);
       });
+    });
+
+    this._setupPanelDrag();
+  }
+
+  /**
+   * Setup pointer-based dragging on the panel header
+   * @private
+   */
+  _setupPanelDrag() {
+    const panel = document.getElementById('animations-panel');
+    const header = document.querySelector('.animations-panel-header');
+    if (!panel || !header) return;
+
+    header.addEventListener('pointerdown', (e) => {
+      // Ignore clicks on buttons inside the header (tabs, close)
+      if (e.target.closest('button')) return;
+
+      e.preventDefault();
+      const panelRect = panel.getBoundingClientRect();
+      const offsetX = e.clientX - panelRect.left;
+      const offsetY = e.clientY - panelRect.top;
+
+      // Switch to absolute top/left positioning
+      panel.classList.add('dragged');
+      panel.style.left = `${panelRect.left}px`;
+      panel.style.top = `${panelRect.top}px`;
+
+      const onMove = (ev) => {
+        let newLeft = ev.clientX - offsetX;
+        let newTop = ev.clientY - offsetY;
+
+        // Clamp to viewport
+        newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - panelRect.width));
+        newTop = Math.max(0, Math.min(newTop, window.innerHeight - panelRect.height));
+
+        panel.style.left = `${newLeft}px`;
+        panel.style.top = `${newTop}px`;
+      };
+
+      const onUp = () => {
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+      };
+
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
     });
   }
 

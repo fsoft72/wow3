@@ -14,6 +14,7 @@ Unified the animation editing UI into a single floating "Animations" panel with 
 - Anim tab auto-enables when an element is selected, auto-disables and switches to Sequence when deselected
 - Clicking an element while the panel is open auto-switches to Anim tab
 - Animation badge in elements tree opens the panel and switches to Anim tab
+- Panel is draggable by its header bar; position resets to center-bottom when closed and reopened
 
 **Updated Files:**
 - `index.html`: Removed animation tab + build order panel, added floating panel + status bar button
