@@ -1,5 +1,41 @@
 # WOW3 Development Changelog
 
+## 2026-02-14
+
+### Replace Animation System with WAAPI-powered Engine
+
+Replaced the entire CSS class-based animation system with a Web Animations API (WAAPI) engine. Animations are now stored on the **Slide** as an ordered `animationSequence[]` rather than on individual elements.
+
+#### New Files
+- `js/animations/definitions.js` — WAAPI keyframe registry with animation categories (buildIn, action, buildOut), trigger types (onLoad, onClick, afterPrevious, withPrevious), easing map, and 20+ animation definitions
+- `js/animations/AnimationManager.js` — Pure playback engine using WAAPI with async/await sequencing, transform conflict resolution (preserves element rotation), and skip/cleanup support
+- `js/animations/migration.js` — Converts old bitwise `inEffect`/`outEffect` on elements to new `animationSequence[]` format on slides
+- `js/controllers/AnimationEditorController.js` — Animation editing UI: category tab bar, effect selector grid, build order panel with drag-and-drop reorder, preview playback
+- `css/animation-editor.css` — Styles for animation inspector, effect grid, build order panel, animation badges
+
+#### Modified Files
+- `js/models/Slide.js` — Added `animationSequence[]` property, CRUD methods (addAnimation, removeAnimation, updateAnimation, reorderAnimation, getAnimationsForElement, removeAnimationsForElement), auto-migration on load, updated toJSON/clone/removeElement
+- `js/models/Element.js` — `inEffect`/`outEffect` kept for backward-compatible deserialization only
+- `js/controllers/PlaybackController.js` — Uses AnimationManager instead of AnimationController; creates manager per slide, calls loadSequence/prepareInitialState/play; advance() uses skip/next pattern
+- `js/controllers/EditorController.js` — References animationEditorController instead of animationController
+- `js/views/ElementsTree.js` — Replaced IN/OUT buttons with animation badge showing count; clicking badge opens animation inspector
+- `js/utils/constants.js` — Marked old AnimationType/AnimationTrigger as deprecated, kept for migration
+- `js/controllers/index.js` — Exports AnimationEditorController instead of AnimationController
+- `js/app.js` — Initializes AnimationEditorController; F5/Escape shortcuts use PlaybackController directly
+- `index.html` — Removed old animation modal, added Animations tab to right sidebar, added build order floating panel, replaced animations.css with animation-editor.css
+
+#### Deleted Files
+- `js/utils/animations.js` — Old CSS animation utilities (replaced by WAAPI)
+- `js/controllers/AnimationController.js` — Old animation controller (replaced by AnimationManager + AnimationEditorController)
+- `css/animations.css` — Old CSS @keyframes (replaced by WAAPI keyframes in definitions.js)
+
+#### Key Architecture Changes
+- **Data model**: Animations live on the Slide (`animationSequence[]`) not on Elements
+- **Playback**: WAAPI `element.animate()` replaces CSS class toggling
+- **Triggers**: 4 trigger types (onLoad, onClick, afterPrevious, withPrevious) replace 2 (auto, click)
+- **Migration**: Old presentations auto-convert on load; combined bitwise flags decompose into multiple withPrevious-linked entries
+- **Transform preservation**: AnimationManager reads element rotation and injects it into animation keyframes
+
 ## 2026-02-13
 
 ### Unique Thumbnail Keys for Slide Thumbnails

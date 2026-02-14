@@ -29,7 +29,7 @@ export class EditorController {
     // Sub-controllers (will be set externally)
     this.slideController = null;
     this.elementController = null;
-    this.animationController = null;
+    this.animationEditorController = null;
     this.playbackController = null;
 
     // History management

@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/animation-editor.css">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/editor.css">
   <link rel="stylesheet" href="css/sidebar.css">
@@ -100,6 +100,7 @@
       <ul class="tabs">
         <li class="tab"><a href="#tab-slide" class="active">Slide</a></li>
         <li class="tab"><a href="#tab-element">Element</a></li>
+        <li class="tab"><a href="#tab-animation">Animations</a></li>
       </ul>
 
       <div id="tab-slide" class="tab-content">
@@ -149,6 +150,12 @@
         <p class="grey-text center-align" style="padding: 20px;">No element selected</p>
       </div>
 
+      <div id="tab-animation" class="tab-content">
+        <div id="animation-inspector">
+          <p class="grey-text center-align" style="padding: 20px;">Select an element to add animations</p>
+        </div>
+      </div>
+
     </aside>
   </div>
 
@@ -162,95 +169,14 @@
     <span id="zoom-level">100%</span>
   </footer>
 
-  <!-- Animation Modal -->
-  <div id="animation-modal" class="modal">
-    <div class="modal-content">
-      <h4>Animation Settings</h4>
-
-      <div class="row">
-        <div class="col s12">
-          <label>Animation Type</label>
-          <p>
-            <label>
-              <input type="checkbox" id="anim-fade-in" value="1" />
-              <span>Fade In</span>
-            </label>
-          </p>
-          <p>
-            <label>
-              <input type="checkbox" id="anim-fade-out" value="2" />
-              <span>Fade Out</span>
-            </label>
-          </p>
-          <p>
-            <label>
-              <input type="checkbox" id="anim-slide-in" value="4" />
-              <span>Slide In</span>
-            </label>
-          </p>
-          <p>
-            <label>
-              <input type="checkbox" id="anim-slide-out" value="8" />
-              <span>Slide Out</span>
-            </label>
-          </p>
-          <p>
-            <label>
-              <input type="checkbox" id="anim-zoom-in" value="16" />
-              <span>Zoom In</span>
-            </label>
-          </p>
-          <p>
-            <label>
-              <input type="checkbox" id="anim-zoom-out" value="32" />
-              <span>Zoom Out</span>
-            </label>
-          </p>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="input-field col s6">
-          <select id="anim-direction">
-            <option value="left" selected>Left</option>
-            <option value="right">Right</option>
-            <option value="top">Top</option>
-            <option value="bottom">Bottom</option>
-          </select>
-          <label>Direction</label>
-        </div>
-
-        <div class="input-field col s6">
-          <input type="number" id="anim-duration" value="600" min="100" max="3000" step="100">
-          <label for="anim-duration" class="active">Duration (ms)</label>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="input-field col s6">
-          <select id="anim-trigger">
-            <option value="auto" selected>Auto</option>
-            <option value="click">Click</option>
-          </select>
-          <label>Trigger</label>
-        </div>
-
-        <div class="input-field col s6">
-          <select id="anim-easing">
-            <option value="linear">Linear</option>
-            <option value="ease">Ease</option>
-            <option value="ease-in">Ease In</option>
-            <option value="ease-out">Ease Out</option>
-            <option value="ease-in-out" selected>Ease In Out</option>
-          </select>
-          <label>Easing</label>
-        </div>
-      </div>
+  <!-- Build Order Panel (floating) -->
+  <div id="build-order-panel">
+    <div class="build-order-header" id="toggle-build-order">
+      <span><i class="material-icons" style="vertical-align: middle; margin-right: 4px;">reorder</i>Build Order</span>
+      <i class="material-icons">expand_less</i>
     </div>
-
-    <div class="modal-footer">
-      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-      <a href="#!" id="save-animation-btn" class="modal-close waves-effect waves-green btn">Save</a>
+    <div id="build-order-list">
+      <p class="grey-text center-align" style="padding: 12px; font-size: 12px;">No animations on this slide</p>
     </div>
   </div>
 

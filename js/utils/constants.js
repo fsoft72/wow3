@@ -3,7 +3,7 @@
  * All application constants, enums, and default values
  */
 
-// Animation type constants (bitwise flags for combining animations)
+// Animation type constants (bitwise flags — DEPRECATED, kept for migration)
 export const AnimationType = {
   FADE_IN: 1,
   FADE_OUT: 2,
@@ -19,11 +19,13 @@ export const AnimationType = {
   ROTATE_OUT: 2048
 };
 
-// Animation triggers
+// Animation triggers (DEPRECATED, kept for migration)
 export const AnimationTrigger = {
   CLICK: 'click',
   AUTO: 'auto'
 };
+
+// New animation system enums — see js/animations/definitions.js for full registry
 
 // Element types
 export const ElementType = {

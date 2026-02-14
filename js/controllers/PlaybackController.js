@@ -4,9 +4,9 @@
  */
 
 import { appEvents, AppEvents } from '../utils/events.js';
-import { prepareElementForAnimation } from '../utils/animations.js';
 import { toast } from '../utils/toasts.js';
 import { CountdownTimerElement } from '../models/CountdownTimerElement.js';
+import { AnimationManager } from '../animations/AnimationManager.js';
 
 export class PlaybackController {
   /**
@@ -18,6 +18,9 @@ export class PlaybackController {
     this.currentSlideIndex = 0;
     this.isPlaying = false;
     this.presentationView = null;
+
+    /** @type {AnimationManager|null} */
+    this._animationManager = null;
 
     /** @type {{ element: Object, startedAt: number, duration: number, remaining: number, intervalId: number|null, audioElement: HTMLAudioElement|null }|null} */
     this._activeCountdown = null;
@@ -176,8 +179,9 @@ export class PlaybackController {
     if (!slide) return;
 
     // Clean up any ongoing animations from the previous slide
-    if (this.editor.animationController) {
-      this.editor.animationController.cleanup();
+    if (this._animationManager) {
+      this._animationManager.cleanup();
+      this._animationManager = null;
     }
 
     this.currentSlideIndex = index;
@@ -227,23 +231,13 @@ export class PlaybackController {
       });
     }
 
-    // Render slide elements with proper z-index
-    slide.elements.forEach((element, index) => {
-      const elementDOM = element.render(index);
-
-      // Initially hide elements with inEffect
-      if (element.inEffect) {
-        prepareElementForAnimation(elementDOM);
-      }
-
+    // Render all slide elements normally (no prepareElementForAnimation)
+    slide.elements.forEach((element, idx) => {
+      const elementDOM = element.render(idx);
       slideLayer.appendChild(elementDOM);
 
-      // Render children with higher z-index than parent
       element.children.forEach((child, childIndex) => {
-        const childDOM = child.render(index * 100 + childIndex + 1);
-        if (child.inEffect) {
-          prepareElementForAnimation(childDOM);
-        }
+        const childDOM = child.render(idx * 100 + childIndex + 1);
         elementDOM.appendChild(childDOM);
       });
     });
@@ -289,9 +283,12 @@ export class PlaybackController {
     indicator.textContent = `${visiblePos} / ${visibleSlides.length}`;
     this.presentationView.appendChild(indicator);
 
-    // Play animations (pass container so lookups are scoped to the presentation view)
-    if (this.editor.animationController) {
-      await this.editor.animationController.playSlideAnimations(slide, slideContainer);
+    // Play animations using AnimationManager (WAAPI)
+    if (slide.animationSequence && slide.animationSequence.length > 0) {
+      this._animationManager = new AnimationManager(slideContainer);
+      this._animationManager.loadSequence(slide.animationSequence);
+      this._animationManager.prepareInitialState();
+      await this._animationManager.play();
     }
 
     appEvents.emit(AppEvents.SLIDE_SELECTED, index);
@@ -337,17 +334,17 @@ export class PlaybackController {
    * Handles ArrowRight, ArrowLeft, Space, PageDown, and mouse click.
    */
   advance() {
-    const anim = this.editor.animationController;
+    const mgr = this._animationManager;
 
-    // 1. If an auto animation is currently playing, skip it
-    if (anim && anim.isAnimating) {
-      anim.skipCurrentAnimation();
+    // 1. If animations are playing, skip the current one
+    if (mgr && mgr.isPlaying && !mgr._waitingForClick) {
+      mgr.skip();
       return;
     }
 
-    // 2. If click-triggered animations are queued, advance them
-    if (anim && anim.hasPendingClickAnimations) {
-      anim.advanceClickAnimation();
+    // 2. If waiting on a click trigger, advance to next step
+    if (mgr && mgr.hasPendingSteps) {
+      mgr.next();
       return;
     }
 
@@ -387,8 +384,9 @@ export class PlaybackController {
     this._stopCountdown();
 
     // Clean up animation state
-    if (this.editor.animationController) {
-      this.editor.animationController.cleanup();
+    if (this._animationManager) {
+      this._animationManager.cleanup();
+      this._animationManager = null;
     }
 
     // Exit fullscreen

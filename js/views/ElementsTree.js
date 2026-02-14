@@ -56,26 +56,16 @@ export class ElementsTree {
     item.className = `tree-item level-${level}`;
     item.dataset.elementId = element.id;
 
-    // Animation IN button
-    const inBtn = document.createElement('button');
-    inBtn.className = `animation-btn ${element.inEffect ? 'active' : ''}`;
-    inBtn.innerHTML = 'IN';
-    inBtn.title = 'Set in animation';
+    // Animation badge — shows count of animations targeting this element
+    const badge = document.createElement('span');
+    const animCount = this._getAnimationCount(element.id);
+    badge.className = `animation-badge ${animCount === 0 ? 'empty' : ''}`;
+    badge.textContent = animCount > 0 ? String(animCount) : '0';
+    badge.title = animCount > 0 ? `${animCount} animation(s)` : 'No animations';
 
-    inBtn.addEventListener('click', (e) => {
+    badge.addEventListener('click', (e) => {
       e.stopPropagation();
-      this.openAnimationEditor(element, 'in');
-    });
-
-    // Animation OUT button
-    const outBtn = document.createElement('button');
-    outBtn.className = `animation-btn ${element.outEffect ? 'active' : ''}`;
-    outBtn.innerHTML = 'OUT';
-    outBtn.title = 'Set out animation';
-
-    outBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.openAnimationEditor(element, 'out');
+      this.openAnimationInspector(element);
     });
 
     // Element icon
@@ -88,8 +78,7 @@ export class ElementsTree {
     name.className = 'tree-item-name';
     name.textContent = this.getElementName(element);
 
-    item.appendChild(inBtn);
-    item.appendChild(outBtn);
+    item.appendChild(badge);
     item.appendChild(icon);
     item.appendChild(name);
 
@@ -162,14 +151,31 @@ export class ElementsTree {
   }
 
   /**
-   * Open animation editor
-   * @param {Element} element - Element
-   * @param {string} mode - 'in' or 'out'
+   * Open animation inspector for an element
+   * @param {Object} element - Element model
    */
-  openAnimationEditor(element, mode) {
-    if (window.app && window.app.editor && window.app.editor.animationController) {
-      window.app.editor.animationController.openAnimationEditor(element, mode);
+  openAnimationInspector(element) {
+    if (window.app && window.app.editor && window.app.editor.animationEditorController) {
+      // Switch to animation tab
+      const tabInstance = M.Tabs.getInstance(document.querySelector('.tabs'));
+      if (tabInstance) {
+        tabInstance.select('tab-animation');
+      }
+      window.app.editor.animationEditorController.showInspector(element);
     }
+  }
+
+  /**
+   * Get the number of animations targeting an element on the active slide
+   * @param {string} elementId - Element ID
+   * @returns {number}
+   * @private
+   */
+  _getAnimationCount(elementId) {
+    if (!window.app || !window.app.editor) return 0;
+    const slide = window.app.editor.getActiveSlide();
+    if (!slide || !slide.animationSequence) return 0;
+    return slide.animationSequence.filter((a) => a.targetElementId === elementId).length;
   }
 }
 

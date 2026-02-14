@@ -1,0 +1,353 @@
+/**
+ * WOW3 Animation Editor Styles
+ * Styles for the animation inspector, effect grid, and build order panel.
+ */
+
+/* ==================== CATEGORY TABS ==================== */
+
+.anim-category-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 8px 4px;
+}
+
+.anim-category-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f5f5f5;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.anim-category-tab i {
+  font-size: 16px;
+}
+
+.anim-category-tab:hover {
+  background: #e8e8e8;
+}
+
+.anim-category-tab.active.category-buildIn {
+  background: #e8f5e9;
+  border-color: #4caf50;
+  color: #2e7d32;
+}
+
+.anim-category-tab.active.category-action {
+  background: #e3f2fd;
+  border-color: #2196f3;
+  color: #1565c0;
+}
+
+.anim-category-tab.active.category-buildOut {
+  background: #ffebee;
+  border-color: #f44336;
+  color: #c62828;
+}
+
+/* ==================== EFFECT GRID ==================== */
+
+.effect-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 8px;
+}
+
+.effect-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 6px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 11px;
+}
+
+.effect-card:hover {
+  border-color: #90caf9;
+  background: #e3f2fd;
+}
+
+.effect-card.applied {
+  border-color: #4caf50;
+  background: #e8f5e9;
+}
+
+.effect-label {
+  font-weight: 500;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.effect-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.effect-actions button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+}
+
+.effect-actions button:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.effect-actions button i {
+  font-size: 18px;
+  color: #616161;
+}
+
+.effect-preview-btn:hover i { color: #1565c0 !important; }
+.effect-add-btn:hover i { color: #2e7d32 !important; }
+
+/* ==================== ELEMENT ANIMATION LIST ==================== */
+
+.anim-element-list {
+  padding: 0 8px 8px;
+}
+
+.anim-list-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  background: #fff;
+}
+
+.anim-list-type {
+  font-weight: 500;
+  flex: 1;
+}
+
+.anim-list-trigger {
+  color: #757575;
+  font-size: 10px;
+}
+
+.anim-remove-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+}
+
+.anim-remove-btn:hover {
+  background: #ffebee;
+}
+
+.anim-remove-btn i {
+  font-size: 16px;
+  color: #e53935;
+}
+
+/* ==================== BUILD ORDER PANEL ==================== */
+
+#build-order-panel {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(calc(100% + 40px));
+  width: 500px;
+  max-height: 350px;
+  background: #fff;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 500;
+  transition: transform 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#build-order-panel.visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+.build-order-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #1565c0;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.build-order-header i {
+  font-size: 20px;
+}
+
+#build-order-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.build-order-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  background: #fff;
+  cursor: grab;
+  transition: all 0.15s;
+}
+
+.build-order-card.indented {
+  margin-left: 24px;
+  border-left: 3px solid #90caf9;
+}
+
+.build-order-card.dragging {
+  opacity: 0.4;
+}
+
+.build-order-card.drag-over {
+  border-color: #1565c0;
+  background: #e3f2fd;
+}
+
+.build-order-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1565c0;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.build-order-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.build-order-label {
+  display: block;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.build-order-target {
+  display: block;
+  font-size: 10px;
+  color: #757575;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.build-order-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.build-order-trigger {
+  font-size: 10px !important;
+  padding: 2px 4px !important;
+  height: auto !important;
+  border: 1px solid #ddd !important;
+  border-radius: 3px !important;
+  width: 110px;
+}
+
+.build-order-duration {
+  width: 60px;
+  font-size: 11px !important;
+  padding: 2px 4px !important;
+  height: auto !important;
+  border: 1px solid #ddd !important;
+  border-radius: 3px !important;
+  text-align: center;
+}
+
+.build-order-remove {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+}
+
+.build-order-remove:hover {
+  background: #ffebee;
+}
+
+.build-order-remove i {
+  font-size: 16px;
+  color: #e53935;
+}
+
+/* ==================== ANIMATION BADGE (Elements Tree) ==================== */
+
+.animation-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: #1565c0;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.animation-badge:hover {
+  background: #0d47a1;
+}
+
+.animation-badge.empty {
+  background: #e0e0e0;
+  color: #757575;
+}
+
+/* ==================== REDUCED MOTION ==================== */
+
+@media (prefers-reduced-motion: reduce) {
+  #build-order-panel {
+    transition: none;
+  }
+}

@@ -9,7 +9,7 @@ import {
   EditorController,
   SlideController,
   ElementController,
-  AnimationController,
+  AnimationEditorController,
   PlaybackController
 } from './controllers/index.js';
 import {
@@ -49,12 +49,12 @@ class WOW3App {
       // Initialize sub-controllers
       this.editor.slideController = new SlideController(this.editor);
       this.editor.elementController = new ElementController(this.editor);
-      this.editor.animationController = new AnimationController(this.editor);
+      this.editor.animationEditorController = new AnimationEditorController(this.editor);
       this.editor.playbackController = new PlaybackController(this.editor);
 
       await this.editor.slideController.init();
       await this.editor.elementController.init();
-      await this.editor.animationController.init();
+      await this.editor.animationEditorController.init();
       await this.editor.playbackController.init();
 
       // Initialize interaction handlers
@@ -278,14 +278,14 @@ class WOW3App {
       // Play: F5
       else if (e.key === 'F5') {
         e.preventDefault();
-        if (this.editor && this.editor.animationController) {
-          this.editor.animationController.enterPlayMode();
+        if (this.editor && this.editor.playbackController) {
+          this.editor.playbackController.start();
         }
       }
       // Escape: Exit play mode, exit crop mode, or deselect
       else if (e.key === 'Escape') {
-        if (this.editor && this.editor.animationController && this.editor.animationController.playMode) {
-          this.editor.animationController.exitPlayMode();
+        if (this.editor && this.editor.playbackController && this.editor.playbackController.isPlaying) {
+          this.editor.playbackController.stop();
         } else if (this.editor && this.editor.elementController && this.editor.elementController._cropMode) {
           this.editor.elementController.exitCropMode();
         } else if (this.editor && this.editor.elementController) {

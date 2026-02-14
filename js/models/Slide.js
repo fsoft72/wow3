@@ -6,6 +6,7 @@
 import { generateId } from '../utils/dom.js';
 import { DEFAULTS } from '../utils/constants.js';
 import { Element } from './Element.js';
+import { migrateElementAnimations, hasLegacyAnimations } from '../animations/migration.js';
 import { TextElement } from './TextElement.js';
 import { ImageElement } from './ImageElement.js';
 import { VideoElement } from './VideoElement.js';
@@ -36,6 +37,14 @@ export class Slide {
         return new ElementClass(elData);
       });
     }
+
+    // Animation sequence (new system)
+    this.animationSequence = properties.animationSequence || [];
+
+    // Auto-migrate legacy inEffect/outEffect if no sequence exists
+    if (this.animationSequence.length === 0 && hasLegacyAnimations(this)) {
+      this.animationSequence = migrateElementAnimations(this);
+    }
   }
 
   /**
@@ -55,12 +64,14 @@ export class Slide {
     const index = this.elements.findIndex(el => el.id === elementId);
     if (index !== -1) {
       this.elements.splice(index, 1);
+      this.removeAnimationsForElement(elementId);
       return true;
     }
 
     // Check if it's a child element
     for (const element of this.elements) {
       if (element.removeChild(elementId)) {
+        this.removeAnimationsForElement(elementId);
         return true;
       }
     }
@@ -150,6 +161,77 @@ export class Slide {
     return false;
   }
 
+  // ==================== ANIMATION SEQUENCE CRUD ====================
+
+  /**
+   * Add an animation step to the sequence
+   * @param {Object} anim - Animation step object (must have an id)
+   * @param {number} [index] - Optional insertion index; appends if omitted
+   */
+  addAnimation(anim, index) {
+    if (index !== undefined && index >= 0 && index <= this.animationSequence.length) {
+      this.animationSequence.splice(index, 0, anim);
+    } else {
+      this.animationSequence.push(anim);
+    }
+  }
+
+  /**
+   * Remove an animation step by its ID
+   * @param {string} animId - Animation step ID
+   * @returns {boolean} True if removed
+   */
+  removeAnimation(animId) {
+    const idx = this.animationSequence.findIndex((a) => a.id === animId);
+    if (idx === -1) return false;
+    this.animationSequence.splice(idx, 1);
+    return true;
+  }
+
+  /**
+   * Update properties of an animation step
+   * @param {string} animId - Animation step ID
+   * @param {Object} updates - Properties to merge
+   * @returns {boolean} True if found and updated
+   */
+  updateAnimation(animId, updates) {
+    const anim = this.animationSequence.find((a) => a.id === animId);
+    if (!anim) return false;
+    Object.assign(anim, updates);
+    return true;
+  }
+
+  /**
+   * Reorder an animation step within the sequence
+   * @param {number} fromIndex - Current index
+   * @param {number} toIndex - Desired index
+   * @returns {boolean} True if reordered
+   */
+  reorderAnimation(fromIndex, toIndex) {
+    if (fromIndex < 0 || fromIndex >= this.animationSequence.length) return false;
+    if (toIndex < 0 || toIndex >= this.animationSequence.length) return false;
+    const [item] = this.animationSequence.splice(fromIndex, 1);
+    this.animationSequence.splice(toIndex, 0, item);
+    return true;
+  }
+
+  /**
+   * Get all animations targeting a specific element
+   * @param {string} elementId - Element ID
+   * @returns {Array<Object>} Animation steps for that element
+   */
+  getAnimationsForElement(elementId) {
+    return this.animationSequence.filter((a) => a.targetElementId === elementId);
+  }
+
+  /**
+   * Remove all animations targeting a specific element
+   * @param {string} elementId - Element ID
+   */
+  removeAnimationsForElement(elementId) {
+    this.animationSequence = this.animationSequence.filter((a) => a.targetElementId !== elementId);
+  }
+
   /**
    * Set slide background
    * @param {string} background - Background color or gradient
@@ -174,15 +256,32 @@ export class Slide {
     const data = this.toJSON();
     data.id = generateId('slide');
     data.thumbnailId = null; // Cloned slides should not reference the original's thumbnail
-    // Generate new IDs for all elements
-    data.elements = data.elements.map(elData => ({
-      ...elData,
-      id: generateId('element'),
-      children: elData.children.map(childData => ({
-        ...childData,
-        id: generateId('element')
-      }))
-    }));
+
+    // Build old→new ID map while generating new IDs for elements
+    const idMap = {};
+    data.elements = data.elements.map(elData => {
+      const newId = generateId('element');
+      idMap[elData.id] = newId;
+      return {
+        ...elData,
+        id: newId,
+        children: elData.children.map(childData => {
+          const newChildId = generateId('element');
+          idMap[childData.id] = newChildId;
+          return { ...childData, id: newChildId };
+        })
+      };
+    });
+
+    // Remap animation sequence references and generate new anim IDs
+    if (data.animationSequence) {
+      data.animationSequence = data.animationSequence.map((anim) => ({
+        ...anim,
+        id: generateId('anim'),
+        targetElementId: idMap[anim.targetElementId] || anim.targetElementId
+      }));
+    }
+
     return Slide.fromJSON(data);
   }
 
@@ -198,7 +297,8 @@ export class Slide {
       visible: this.visible,
       hideShell: this.hideShell,
       thumbnailId: this.thumbnailId,
-      elements: this.elements.map(el => el.toJSON())
+      elements: this.elements.map(el => el.toJSON()),
+      animationSequence: this.animationSequence.map((a) => ({ ...a }))
     };
   }
 
