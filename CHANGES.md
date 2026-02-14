@@ -17,6 +17,8 @@ Unified the animation editing UI into a single floating "Elements Control Center
 - Panel is draggable by its header bar; position resets to center-bottom when closed and reopened
 - **Elements** tab lists all elements on the current slide; clicking an item selects it on canvas
 - Panel is resizable via a bottom-right corner handle (min 360x200, max 90vw x 80vh)
+- Default height: 500px; opens centered on screen on first use
+- Fade in/out (300ms) instead of slide animation; remembers last position and size across open/close cycles
 - Renamed from "Animations" to "Elements Control Center"
 
 **Updated Files:**

@@ -225,27 +225,31 @@
 
 #animations-panel {
   position: fixed;
-  bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%) translateY(calc(100% + 40px));
   width: 520px;
-  height: 400px;
+  height: 500px;
   min-width: 360px;
   min-height: 200px;
   max-width: 90vw;
   max-height: 80vh;
   background: #fff;
-  border-radius: 8px 8px 0 0;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
   z-index: 500;
-  transition: transform 0.3s ease;
   overflow: hidden;
-  display: flex;
+  display: none;
   flex-direction: column;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 #animations-panel.visible {
-  transform: translateX(-50%) translateY(0);
+  display: flex;
+  opacity: 1;
+}
+
+#animations-panel.fading-out {
+  display: flex;
+  opacity: 0;
 }
 
 .animations-panel-header {
@@ -263,14 +267,6 @@
 
 .animations-panel-header:active {
   cursor: grabbing;
-}
-
-#animations-panel.dragged {
-  transition: none;
-  bottom: auto;
-  left: auto;
-  transform: none;
-  border-radius: 8px;
 }
 
 .animations-panel-resize {

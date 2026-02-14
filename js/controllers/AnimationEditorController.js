@@ -231,32 +231,63 @@ export class AnimationEditorController {
   }
 
   /**
-   * Show the floating animations panel
+   * Show the floating panel. Restores last position/size or centers on screen.
    */
   showPanel() {
     const panel = document.getElementById('animations-panel');
     const btn = document.getElementById('animations-panel-btn');
     if (!panel) return;
 
+    // Apply remembered size
+    if (this._savedWidth) panel.style.width = this._savedWidth;
+    if (this._savedHeight) panel.style.height = this._savedHeight;
+
+    // Position: use saved or center on screen
+    if (this._savedLeft != null && this._savedTop != null) {
+      panel.style.left = this._savedLeft;
+      panel.style.top = this._savedTop;
+    } else {
+      const w = parseInt(panel.style.width) || 520;
+      const h = parseInt(panel.style.height) || 500;
+      panel.style.left = `${Math.round((window.innerWidth - w) / 2)}px`;
+      panel.style.top = `${Math.round((window.innerHeight - h) / 2)}px`;
+    }
+
+    // Fade in: show with opacity 0, then trigger transition
+    panel.classList.remove('fading-out');
     panel.classList.add('visible');
+    // Force reflow so the browser registers opacity: 0 before we flip to 1
+    void panel.offsetHeight;
+    panel.style.opacity = '1';
+
     if (btn) btn.classList.add('active');
     this._panelVisible = true;
   }
 
   /**
-   * Hide the floating animations panel and reset drag position
+   * Hide the floating panel with fade-out. Remembers position and size.
    */
   hidePanel() {
     const panel = document.getElementById('animations-panel');
     const btn = document.getElementById('animations-panel-btn');
     if (!panel) return;
 
+    // Save current position and size for next open
+    this._savedLeft = panel.style.left;
+    this._savedTop = panel.style.top;
+    this._savedWidth = panel.style.width;
+    this._savedHeight = panel.style.height;
+
+    // Fade out
+    panel.classList.add('fading-out');
     panel.classList.remove('visible');
-    panel.classList.remove('dragged');
-    panel.style.left = '';
-    panel.style.top = '';
-    panel.style.width = '';
-    panel.style.height = '';
+
+    const onEnd = () => {
+      panel.removeEventListener('transitionend', onEnd);
+      panel.classList.remove('fading-out');
+    };
+    panel.addEventListener('transitionend', onEnd);
+
     if (btn) btn.classList.remove('active');
     this._panelVisible = false;
   }
@@ -328,11 +359,6 @@ export class AnimationEditorController {
       const offsetX = e.clientX - panelRect.left;
       const offsetY = e.clientY - panelRect.top;
 
-      // Switch to absolute top/left positioning
-      panel.classList.add('dragged');
-      panel.style.left = `${panelRect.left}px`;
-      panel.style.top = `${panelRect.top}px`;
-
       const onMove = (ev) => {
         let newLeft = ev.clientX - offsetX;
         let newTop = ev.clientY - offsetY;
@@ -373,13 +399,6 @@ export class AnimationEditorController {
       const startY = e.clientY;
       const startWidth = panelRect.width;
       const startHeight = panelRect.height;
-
-      // Ensure panel is in dragged mode so top/left are set
-      if (!panel.classList.contains('dragged')) {
-        panel.classList.add('dragged');
-        panel.style.left = `${panelRect.left}px`;
-        panel.style.top = `${panelRect.top}px`;
-      }
 
       const onMove = (ev) => {
         const newWidth = Math.max(360, startWidth + (ev.clientX - startX));
