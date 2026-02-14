@@ -46,6 +46,9 @@ export class UIManager {
     await TemplateManager.init();
     this.attachTemplateManagerButton();
 
+    // Attach About dialog to brand logo
+    this.attachAboutDialog();
+
     console.log('UIManager initialized');
   }
 
@@ -83,6 +86,38 @@ export class UIManager {
         TemplateManager.open();
       });
     }
+  }
+
+  /**
+   * Attach About dialog to the brand logo click
+   */
+  attachAboutDialog() {
+    const logo = document.getElementById('brand-logo');
+    if (!logo) return;
+
+    logo.addEventListener('click', (e) => {
+      e.preventDefault();
+      Dialog.show({
+        title: 'About',
+        body: `
+          <div style="text-align: center; line-height: 1.8;">
+            <h4 style="margin: 0 0 5px 0; font-weight: bold;">wow3</h4>
+            <p style="margin: 0 0 15px 0;">the browser based presentation app</p>
+            <p style="margin: 0 0 10px 0;">written by <a href="https://github.com/fsoft72" target="_blank" rel="noopener">Fabio "fsoft" Rotondo</a></p>
+            <p style="margin: 0 0 10px 0;">This software is Open Source under the MIT license</p>
+            <p style="margin: 0 0 15px 0;">Please, star us on <a href="https://github.com/fsoft72/wow3" target="_blank" rel="noopener">Github</a>!</p>
+            <p style="margin: 0; font-size: 0.9em; color: #888;">v. 0.1.0</p>
+          </div>
+        `,
+        buttons: [
+          { text: 'OK', type: 'primary', value: true }
+        ],
+        onRender: (box) => {
+          const btn = box.querySelector('.dialog-btn-primary');
+          if (btn) btn.focus();
+        }
+      });
+    });
   }
 
   /**

@@ -2,6 +2,17 @@
 
 ## 2026-02-14
 
+### About Dialog
+
+- ✓ **About dialog**: Clicking the "WOW3" brand logo in the toolbar shows an About dialog with version info, author link, license, and GitHub link
+- ✓ **Uses existing Dialog system**: Leverages the custom `Dialog.show()` widget
+
+**Updated Files:**
+- `index.html`: Added `id="brand-logo"` to brand logo anchor
+- `js/views/UIManager.js`: Added `attachAboutDialog()` method called during `init()`
+
+---
+
 ### Elements Control Center (Floating Panel)
 
 Unified the animation editing UI into a single floating "Elements Control Center" panel with three tabs (Sequence, Anim, Elements), replacing the old right sidebar Animations tab and the separate Build Order floating panel.
