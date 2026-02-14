@@ -109,7 +109,7 @@ export const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
 
 // UI constants
 export const UI = {
-  SIDEBAR_WIDTH: 250,
+  SIDEBAR_WIDTH: 280,
   TOOLBAR_HEIGHT: 64,
   STATUSBAR_HEIGHT: 32,
   ALIGNMENT_THRESHOLD: 5, // pixels

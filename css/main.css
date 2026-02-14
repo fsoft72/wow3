@@ -4,7 +4,7 @@
  */
 
 :root {
-  --sidebar-width: 250px;
+  --sidebar-width: 280px;
   --toolbar-height: 64px;
   --statusbar-height: 32px;
   --canvas-bg: #f5f5f5;
@@ -160,6 +160,21 @@ body {
 /* Tabs in sidebar */
 .tabs {
   background: #fff;
+  overflow-x: hidden;
+}
+
+#right-sidebar .tabs {
+  white-space: nowrap;
+}
+
+#right-sidebar .tabs .tab {
+  min-width: 0;
+  padding: 0;
+}
+
+#right-sidebar .tabs .tab a {
+  font-size: 12px;
+  padding: 0 10px;
 }
 
 .tabs .tab a {
