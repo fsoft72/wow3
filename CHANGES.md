@@ -2,9 +2,9 @@
 
 ## 2026-02-14
 
-### Floating Animations Panel
+### Elements Control Center (Floating Panel)
 
-Unified the animation editing UI into a single floating "Animations" panel with two tabs (Sequence and Anim), replacing the old right sidebar Animations tab and the separate Build Order floating panel.
+Unified the animation editing UI into a single floating "Elements Control Center" panel with three tabs (Sequence, Anim, Elements), replacing the old right sidebar Animations tab and the separate Build Order floating panel.
 
 **Changes:**
 - Removed `Animations` tab from right sidebar (3 tabs → 2: Slide, Element)
@@ -16,6 +16,8 @@ Unified the animation editing UI into a single floating "Animations" panel with 
 - Animation badge in elements tree opens the panel and switches to Anim tab
 - Panel is draggable by its header bar; position resets to center-bottom when closed and reopened
 - **Elements** tab lists all elements on the current slide; clicking an item selects it on canvas
+- Panel is resizable via a bottom-right corner handle (min 360x200, max 90vw x 80vh)
+- Renamed from "Animations" to "Elements Control Center"
 
 **Updated Files:**
 - `index.html`: Removed animation tab + build order panel, added floating panel + status bar button

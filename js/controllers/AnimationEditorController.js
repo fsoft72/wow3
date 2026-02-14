@@ -255,6 +255,8 @@ export class AnimationEditorController {
     panel.classList.remove('dragged');
     panel.style.left = '';
     panel.style.top = '';
+    panel.style.width = '';
+    panel.style.height = '';
     if (btn) btn.classList.remove('active');
     this._panelVisible = false;
   }
@@ -305,6 +307,7 @@ export class AnimationEditorController {
     });
 
     this._setupPanelDrag();
+    this._setupPanelResize();
   }
 
   /**
@@ -340,6 +343,50 @@ export class AnimationEditorController {
 
         panel.style.left = `${newLeft}px`;
         panel.style.top = `${newTop}px`;
+      };
+
+      const onUp = () => {
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+      };
+
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
+    });
+  }
+
+  /**
+   * Setup pointer-based resizing on the panel resize handle
+   * @private
+   */
+  _setupPanelResize() {
+    const panel = document.getElementById('animations-panel');
+    const handle = document.querySelector('.animations-panel-resize');
+    if (!panel || !handle) return;
+
+    handle.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const panelRect = panel.getBoundingClientRect();
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startWidth = panelRect.width;
+      const startHeight = panelRect.height;
+
+      // Ensure panel is in dragged mode so top/left are set
+      if (!panel.classList.contains('dragged')) {
+        panel.classList.add('dragged');
+        panel.style.left = `${panelRect.left}px`;
+        panel.style.top = `${panelRect.top}px`;
+      }
+
+      const onMove = (ev) => {
+        const newWidth = Math.max(360, startWidth + (ev.clientX - startX));
+        const newHeight = Math.max(200, startHeight + (ev.clientY - startY));
+
+        panel.style.width = `${newWidth}px`;
+        panel.style.height = `${newHeight}px`;
       };
 
       const onUp = () => {
