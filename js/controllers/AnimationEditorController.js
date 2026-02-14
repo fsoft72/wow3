@@ -591,6 +591,7 @@ export class AnimationEditorController {
    */
   _getElementLabel(element) {
     if (!element) return 'Unknown';
+    if (element.name) return element.name;
     switch (element.type) {
       case 'text': return element.properties.text?.substring(0, 15) || 'Text';
       case 'image': return 'Image';

@@ -123,6 +123,8 @@ export class ElementsTree {
    * @returns {string} Element name
    */
   getElementName(element) {
+    if (element.name) return element.name;
+
     switch (element.type) {
       case 'text':
         return element.properties.text?.substring(0, 25) || 'Text';

@@ -54,6 +54,9 @@ export class RightSidebar {
 
     this.elementTab.innerHTML = '';
 
+    // Add element name input at the top
+    this.addNameInput(element);
+
     // Add position properties (always show these)
     this.addPositionProperties(element);
 
@@ -190,6 +193,68 @@ export class RightSidebar {
     if (widthInput) widthInput.value = Math.round(element.position.width);
     if (heightInput) heightInput.value = Math.round(element.position.height);
     if (rotationInput) rotationInput.value = Math.round(element.position.rotation);
+  }
+
+  /**
+   * Add element name input field
+   * @param {Object} element - Element model
+   */
+  addNameInput(element) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'input-field';
+    wrapper.style.margin = '8px 0';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'prop-element-name';
+    input.value = element.name || '';
+    input.placeholder = this._getDefaultName(element);
+
+    const label = document.createElement('label');
+    label.setAttribute('for', 'prop-element-name');
+    label.textContent = 'Element Name';
+    label.classList.add('active');
+
+    input.addEventListener('change', (e) => {
+      element.name = e.target.value.trim();
+
+      // Update the tooltip on the canvas DOM element
+      const domEl = document.getElementById(element.id);
+      if (domEl) {
+        domEl.title = element.name || '';
+      }
+
+      // Refresh the elements tree to show the new name
+      if (window.app?.editor?.uiManager?.elementsTree) {
+        const slide = window.app.editor.getActiveSlide();
+        window.app.editor.uiManager.elementsTree.render(slide.elements);
+      }
+
+      window.app.editor.recordHistory();
+    });
+
+    wrapper.appendChild(input);
+    wrapper.appendChild(label);
+    this.elementTab.appendChild(wrapper);
+  }
+
+  /**
+   * Get default display name for an element (used as placeholder)
+   * @param {Object} element - Element model
+   * @returns {string}
+   * @private
+   */
+  _getDefaultName(element) {
+    switch (element.type) {
+      case 'text': return element.properties.text?.substring(0, 25) || 'Text';
+      case 'image': return 'Image';
+      case 'video': return 'Video';
+      case 'audio': return 'Audio';
+      case 'shape': return `Shape (${element.properties.shapeType})`;
+      case 'list': return `List (${element.properties.listType})`;
+      case 'link': return element.properties.text || 'Link';
+      default: return element.type;
+    }
   }
 
   /**

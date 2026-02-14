@@ -21,6 +21,7 @@ export class Element {
 
     this.id = properties.id || generateId('element');
     this.type = type;
+    this.name = properties.name || '';
 
     // Ensure type is a string for DEFAULT_SIZE lookup
     const typeKey = (typeof type === 'string' ? type : 'text').toUpperCase();
@@ -92,6 +93,7 @@ export class Element {
     return {
       id: this.id,
       type: this.type,
+      name: this.name,
       position: { ...this.position },
       properties: JSON.parse(JSON.stringify(this.properties)),
       inEffect: this.inEffect ? { ...this.inEffect } : null,
@@ -211,6 +213,10 @@ export class Element {
     el.className = 'element';
     el.id = this.id;
     el.dataset.type = this.type;
+
+    if (this.name) {
+      el.title = this.name;
+    }
 
     this.applyStyles(el, zIndex);
 
