@@ -277,11 +277,15 @@ export class AnimationEditorController {
 
     // Current element's animations list
     const animListHtml = elementAnims.length > 0
-      ? elementAnims.map((a) => {
+      ? elementAnims.map((a, idx) => {
         const def = ANIMATION_DEFINITIONS[a.type];
-        return `<div class="anim-list-item" data-anim-id="${a.id}">
+        const isAuto = a.trigger !== ANIMATION_TRIGGER.ON_CLICK;
+        return `<div class="anim-list-item" data-anim-id="${a.id}" data-anim-index="${idx}">
+          <i class="material-icons anim-list-drag-handle">drag_indicator</i>
           <span class="anim-list-type">${def ? def.label : a.type}</span>
-          <span class="anim-list-trigger">${a.trigger}</span>
+          <button class="anim-trigger-toggle ${isAuto ? 'is-auto' : 'is-click'}" data-anim-id="${a.id}" title="${isAuto ? 'Auto (plays automatically)' : 'On Click (waits for advance)'}">
+            ${isAuto ? 'Auto' : 'Click'}
+          </button>
           <button class="anim-remove-btn" data-anim-id="${a.id}" title="Remove">
             <i class="material-icons">close</i>
           </button>
@@ -325,6 +329,26 @@ export class AnimationEditorController {
         this.removeEffect(btn.dataset.animId);
       });
     });
+
+    // Trigger toggle (auto <-> click)
+    container.querySelectorAll('.anim-trigger-toggle').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const animId = btn.dataset.animId;
+        const slide = this.editor.getActiveSlide();
+        if (!slide) return;
+        const anim = slide.animationSequence.find((a) => a.id === animId);
+        if (!anim) return;
+
+        const isCurrentlyAuto = anim.trigger !== ANIMATION_TRIGGER.ON_CLICK;
+        const newTrigger = isCurrentlyAuto ? ANIMATION_TRIGGER.ON_CLICK : ANIMATION_TRIGGER.AFTER_PREVIOUS;
+        this.updateAnimationStep(animId, { trigger: newTrigger });
+        this._renderInspector();
+      });
+    });
+
+    // Drag-and-drop reorder for current animations list (vertical-only)
+    this._setupAnimListDrag(container);
   }
 
   /**
@@ -359,10 +383,8 @@ export class AnimationEditorController {
         </div>
         <div class="build-order-controls">
           <select class="build-order-trigger browser-default" data-anim-id="${anim.id}">
-            <option value="${ANIMATION_TRIGGER.ON_LOAD}" ${anim.trigger === ANIMATION_TRIGGER.ON_LOAD ? 'selected' : ''}>On Load</option>
+            <option value="${ANIMATION_TRIGGER.AFTER_PREVIOUS}" ${anim.trigger !== ANIMATION_TRIGGER.ON_CLICK ? 'selected' : ''}>Auto</option>
             <option value="${ANIMATION_TRIGGER.ON_CLICK}" ${anim.trigger === ANIMATION_TRIGGER.ON_CLICK ? 'selected' : ''}>On Click</option>
-            <option value="${ANIMATION_TRIGGER.AFTER_PREVIOUS}" ${anim.trigger === ANIMATION_TRIGGER.AFTER_PREVIOUS ? 'selected' : ''}>After Previous</option>
-            <option value="${ANIMATION_TRIGGER.WITH_PREVIOUS}" ${anim.trigger === ANIMATION_TRIGGER.WITH_PREVIOUS ? 'selected' : ''}>With Previous</option>
           </select>
           <input type="number" class="build-order-duration browser-default"
                  data-anim-id="${anim.id}" value="${anim.duration}"
@@ -395,6 +417,117 @@ export class AnimationEditorController {
 
     // Drag and drop reorder
     this._setupDragReorder(list);
+  }
+
+  /**
+   * Setup pointer-based vertical-only drag-and-drop for the "Current Animations" list.
+   * Uses pointer events so we can constrain to the Y axis.
+   * @param {HTMLElement} container - The animation inspector container
+   * @private
+   */
+  _setupAnimListDrag(container) {
+    const items = container.querySelectorAll('.anim-list-item');
+    if (items.length < 2) return;
+
+    items.forEach((item) => {
+      const handle = item.querySelector('.anim-list-drag-handle');
+      if (!handle) return;
+
+      handle.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        const listParent = item.parentElement;
+        const siblings = Array.from(listParent.querySelectorAll('.anim-list-item'));
+        const startIndex = siblings.indexOf(item);
+        const startY = e.clientY;
+        const itemRect = item.getBoundingClientRect();
+        const parentRect = listParent.getBoundingClientRect();
+
+        // Create a clone to drag visually
+        const ghost = item.cloneNode(true);
+        ghost.classList.add('anim-list-ghost');
+        ghost.style.position = 'fixed';
+        ghost.style.left = `${itemRect.left}px`;
+        ghost.style.top = `${itemRect.top}px`;
+        ghost.style.width = `${itemRect.width}px`;
+        ghost.style.zIndex = '10000';
+        ghost.style.pointerEvents = 'none';
+        document.body.appendChild(ghost);
+
+        // Mark the original as placeholder
+        item.classList.add('anim-list-placeholder');
+
+        let currentIndex = startIndex;
+
+        const onMove = (ev) => {
+          const dy = ev.clientY - startY;
+          // Move ghost vertically only
+          ghost.style.top = `${itemRect.top + dy}px`;
+
+          // Determine which slot we're over
+          for (let i = 0; i < siblings.length; i++) {
+            if (i === currentIndex) continue;
+            const rect = siblings[i].getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            if (ev.clientY < midY && i < currentIndex) {
+              listParent.insertBefore(item, siblings[i]);
+              siblings.splice(currentIndex, 1);
+              siblings.splice(i, 0, item);
+              currentIndex = i;
+              break;
+            } else if (ev.clientY > midY && i > currentIndex) {
+              const next = siblings[i].nextElementSibling;
+              listParent.insertBefore(item, next);
+              siblings.splice(currentIndex, 1);
+              siblings.splice(i, 0, item);
+              currentIndex = i;
+              break;
+            }
+          }
+        };
+
+        const onUp = () => {
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          ghost.remove();
+          item.classList.remove('anim-list-placeholder');
+
+          if (currentIndex !== startIndex) {
+            this._reorderElementAnims(startIndex, currentIndex);
+          }
+        };
+
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+    });
+  }
+
+  /**
+   * Reorder animations for the current element within the slide's global sequence.
+   * Maps local element-anim indices to global sequence indices and calls handleReorder.
+   * @param {number} localFrom - Source index within element's animations
+   * @param {number} localTo - Destination index within element's animations
+   * @private
+   */
+  _reorderElementAnims(localFrom, localTo) {
+    if (!this._currentElement) return;
+    const slide = this.editor.getActiveSlide();
+    if (!slide) return;
+
+    // Build a map of local index -> global index for this element's animations
+    const globalIndices = [];
+    slide.animationSequence.forEach((a, i) => {
+      if (a.targetElementId === this._currentElement.id) {
+        globalIndices.push(i);
+      }
+    });
+
+    if (localFrom >= globalIndices.length || localTo >= globalIndices.length) return;
+
+    const globalFrom = globalIndices[localFrom];
+    const globalTo = globalIndices[localTo];
+    this.handleReorder(globalFrom, globalTo);
+    this._renderInspector();
   }
 
   /**
