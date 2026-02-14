@@ -26,7 +26,7 @@ export class AnimationEditorController {
     this._currentCategory = ANIMATION_CATEGORY.BUILD_IN;
     this._previewManager = null;
     this._panelVisible = false;
-    this._activeTab = 'sequence';
+    this._activeTab = 'elements';
   }
 
   /**
@@ -256,6 +256,11 @@ export class AnimationEditorController {
     panel.classList.add('visible');
     if (btn) btn.classList.add('active');
     this._panelVisible = true;
+
+    // Refresh the active tab content
+    if (this._activeTab === 'elements') {
+      this._renderElementsList();
+    }
   }
 
   /**
@@ -417,7 +422,7 @@ export class AnimationEditorController {
     } else {
       animTab.disabled = true;
       if (this._activeTab === 'anim') {
-        this.switchPanelTab('sequence');
+        this.switchPanelTab('elements');
       }
     }
   }
