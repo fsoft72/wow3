@@ -15,6 +15,7 @@ Unified the animation editing UI into a single floating "Animations" panel with 
 - Clicking an element while the panel is open auto-switches to Anim tab
 - Animation badge in elements tree opens the panel and switches to Anim tab
 - Panel is draggable by its header bar; position resets to center-bottom when closed and reopened
+- **Elements** tab lists all elements on the current slide; clicking an item selects it on canvas
 
 **Updated Files:**
 - `index.html`: Removed animation tab + build order panel, added floating panel + status bar button

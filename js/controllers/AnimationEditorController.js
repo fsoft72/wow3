@@ -46,9 +46,12 @@ export class AnimationEditorController {
       this.clearInspector();
     });
 
-    // Refresh build order when slide changes
+    // Refresh build order and elements list when slide changes
     appEvents.on(AppEvents.SLIDE_SELECTED, () => {
       this._renderBuildOrder();
+      if (this._activeTab === 'elements') {
+        this._renderElementsList();
+      }
     });
 
     console.log('AnimationEditorController initialized');
@@ -65,7 +68,11 @@ export class AnimationEditorController {
     this._renderBuildOrder();
     this._updateAnimTabState();
 
-    if (this._panelVisible) {
+    if (this._activeTab === 'elements') {
+      this._renderElementsList();
+    }
+
+    if (this._panelVisible && this._activeTab !== 'elements') {
       this.switchPanelTab('anim');
     }
   }
@@ -80,6 +87,10 @@ export class AnimationEditorController {
       container.innerHTML = '<p class="grey-text center-align" style="padding: 20px;">Select an element to add animations</p>';
     }
     this._updateAnimTabState();
+
+    if (this._activeTab === 'elements') {
+      this._renderElementsList();
+    }
   }
 
   /**
@@ -250,7 +261,7 @@ export class AnimationEditorController {
 
   /**
    * Switch the active tab in the floating panel
-   * @param {string} tabName - Tab name: 'sequence' or 'anim'
+   * @param {string} tabName - Tab name: 'sequence', 'anim', or 'elements'
    */
   switchPanelTab(tabName) {
     this._activeTab = tabName;
@@ -264,6 +275,11 @@ export class AnimationEditorController {
     document.querySelectorAll('.animations-panel-content').forEach((pane) => {
       pane.classList.toggle('active', pane.id === `animations-panel-${tabName}`);
     });
+
+    // Render elements list when switching to that tab
+    if (tabName === 'elements') {
+      this._renderElementsList();
+    }
   }
 
   /**
@@ -353,6 +369,59 @@ export class AnimationEditorController {
         this.switchPanelTab('sequence');
       }
     }
+  }
+
+  /**
+   * Render the elements list for the "Elements" tab
+   * @private
+   */
+  _renderElementsList() {
+    const container = document.getElementById('panel-elements-list');
+    if (!container) return;
+
+    const slide = this.editor.getActiveSlide();
+    if (!slide || !slide.elements || slide.elements.length === 0) {
+      container.innerHTML = '<p class="grey-text center-align" style="padding: 12px; font-size: 12px;">No elements on this slide</p>';
+      return;
+    }
+
+    const ELEMENT_ICONS = {
+      text: 'text_fields',
+      image: 'image',
+      video: 'videocam',
+      audio: 'audiotrack',
+      shape: 'crop_square',
+      list: 'list',
+      link: 'link',
+      countdown_timer: 'timer'
+    };
+
+    const selectedId = this._currentElement ? this._currentElement.id : null;
+
+    container.innerHTML = slide.elements.map((el) => {
+      const icon = ELEMENT_ICONS[el.type] || 'widgets';
+      const name = this._getElementLabel(el);
+      const isSelected = el.id === selectedId;
+
+      return `<div class="panel-element-item ${isSelected ? 'selected' : ''}" data-element-id="${el.id}">
+        <i class="material-icons">${icon}</i>
+        <span class="panel-element-name">${name}</span>
+        <span class="panel-element-type">${el.type}</span>
+      </div>`;
+    }).join('');
+
+    // Bind click to select element
+    container.querySelectorAll('.panel-element-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        const elementId = item.dataset.elementId;
+        const element = slide.elements.find((el) => el.id === elementId);
+        if (!element) return;
+
+        if (this.editor.elementController) {
+          this.editor.elementController.selectElement(element);
+        }
+      });
+    });
   }
 
   /**
