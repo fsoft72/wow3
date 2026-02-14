@@ -236,20 +236,16 @@
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
   z-index: 500;
   overflow: hidden;
-  display: none;
+  display: flex;
   flex-direction: column;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.3s ease;
 }
 
 #animations-panel.visible {
-  display: flex;
   opacity: 1;
-}
-
-#animations-panel.fading-out {
-  display: flex;
-  opacity: 0;
+  pointer-events: auto;
 }
 
 .animations-panel-header {

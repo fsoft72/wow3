@@ -253,13 +253,7 @@ export class AnimationEditorController {
       panel.style.top = `${Math.round((window.innerHeight - h) / 2)}px`;
     }
 
-    // Fade in: show with opacity 0, then trigger transition
-    panel.classList.remove('fading-out');
     panel.classList.add('visible');
-    // Force reflow so the browser registers opacity: 0 before we flip to 1
-    void panel.offsetHeight;
-    panel.style.opacity = '1';
-
     if (btn) btn.classList.add('active');
     this._panelVisible = true;
   }
@@ -278,16 +272,7 @@ export class AnimationEditorController {
     this._savedWidth = panel.style.width;
     this._savedHeight = panel.style.height;
 
-    // Fade out
-    panel.classList.add('fading-out');
     panel.classList.remove('visible');
-
-    const onEnd = () => {
-      panel.removeEventListener('transitionend', onEnd);
-      panel.classList.remove('fading-out');
-    };
-    panel.addEventListener('transitionend', onEnd);
-
     if (btn) btn.classList.remove('active');
     this._panelVisible = false;
   }
