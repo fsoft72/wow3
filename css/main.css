@@ -241,6 +241,12 @@ body {
   z-index: 999;
 }
 
+.status-bar-center {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* ==================== PROPERTY SECTIONS ==================== */
 
 .property-section {

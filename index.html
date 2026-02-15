@@ -171,18 +171,20 @@
   <!-- Bottom Status Bar -->
   <footer id="status-bar" class="status-bar">
     <span id="slide-counter">Slide 1 of 1</span>
-    <button id="animations-panel-btn" class="animations-panel-toggle" title="Toggle Elements Control Center">
-      <i class="material-icons">animation</i>
-      <span>Elements Control Center</span>
-    </button>
-    <button id="shell-preview-btn" class="shell-preview-toggle" style="display:none;" title="Toggle shell preview">
-      <i class="material-icons">layers_clear</i>
-      <span>Shell</span>
-    </button>
-    <button id="settings-panel-btn" class="settings-panel-toggle" title="Settings">
-      <i class="material-icons">settings</i>
-      <span>Settings</span>
-    </button>
+    <div class="status-bar-center">
+      <button id="animations-panel-btn" class="animations-panel-toggle" title="Toggle Elements Control Center">
+        <i class="material-icons">animation</i>
+        <span>Elements Control Center</span>
+      </button>
+      <button id="shell-preview-btn" class="shell-preview-toggle" style="display:none;" title="Toggle shell preview">
+        <i class="material-icons">layers_clear</i>
+        <span>Shell</span>
+      </button>
+      <button id="settings-panel-btn" class="settings-panel-toggle" title="Settings">
+        <i class="material-icons">settings</i>
+        <span>Settings</span>
+      </button>
+    </div>
     <span id="zoom-level">100%</span>
   </footer>
 
@@ -267,8 +269,6 @@
   <script src="js/utils/presentation_manager.js"></script>
   <script src="js/utils/templates_db.js"></script>
   <script src="js/utils/template_manager.js"></script>
-  <script src="js/utils/settings.js"></script>
-
   <!-- Application JavaScript (ES6 Modules) -->
   <script type="module" src="js/app.js"></script>
 </body>
