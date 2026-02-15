@@ -2,6 +2,21 @@
 
 ## 2026-02-15
 
+### Fix: Dark Mode Text Contrast
+
+Fixed poor contrast in dark mode where labels and form controls were barely visible.
+
+**Changes:**
+- Added dark mode styles for all `.control-group label` elements (changed from `#333` to `#ddd`)
+- Added dark mode styles for panel tabs, inputs, sliders, and buttons
+- Added dark mode styles for color pickers, upload areas, and section titles
+- All form controls now have proper contrast in dark mode with light text on dark backgrounds
+
+**Updated Files:**
+- `css/settings.css`: Added comprehensive dark mode overrides for property panels
+
+---
+
 ### Offline Mode: CDN Dependencies Removed
 
 Removed all CDN dependencies and moved external libraries to the local `ext/` folder for offline operation.

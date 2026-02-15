@@ -548,6 +548,155 @@ body.dark-mode .anim-category-tab {
   color: #ccc;
 }
 
+/* Dark mode for property panels */
+body.dark-mode .control-group label {
+  color: #ddd;
+}
+
+body.dark-mode .panel-tab {
+  color: #aaa;
+}
+
+body.dark-mode .panel-tab:hover {
+  color: #64b5f6;
+  background: #333;
+}
+
+body.dark-mode .panel-tab.active {
+  color: #64b5f6;
+  border-bottom-color: #64b5f6;
+}
+
+body.dark-mode .panel-tabs {
+  border-bottom-color: #444;
+}
+
+body.dark-mode .panel-input,
+body.dark-mode .panel-select,
+body.dark-mode .panel-textarea {
+  background: #333;
+  color: #eee;
+  border-color: #555;
+}
+
+body.dark-mode .panel-input:focus,
+body.dark-mode .panel-select:focus,
+body.dark-mode .panel-textarea:focus {
+  border-color: #64b5f6;
+}
+
+body.dark-mode .slider {
+  background: #555;
+}
+
+body.dark-mode .slider::-webkit-slider-thumb {
+  background: #64b5f6;
+}
+
+body.dark-mode .slider::-moz-range-thumb {
+  background: #64b5f6;
+}
+
+body.dark-mode .number-input {
+  background: #333;
+  color: #eee;
+  border-color: #555;
+}
+
+body.dark-mode .number-input:focus {
+  border-color: #64b5f6;
+}
+
+body.dark-mode .unit-label {
+  color: #aaa;
+}
+
+body.dark-mode .color-preview {
+  border-color: #555;
+}
+
+body.dark-mode .color-text-input {
+  background: #333;
+  color: #eee;
+  border-color: #555;
+}
+
+body.dark-mode .color-text-input:focus {
+  border-color: #64b5f6;
+}
+
+body.dark-mode .icon-toggle-group {
+  background: #333;
+}
+
+body.dark-mode .icon-toggle-btn {
+  color: #aaa;
+}
+
+body.dark-mode .icon-toggle-btn:hover {
+  background: #444;
+  color: #ddd;
+}
+
+body.dark-mode .icon-toggle-btn.active {
+  background: #1565c0;
+  color: #fff;
+}
+
+body.dark-mode .btn-icon {
+  background: #333;
+  border-color: #555;
+}
+
+body.dark-mode .btn-icon:hover {
+  background: #444;
+  border-color: #64b5f6;
+}
+
+body.dark-mode .btn-icon i {
+  color: #aaa;
+}
+
+body.dark-mode .upload-area {
+  border-color: #555;
+}
+
+body.dark-mode .upload-area.drag-over {
+  border-color: #64b5f6;
+  background: #1a3a5c;
+}
+
+body.dark-mode .btn-upload {
+  background: #333;
+  border-color: #555;
+  color: #aaa;
+}
+
+body.dark-mode .btn-upload:hover {
+  background: #444;
+  border-color: #64b5f6;
+  color: #64b5f6;
+}
+
+body.dark-mode .placeholder-hint {
+  color: #777;
+}
+
+body.dark-mode .placeholder-tag {
+  background: #333;
+  color: #aaa;
+}
+
+body.dark-mode .placeholder-tag:hover {
+  background: #1565c0;
+  color: #fff;
+}
+
+body.dark-mode .section-title {
+  color: #aaa;
+  border-bottom-color: #444;
+}
+
 /* ==================== REDUCED MOTION ==================== */
 
 @media (prefers-reduced-motion: reduce) {
