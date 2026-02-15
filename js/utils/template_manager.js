@@ -12,7 +12,7 @@ const BUILTIN_TEMPLATES = [
       title: 'Blank Slide',
       background: '#ffffff',
       visible: true,
-      hideShell: false,
+      shellId: null,
       elements: []
     }
   },
@@ -24,7 +24,7 @@ const BUILTIN_TEMPLATES = [
       title: 'Title Slide',
       background: '#1565C0',
       visible: true,
-      hideShell: false,
+      shellId: null,
       elements: [
         {
           id: 'tpl_ts_title',
@@ -71,7 +71,7 @@ const BUILTIN_TEMPLATES = [
       title: 'Title + Content',
       background: '#ffffff',
       visible: true,
-      hideShell: false,
+      shellId: null,
       elements: [
         {
           id: 'tpl_tc_title',
@@ -132,7 +132,7 @@ const BUILTIN_TEMPLATES = [
       title: 'Section Divider',
       background: '#0D47A1',
       visible: true,
-      hideShell: false,
+      shellId: null,
       elements: [
         {
           id: 'tpl_sd_title',
@@ -176,7 +176,7 @@ const BUILTIN_TEMPLATES = [
       title: 'Two Column',
       background: '#ffffff',
       visible: true,
-      hideShell: false,
+      shellId: null,
       elements: [
         {
           id: 'tpl_2c_title',
@@ -240,7 +240,7 @@ const BUILTIN_TEMPLATES = [
       title: 'Image Focus',
       background: '#212121',
       visible: true,
-      hideShell: false,
+      shellId: null,
       elements: [
         {
           id: 'tpl_if_placeholder',

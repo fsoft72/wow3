@@ -26,8 +26,18 @@ export class Slide {
     this.title = properties.title || 'Untitled Slide';
     this.background = properties.background || DEFAULTS.BACKGROUND_COLOR;
     this.visible = properties.visible !== false; // default true
-    this.hideShell = properties.hideShell || false;
     this.thumbnailId = properties.thumbnailId || null;
+
+    // Shell assignment — references a shell by ID, or null for "no shell"
+    // Backward compat: if old hideShell === true, force shellId to null
+    if (properties.hideShell === true) {
+      this.shellId = null;
+    } else {
+      this.shellId = properties.shellId !== undefined ? properties.shellId : null;
+    }
+
+    // Per-slide shell rendering mode ('above' | 'below')
+    this.shellMode = properties.shellMode || 'above';
     this.elements = [];
 
     // Load elements if provided
@@ -295,7 +305,8 @@ export class Slide {
       title: this.title,
       background: this.background,
       visible: this.visible,
-      hideShell: this.hideShell,
+      shellId: this.shellId,
+      shellMode: this.shellMode,
       thumbnailId: this.thumbnailId,
       elements: this.elements.map(el => el.toJSON()),
       animationSequence: this.animationSequence.map((a) => ({ ...a }))

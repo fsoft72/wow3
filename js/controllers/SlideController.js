@@ -47,10 +47,11 @@ export class SlideController {
     for (const slide of this.editor.presentation.slides) {
       if (slide.thumbnailId) thumbToSlide.set(slide.thumbnailId, slide.id);
     }
-    // Include shell slide if it exists
-    const shell = this.editor.presentation.shell;
-    if (shell && shell.thumbnailId) {
-      thumbToSlide.set(shell.thumbnailId, shell.id);
+    // Include shell slides
+    for (const shell of this.editor.presentation.shells) {
+      if (shell.thumbnailId) {
+        thumbToSlide.set(shell.thumbnailId, shell.id);
+      }
     }
 
     const thumbnailIds = [...thumbToSlide.keys()];
@@ -77,6 +78,32 @@ export class SlideController {
     const slideList = document.getElementById('slide-list');
     if (!slideList) return;
 
+    // Sidebar tab switching
+    const sidebarTabs = document.querySelectorAll('.sidebar-tab');
+    sidebarTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const targetTab = tab.dataset.sidebarTab;
+        sidebarTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        document.querySelectorAll('.sidebar-tab-content').forEach(c => {
+          c.classList.remove('active');
+          c.style.display = 'none';
+        });
+
+        const targetContent = document.getElementById(`sidebar-tab-${targetTab}`);
+        if (targetContent) {
+          targetContent.classList.add('active');
+          targetContent.style.display = 'block';
+        }
+
+        // Re-render shells when switching to shells tab
+        if (targetTab === 'shells') {
+          this.renderShells();
+        }
+      });
+    });
+
     // Add slide button
     const addSlideBtn = document.getElementById('add-slide-btn');
     if (addSlideBtn) {
@@ -85,9 +112,17 @@ export class SlideController {
       });
     }
 
-    // Drag and drop for reordering (skip shell thumbnail)
+    // Add shell button
+    const addShellBtn = document.getElementById('add-shell-btn');
+    if (addShellBtn) {
+      addShellBtn.addEventListener('click', () => {
+        this.addShell();
+      });
+    }
+
+    // Drag and drop for reordering
     slideList.addEventListener('dragstart', (e) => {
-      if (e.target.classList.contains('slide-thumbnail') && !e.target.classList.contains('shell-thumbnail')) {
+      if (e.target.classList.contains('slide-thumbnail')) {
         this.draggedSlide = e.target;
         e.dataTransfer.effectAllowed = 'move';
         e.target.classList.add('dragging');
@@ -153,7 +188,7 @@ export class SlideController {
    * Handle slide reordering after drag-drop
    */
   handleSlideReorder() {
-    const thumbnails = document.querySelectorAll('.slide-thumbnail:not(.shell-thumbnail)');
+    const thumbnails = document.querySelectorAll('.slide-thumbnail');
     const newOrder = Array.from(thumbnails).map((thumb) =>
       parseInt(thumb.dataset.slideIndex)
     );
@@ -183,10 +218,6 @@ export class SlideController {
     if (!slideList) return;
 
     slideList.innerHTML = '';
-
-    // Shell thumbnail (always shown at the top)
-    const shellThumb = this.createShellThumbnail();
-    slideList.appendChild(shellThumb);
 
     this.editor.presentation.slides.forEach((slide, index) => {
       const thumbnail = this.createSlideThumbnail(slide, index);
@@ -339,126 +370,210 @@ export class SlideController {
     input.select();
   }
 
-  /**
-   * Create the shell thumbnail element for the sidebar
-   * @returns {HTMLElement} Shell thumbnail
-   */
-  createShellThumbnail() {
-    const hasShell = this.editor.presentation.hasShell();
-    const div = document.createElement('div');
-    div.className = 'slide-thumbnail shell-thumbnail';
-    if (this.editor.isEditingShell) {
-      div.classList.add('active');
-    }
-    div.draggable = false;
 
-    // Label — layers icon instead of number
-    const label = document.createElement('div');
-    label.className = 'slide-number shell-label';
-    label.innerHTML = '<i class="material-icons" style="font-size:12px;vertical-align:middle;">layers</i>';
-    div.appendChild(label);
+  // ==================== SHELLS TAB ====================
+
+  /**
+   * Render all shell cards in the Shells tab
+   */
+  renderShells() {
+    const shellList = document.getElementById('shell-list');
+    if (!shellList) return;
+
+    shellList.innerHTML = '';
+
+    const shells = this.editor.presentation.shells;
+    if (shells.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'shell-list-empty';
+      empty.innerHTML = '<i class="material-icons">layers</i><p>No shells yet.<br>Click "New Shell" to create one.</p>';
+      shellList.appendChild(empty);
+      return;
+    }
+
+    shells.forEach((shell, index) => {
+      const card = this.createShellCard(shell, index);
+      shellList.appendChild(card);
+    });
+  }
+
+  /**
+   * Create a shell card element for the Shells tab
+   * @param {Slide} shell - Shell slide object
+   * @param {number} index - Shell index
+   * @returns {HTMLElement} Shell card element
+   */
+  createShellCard(shell, index) {
+    const isDefault = this.editor.presentation.defaultShellId === shell.id;
+    const isEditing = this.editor.isEditingShell && this.editor.editingShellId === shell.id;
+
+    const div = document.createElement('div');
+    div.className = 'shell-card';
+    if (isEditing) div.classList.add('active');
+    div.dataset.shellId = shell.id;
+
+    // Number badge
+    const number = document.createElement('div');
+    number.className = 'shell-card-number';
+    number.textContent = index + 1;
+    div.appendChild(number);
+
+    // Action buttons
+    const actions = document.createElement('div');
+    actions.className = 'shell-card-actions';
+
+    // Star (default) button
+    const starBtn = document.createElement('button');
+    starBtn.className = `shell-card-action star-btn${isDefault ? ' is-default' : ''}`;
+    starBtn.title = isDefault ? 'Default shell' : 'Set as default';
+    starBtn.innerHTML = `<i class="material-icons">${isDefault ? 'star' : 'star_border'}</i>`;
+    starBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.toggleDefaultShell(shell.id);
+    });
+    actions.appendChild(starBtn);
+
+    // Delete button
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'shell-card-action';
+    deleteBtn.title = 'Delete shell';
+    deleteBtn.innerHTML = '<i class="material-icons">delete</i>';
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.deleteShell(shell.id);
+    });
+    actions.appendChild(deleteBtn);
+
+    div.appendChild(actions);
 
     // Preview area
     const preview = document.createElement('div');
     preview.className = 'slide-preview';
+    preview.dataset.slideId = shell.id;
+    preview.style.cssText = `
+      width: 100%; height: 100%; position: relative; overflow: hidden;
+      background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 16px 16px;
+    `;
 
-    if (hasShell) {
-      // Checkerboard background to represent transparency
-      preview.style.cssText = `
-        width: 100%; height: 100%; position: relative; overflow: hidden;
-        background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 16px 16px;
-      `;
-
-      // Render element previews
-      this.editor.presentation.shell.elements.forEach((element, idx) => {
-        const elementPreview = this.createElementPreview(element, idx);
-        if (elementPreview) {
-          preview.appendChild(elementPreview);
-        }
-      });
+    const cachedThumb = this._thumbCache.get(shell.id);
+    if (cachedThumb) {
+      const img = document.createElement('img');
+      img.src = cachedThumb;
+      img.style.cssText = 'width:100%;height:100%;object-fit:fill;display:block;';
+      preview.appendChild(img);
     } else {
-      // Empty state — "+" icon to create shell
-      preview.style.cssText = `
-        width: 100%; height: 100%; position: relative; overflow: hidden;
-        background: #f5f5f5;
-        display: flex; align-items: center; justify-content: center;
-      `;
-      const addIcon = document.createElement('i');
-      addIcon.className = 'material-icons';
-      addIcon.style.cssText = 'font-size: 32px; color: #9C27B0; opacity: 0.6;';
-      addIcon.textContent = 'add_circle_outline';
-      preview.appendChild(addIcon);
+      shell.elements.forEach((element, idx) => {
+        const elementPreview = this.createElementPreview(element, idx);
+        if (elementPreview) preview.appendChild(elementPreview);
+      });
     }
 
     div.appendChild(preview);
 
-    // Click handler
-    div.addEventListener('click', () => {
-      this.editor.editShell();
+    // Name label
+    const nameLabel = document.createElement('div');
+    nameLabel.className = 'shell-name-label';
+    nameLabel.textContent = shell.title || `Shell ${index + 1}`;
+    nameLabel.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this._startShellInlineRename(div, shell, nameLabel);
     });
+    div.appendChild(nameLabel);
 
-    // Right-click context menu (only if shell exists)
-    if (hasShell) {
-      div.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        this.showShellContextMenu(e);
-      });
-    }
+    // Click to edit shell
+    div.addEventListener('click', () => {
+      this.editor.editShell(shell.id);
+    });
 
     return div;
   }
 
   /**
-   * Show context menu for the shell thumbnail
-   * @param {MouseEvent} e - Mouse event
+   * Add a new shell to the presentation
    */
-  showShellContextMenu(e) {
-    const existingMenu = document.querySelector('.context-menu');
-    if (existingMenu) existingMenu.remove();
+  addShell() {
+    const shell = this.editor.presentation.addShell();
+    this.editor.recordHistory();
+    this.renderShells();
+    // Auto-enter editing mode for the new shell
+    this.editor.editShell(shell.id);
+  }
 
-    const menu = document.createElement('div');
-    menu.className = 'context-menu';
-    menu.style.cssText = `
-      position: fixed; left: ${e.clientX}px; top: ${e.clientY}px;
-      background: white; border: 1px solid #ccc; border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10000; min-width: 150px;
-    `;
+  /**
+   * Delete a shell by ID
+   * @param {string} shellId - Shell ID to delete
+   */
+  async deleteShell(shellId) {
+    const confirmed = await Dialog.confirm('Delete this shell? Slides using it will revert to "None".', 'Delete Shell');
+    if (!confirmed) return;
 
-    const item = document.createElement('div');
-    item.className = 'context-menu-item';
-    item.innerHTML = '<i class="material-icons" style="font-size:18px;margin-right:8px;">delete</i><span>Remove Shell</span>';
-    item.style.cssText = 'padding: 8px 16px; cursor: pointer; display: flex; align-items: center;';
+    const shell = this.editor.presentation.getShellById(shellId);
+    const thumbId = shell?.thumbnailId;
 
-    item.addEventListener('mouseenter', () => { item.style.background = '#f5f5f5'; });
-    item.addEventListener('mouseleave', () => { item.style.background = 'white'; });
-    item.addEventListener('click', () => {
-      const shell = this.editor.presentation.shell;
-      const shellId = shell?.id;
-      const shellThumbId = shell?.thumbnailId;
-      this.editor.presentation.removeShell();
+    this.editor.presentation.removeShell(shellId);
+
+    // Exit shell editing if we were editing this shell
+    if (this.editor.isEditingShell && this.editor.editingShellId === shellId) {
       this.editor.exitShellEditing();
+    }
+
+    this._thumbCache.delete(shellId);
+    if (thumbId) {
+      window.MediaDB.deleteThumbnail(thumbId).catch(() => {});
+    }
+
+    this.editor.recordHistory();
+    this.renderShells();
+  }
+
+  /**
+   * Toggle default (starred) shell
+   * @param {string} shellId - Shell ID
+   */
+  toggleDefaultShell(shellId) {
+    const current = this.editor.presentation.defaultShellId;
+    if (current === shellId) {
+      this.editor.presentation.setDefaultShell(null);
+    } else {
+      this.editor.presentation.setDefaultShell(shellId);
+    }
+    this.editor.recordHistory();
+    this.renderShells();
+  }
+
+  /**
+   * Start inline renaming of a shell card
+   * @param {HTMLElement} cardDiv - The shell card element
+   * @param {Slide} shell - The shell being renamed
+   * @param {HTMLElement} nameLabel - The label element to replace
+   */
+  _startShellInlineRename(cardDiv, shell, nameLabel) {
+    if (cardDiv.querySelector('.shell-name-input')) return;
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'shell-name-input';
+    input.value = shell.title || '';
+
+    const commit = () => {
+      const newTitle = input.value.trim() || 'Untitled Shell';
+      shell.setTitle(newTitle);
+      nameLabel.textContent = newTitle;
+      input.replaceWith(nameLabel);
       this.editor.recordHistory();
-      if (shellId) {
-        this._thumbCache.delete(shellId);
-      }
-      if (shellThumbId) {
-        window.MediaDB.deleteThumbnail(shellThumbId).catch(() => {});
-      }
-      menu.remove();
+    };
+
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+      if (e.key === 'Escape') { input.value = shell.title || 'Untitled Shell'; input.blur(); }
     });
+    input.addEventListener('click', (e) => e.stopPropagation());
+    input.addEventListener('mousedown', (e) => e.stopPropagation());
 
-    menu.appendChild(item);
-    document.body.appendChild(menu);
-
-    setTimeout(() => {
-      const closeMenu = (ev) => {
-        if (!menu.contains(ev.target)) {
-          menu.remove();
-          document.removeEventListener('click', closeMenu);
-        }
-      };
-      document.addEventListener('click', closeMenu);
-    }, 0);
+    nameLabel.replaceWith(input);
+    input.focus();
+    input.select();
   }
 
   /**
@@ -795,19 +910,19 @@ export class SlideController {
   /**
    * Render a read-only, semi-transparent overlay of shell elements on the canvas.
    * Only shown when `showShellPreview` is on, a shell exists, and the current
-   * slide hasn't opted out via `hideShell`.
+   * slide doesn't have a shell assigned.
    * @param {HTMLElement} canvas - Slide canvas element
    * @param {import('../models/Slide.js').Slide} activeSlide - Current slide
    * @private
    */
   _renderShellPreview(canvas, activeSlide) {
     if (!this.editor.showShellPreview) return;
+    if (!activeSlide.shellId) return;
 
-    const shell = this.editor.presentation.shell;
+    const shell = this.editor.presentation.getShellById(activeSlide.shellId);
     if (!shell) return;
-    if (activeSlide.hideShell) return;
 
-    const shellMode = this.editor.presentation.shellMode;
+    const shellMode = activeSlide.shellMode;
 
     // Container for all shell preview elements
     const overlay = document.createElement('div');

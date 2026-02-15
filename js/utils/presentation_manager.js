@@ -192,7 +192,9 @@ const PresentationManager = {
                 const data = await PresentationsDB.getPresentation(id);
                 if (data && data.slides) {
                     const thumbIds = data.slides.map(s => s.thumbnailId).filter(Boolean);
-                    if (data.shell?.thumbnailId) thumbIds.push(data.shell.thumbnailId);
+                    if (data.shells) {
+                        data.shells.forEach(s => { if (s.thumbnailId) thumbIds.push(s.thumbnailId); });
+                    }
                     await Promise.all(thumbIds.map(tid => MediaDB.deleteThumbnail(tid).catch(() => {})));
                 }
 

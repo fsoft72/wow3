@@ -24,9 +24,24 @@ export class Presentation {
       version: properties.metadata?.version || '1.0.0'
     };
 
-    // Shell — persistent layer rendered on every slide
-    this.shell = properties.shell ? Slide.fromJSON(properties.shell) : null;
-    this.shellMode = properties.shellMode || 'below'; // 'above' | 'below'
+    // Shells — persistent layers that slides can reference
+    this.shells = [];
+    this.defaultShellId = properties.defaultShellId || null;
+
+    // Backward compat: migrate old single `shell` into shells array
+    if (properties.shell) {
+      const migratedShell = Slide.fromJSON(properties.shell);
+      if (!migratedShell.title || migratedShell.title === 'Shell' || migratedShell.title === 'Untitled Slide') {
+        migratedShell.title = 'Shell 1';
+      }
+      this.shells.push(migratedShell);
+      this.defaultShellId = migratedShell.id;
+    }
+
+    // Load shells from new format
+    if (properties.shells && properties.shells.length > 0) {
+      this.shells = properties.shells.map(s => Slide.fromJSON(s));
+    }
 
     // Slides
     this.slides = [];
@@ -37,6 +52,21 @@ export class Presentation {
     } else {
       // Create at least one slide
       this.slides = [new Slide()];
+    }
+
+    // Backward compat: if we migrated a single shell, assign its ID to slides
+    // that didn't have hideShell === true (and don't already have a shellId)
+    if (properties.shell && this.shells.length > 0) {
+      const migratedId = this.shells[0].id;
+      for (const slide of this.slides) {
+        if (slide.shellId === null && properties.slides) {
+          // Find original slide data to check if it had hideShell
+          const origData = properties.slides.find(s => s.id === slide.id);
+          if (origData && origData.hideShell !== true) {
+            slide.shellId = migratedId;
+          }
+        }
+      }
     }
   }
 
@@ -68,7 +98,10 @@ export class Presentation {
    * @returns {Slide} Added slide
    */
   addSlide(slide = null, index = null) {
-    const newSlide = slide || new Slide({ title: `Slide ${this.slides.length + 1}` });
+    const newSlide = slide || new Slide({
+      title: `Slide ${this.slides.length + 1}`,
+      shellId: this.defaultShellId
+    });
 
     if (index === null || index >= this.slides.length) {
       this.slides.push(newSlide);
@@ -255,29 +288,84 @@ export class Presentation {
   }
 
   /**
-   * Create the shell slide (persistent layer shown on every slide)
+   * Add a new shell and return it
+   * @param {string} [name] - Optional display name
    * @returns {Slide} The created shell
    */
-  createShell() {
-    if (!this.shell) {
-      this.shell = new Slide({ title: 'Shell', background: 'transparent' });
+  addShell(name) {
+    const shellName = name || `Shell ${this.shells.length + 1}`;
+    const shell = new Slide({ title: shellName, background: 'transparent' });
+    this.shells.push(shell);
+    // If this is the first shell, make it the default
+    if (this.shells.length === 1) {
+      this.defaultShellId = shell.id;
     }
-    return this.shell;
+    this.updateModified();
+    return shell;
   }
 
   /**
-   * Remove the shell slide
+   * Remove a shell by ID. Updates all slides referencing it to null.
+   * @param {string} shellId - Shell ID to remove
+   * @returns {boolean} True if removed
    */
-  removeShell() {
-    this.shell = null;
+  removeShell(shellId) {
+    const idx = this.shells.findIndex(s => s.id === shellId);
+    if (idx === -1) return false;
+
+    this.shells.splice(idx, 1);
+
+    // Clear references from all slides
+    for (const slide of this.slides) {
+      if (slide.shellId === shellId) {
+        slide.shellId = null;
+      }
+    }
+
+    // Clear default if it was the removed shell
+    if (this.defaultShellId === shellId) {
+      this.defaultShellId = this.shells.length > 0 ? this.shells[0].id : null;
+    }
+
+    this.updateModified();
+    return true;
   }
 
   /**
-   * Check whether a shell exists
+   * Check whether any shells exist
    * @returns {boolean}
    */
-  hasShell() {
-    return this.shell !== null;
+  hasShells() {
+    return this.shells.length > 0;
+  }
+
+  /**
+   * Get a shell by its ID
+   * @param {string} shellId - Shell ID
+   * @returns {Slide|null} Shell slide or null
+   */
+  getShellById(shellId) {
+    if (!shellId) return null;
+    return this.shells.find(s => s.id === shellId) || null;
+  }
+
+  /**
+   * Get the default (starred) shell
+   * @returns {Slide|null} Default shell or null
+   */
+  getDefaultShell() {
+    return this.getShellById(this.defaultShellId);
+  }
+
+  /**
+   * Set the default shell
+   * @param {string|null} shellId - Shell ID or null to clear
+   */
+  setDefaultShell(shellId) {
+    if (shellId === null || this.getShellById(shellId)) {
+      this.defaultShellId = shellId;
+      this.updateModified();
+    }
   }
 
   /**
@@ -291,8 +379,8 @@ export class Presentation {
       currentSlideIndex: this.currentSlideIndex,
       metadata: { ...this.metadata },
       slides: this.slides.map(slide => slide.toJSON()),
-      shell: this.shell?.toJSON() ?? null,
-      shellMode: this.shellMode
+      shells: this.shells.map(shell => shell.toJSON()),
+      defaultShellId: this.defaultShellId
     };
   }
 

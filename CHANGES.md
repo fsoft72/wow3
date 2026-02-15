@@ -1,5 +1,58 @@
 # WOW3 Development Changelog
 
+## 2026-02-15
+
+### Multi-Shell Support
+
+Replaced the single-shell model with a multi-shell system. Each slide can now choose which shell (or none) to display, and multiple shells can coexist in a presentation.
+
+**Data Model Changes:**
+- `Presentation.js`: Replaced `shell` (single Slide) with `shells[]` (array of Slides) and `defaultShellId`; removed `shellMode` (now per-slide); added `addShell()`, `removeShell(id)`, `hasShells()`, `getShellById(id)`, `getDefaultShell()`, `setDefaultShell(id)`; backward compat migrates old `shell` into `shells[]`
+- `Slide.js`: Replaced `hideShell` (boolean) with `shellId` (string|null) and per-slide `shellMode` ('above'|'below'); backward compat maps `hideShell: true` to `shellId: null`
+
+**Left Panel Changes:**
+- Added tabbed interface (Slides / Shells) to the left sidebar
+- Shells tab: list of shell cards with preview, editable name, star (default) toggle, delete button
+- Removed old shell thumbnail from the top of the slide list
+
+**Right Panel Changes:**
+- Removed `#hide-shell-field` checkbox and `#shell-settings-section`
+- Added shell assignment dropdown (`<select>`) per slide with "None" + all shells
+- Added per-slide shell mode dropdown (Above/Below), only visible when a shell is assigned
+
+**Controller Changes:**
+- `SlideController.js`: Removed `createShellThumbnail()`, `showShellContextMenu()`; added `renderShells()`, `createShellCard()`, `addShell()`, `deleteShell()`, `toggleDefaultShell()`, `_startShellInlineRename()`; updated shell preview to use slide's `shellId` and `shellMode`
+- `EditorController.js`: Added `editingShellId`; `editShell(shellId)` now takes a shell ID; updated `getActiveSlide()`, `updateUI()`, `exitShellEditing()`; replaced old shell event listeners with shell dropdown handlers
+- `PlaybackController.js`: Looks up shell via `slide.shellId` instead of `presentation.shell`; uses per-slide `shellMode`
+- `ElementController.js`: Updated global timer style sync to walk `shells[]` instead of single `shell`
+
+**Other Changes:**
+- `sidebar.css`: Added sidebar tab styles, shell card styles with star/delete/rename
+- `template_manager.js`: Replaced `hideShell: false` with `shellId: null` in built-in templates
+- `presentation_manager.js`: Updated thumbnail cleanup to iterate `shells[]`
+- `storage.js`: Updated media scan and URL rewriting to handle `shells[]` with backward compat for old `shell`
+
+**New Slide Behavior:**
+- New slides get `shellId` set to `defaultShellId` (the starred shell)
+- Template slides get the default shell if they don't have one assigned
+- Duplicated slides keep their original `shellId`
+- Deleting a shell sets `shellId = null` on all slides that referenced it
+
+**Updated Files:**
+- `js/models/Presentation.js`
+- `js/models/Slide.js`
+- `index.html`
+- `css/sidebar.css`
+- `js/controllers/SlideController.js`
+- `js/controllers/EditorController.js`
+- `js/controllers/PlaybackController.js`
+- `js/controllers/ElementController.js`
+- `js/utils/template_manager.js`
+- `js/utils/presentation_manager.js`
+- `js/utils/storage.js`
+
+---
+
 ## 2026-02-14
 
 ### About Dialog

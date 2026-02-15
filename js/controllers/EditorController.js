@@ -40,6 +40,7 @@ export class EditorController {
 
     // Shell editing state
     this.isEditingShell = false;
+    this.editingShellId = null;
 
     // Shell preview overlay while editing a regular slide
     this.showShellPreview = false;
@@ -154,40 +155,29 @@ export class EditorController {
       });
     }
 
-    // Hide shell on this slide
-    const slideHideShell = document.getElementById('slide-hide-shell');
-    if (slideHideShell) {
-      slideHideShell.addEventListener('change', (e) => {
+    // Shell assignment dropdown (per-slide)
+    const slideShellSelect = document.getElementById('slide-shell-select');
+    if (slideShellSelect) {
+      slideShellSelect.addEventListener('change', (e) => {
         const activeSlide = this.getActiveSlide();
-        activeSlide.hideShell = e.target.checked;
+        activeSlide.shellId = e.target.value || null;
         this.recordHistory();
-      });
-    }
-
-    // Shell mode select
-    const shellModeSelect = document.getElementById('shell-mode-select');
-    if (shellModeSelect) {
-      shellModeSelect.addEventListener('change', (e) => {
-        this.presentation.shellMode = e.target.value;
-        this.recordHistory();
-      });
-    }
-
-    // Remove shell button
-    const removeShellBtn = document.getElementById('remove-shell-btn');
-    if (removeShellBtn) {
-      removeShellBtn.addEventListener('click', () => {
-        const shell = this.presentation.shell;
-        const shellId = shell?.id;
-        const shellThumbId = shell?.thumbnailId;
-        this.presentation.removeShell();
-        this.exitShellEditing();
-        this.recordHistory();
-        if (shellId) {
-          this.slideController._thumbCache.delete(shellId);
+        this.updateUI();
+        if (this.slideController) {
+          this.slideController.renderCurrentSlide();
         }
-        if (shellThumbId) {
-          window.MediaDB.deleteThumbnail(shellThumbId).catch(() => {});
+      });
+    }
+
+    // Shell mode dropdown (per-slide)
+    const slideShellMode = document.getElementById('slide-shell-mode');
+    if (slideShellMode) {
+      slideShellMode.addEventListener('change', (e) => {
+        const activeSlide = this.getActiveSlide();
+        activeSlide.shellMode = e.target.value;
+        this.recordHistory();
+        if (this.slideController) {
+          this.slideController.renderCurrentSlide();
         }
       });
     }
@@ -468,32 +458,43 @@ export class EditorController {
       slideBackground.value = activeSlide.background;
     }
 
-    // Shell settings section visibility
-    const shellSection = document.getElementById('shell-settings-section');
-    if (shellSection) {
-      shellSection.style.display = this.presentation.hasShell() ? 'block' : 'none';
+    // Shell dropdown — populate with available shells
+    const hasShells = this.presentation.hasShells();
+    const slideShellField = document.getElementById('slide-shell-field');
+    const slideShellSelect = document.getElementById('slide-shell-select');
+    if (slideShellField && slideShellSelect) {
+      slideShellField.style.display = hasShells && !this.isEditingShell ? 'block' : 'none';
+
+      if (hasShells && !this.isEditingShell) {
+        // Rebuild options
+        slideShellSelect.innerHTML = '<option value="">None</option>';
+        for (const shell of this.presentation.shells) {
+          const option = document.createElement('option');
+          option.value = shell.id;
+          option.textContent = shell.title;
+          if (activeSlide.shellId === shell.id) {
+            option.selected = true;
+          }
+          slideShellSelect.appendChild(option);
+        }
+      }
     }
 
-    const shellModeSelect = document.getElementById('shell-mode-select');
-    if (shellModeSelect) {
-      shellModeSelect.value = this.presentation.shellMode;
+    // Shell mode dropdown — visible only when a shell is selected
+    const slideShellModeField = document.getElementById('slide-shell-mode-field');
+    const slideShellModeSelect = document.getElementById('slide-shell-mode');
+    if (slideShellModeField && slideShellModeSelect) {
+      const showMode = hasShells && !this.isEditingShell && activeSlide.shellId;
+      slideShellModeField.style.display = showMode ? 'block' : 'none';
+      if (showMode) {
+        slideShellModeSelect.value = activeSlide.shellMode || 'above';
+      }
     }
 
-    // Hide-shell-per-slide checkbox (only visible when shell exists and not editing the shell itself)
-    const hasShell = this.presentation.hasShell();
-    const hideShellField = document.getElementById('hide-shell-field');
-    if (hideShellField) {
-      hideShellField.style.display = hasShell && !this.isEditingShell ? 'block' : 'none';
-    }
-    const slideHideShell = document.getElementById('slide-hide-shell');
-    if (slideHideShell) {
-      slideHideShell.checked = activeSlide.hideShell || false;
-    }
-
-    // Shell preview toggle button — visible when shell exists and not editing shell
+    // Shell preview toggle button — visible when slide has a shell assigned and not editing shell
     const shellPreviewBtn = document.getElementById('shell-preview-btn');
     if (shellPreviewBtn) {
-      const showBtn = hasShell && !this.isEditingShell;
+      const showBtn = !this.isEditingShell && activeSlide.shellId;
       shellPreviewBtn.style.display = showBtn ? 'inline-flex' : 'none';
       shellPreviewBtn.classList.toggle('active', this.showShellPreview);
       const icon = shellPreviewBtn.querySelector('i');
@@ -508,29 +509,41 @@ export class EditorController {
    * @returns {Slide} Active slide
    */
   getActiveSlide() {
-    if (this.isEditingShell && this.presentation.shell) {
-      return this.presentation.shell;
+    if (this.isEditingShell && this.editingShellId) {
+      const shell = this.presentation.getShellById(this.editingShellId);
+      if (shell) return shell;
     }
     return this.presentation.getCurrentSlide();
   }
 
   /**
-   * Enter shell editing mode (creates shell if needed)
+   * Enter shell editing mode for a specific shell
+   * @param {string} shellId - Shell ID to edit
    */
-  editShell() {
+  editShell(shellId) {
+    if (!shellId) return;
+
+    const shell = this.presentation.getShellById(shellId);
+    if (!shell) return;
+
     // Flush any pending thumbnail capture before switching to shell
     if (this.slideController) {
       this.slideController.flushThumbnailCapture();
     }
 
-    this.presentation.createShell();
     this.isEditingShell = true;
+    this.editingShellId = shellId;
 
     if (this.elementController) {
       this.elementController.deselectAll();
     }
 
     this.render();
+
+    // Update shells tab if visible
+    if (this.slideController) {
+      this.slideController.renderShells();
+    }
   }
 
   /**
@@ -538,6 +551,7 @@ export class EditorController {
    */
   exitShellEditing() {
     this.isEditingShell = false;
+    this.editingShellId = null;
 
     if (this.elementController) {
       this.elementController.deselectAll();
@@ -585,6 +599,11 @@ export class EditorController {
   addSlideFromTemplate(slideData) {
     const tempSlide = Slide.fromJSON(slideData);
     const newSlide = tempSlide.clone();
+
+    // Assign default shell if the template doesn't have a specific shell
+    if (!newSlide.shellId && this.presentation.defaultShellId) {
+      newSlide.shellId = this.presentation.defaultShellId;
+    }
 
     const insertIndex = this.presentation.currentSlideIndex + 1;
     this.presentation.addSlide(newSlide, insertIndex);
@@ -723,6 +742,7 @@ export class EditorController {
     const data = JSON.parse(state);
     this.presentation = Presentation.fromJSON(data);
     this.isEditingShell = false;
+    this.editingShellId = null;
     await this.render();
   }
 

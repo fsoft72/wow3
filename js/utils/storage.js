@@ -383,6 +383,10 @@ const collectMediaIds = (jsonData) => {
   if (Array.isArray(jsonData.slides)) {
     jsonData.slides.forEach(scanSlide);
   }
+  if (Array.isArray(jsonData.shells)) {
+    jsonData.shells.forEach(scanSlide);
+  }
+  // Backward compat: old single shell
   if (jsonData.shell) {
     scanSlide(jsonData.shell);
   }
@@ -428,6 +432,10 @@ const rewriteMediaUrls = (jsonData, urlMap) => {
   if (Array.isArray(jsonData.slides)) {
     jsonData.slides.forEach(rewriteSlide);
   }
+  if (Array.isArray(jsonData.shells)) {
+    jsonData.shells.forEach(rewriteSlide);
+  }
+  // Backward compat: old single shell
   if (jsonData.shell) {
     rewriteSlide(jsonData.shell);
   }

@@ -623,9 +623,9 @@ export class ElementController {
       }
     }
 
-    // Walk shell if it exists
-    if (presentation.shell) {
-      for (const el of presentation.shell.elements) {
+    // Walk shells
+    for (const shell of presentation.shells) {
+      for (const el of shell.elements) {
         applyToElement(el);
       }
     }

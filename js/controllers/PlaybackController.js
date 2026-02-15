@@ -200,8 +200,8 @@ export class PlaybackController {
     `;
 
     // Create shell and slide layers
-    const shell = this.editor.presentation.shell;
-    const shellMode = this.editor.presentation.shellMode;
+    const shell = slide.shellId ? this.editor.presentation.getShellById(slide.shellId) : null;
+    const shellMode = slide.shellMode || 'above';
 
     const shellLayer = document.createElement('div');
     shellLayer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;';
@@ -218,8 +218,8 @@ export class PlaybackController {
       slideContainer.appendChild(shellLayer);
     }
 
-    // Render shell elements (static, no animations) — skip if slide hides shell
-    if (shell && !slide.hideShell) {
+    // Render shell elements (static, no animations)
+    if (shell) {
       shell.elements.forEach((element, idx) => {
         const elementDOM = element.render(idx);
         shellLayer.appendChild(elementDOM);

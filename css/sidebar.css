@@ -3,6 +3,201 @@
  * Styles for left and right sidebars, slide list, and elements tree
  */
 
+/* ==================== LEFT SIDEBAR TABS ==================== */
+
+.sidebar-tabs {
+  display: flex;
+  border-bottom: 2px solid #e0e0e0;
+  background: #fafafa;
+}
+
+.sidebar-tab {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #888;
+  transition: color 0.2s, border-bottom 0.2s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.sidebar-tab:hover {
+  color: #333;
+}
+
+.sidebar-tab.active {
+  color: #1565C0;
+  border-bottom-color: #1565C0;
+}
+
+.sidebar-tab[data-sidebar-tab="shells"].active {
+  color: #7B1FA2;
+  border-bottom-color: #7B1FA2;
+}
+
+.sidebar-tab-content {
+  display: none;
+}
+
+.sidebar-tab-content.active {
+  display: block;
+}
+
+/* ==================== SHELL LIST (Shells tab) ==================== */
+
+.shell-list {
+  padding: 8px;
+}
+
+.shell-card {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border: 2px dashed #9C27B0;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  background: white;
+}
+
+.shell-card.active {
+  border-style: solid;
+  border-color: #9C27B0;
+  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.3);
+}
+
+.shell-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Shell card action buttons */
+.shell-card-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 3;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.shell-card:hover .shell-card-actions {
+  opacity: 1;
+}
+
+.shell-card-action {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.shell-card-action i {
+  font-size: 16px;
+}
+
+.shell-card-action:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.shell-card-action.star-btn i {
+  color: #FFD54F;
+}
+
+.shell-card-action.star-btn.is-default i {
+  text-shadow: 0 0 4px rgba(255, 213, 79, 0.6);
+}
+
+/* Always show star for default shell */
+.shell-card .shell-card-action.star-btn.is-default {
+  opacity: 1;
+}
+
+/* Shell name label */
+.shell-card .shell-name-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(156, 39, 176, 0.8);
+  color: white;
+  padding: 3px 8px;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 2;
+  cursor: text;
+}
+
+/* Shell name inline edit */
+.shell-name-input {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  padding: 3px 8px;
+  font-size: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  outline: none;
+  z-index: 3;
+  box-sizing: border-box;
+  font-family: inherit;
+  -webkit-appearance: none;
+}
+
+.shell-name-input::selection {
+  background: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+/* Shell card number badge */
+.shell-card-number {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(156, 39, 176, 0.8);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 2;
+}
+
+/* Empty shells state */
+.shell-list-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.shell-list-empty i {
+  font-size: 48px;
+  margin-bottom: 12px;
+  display: block;
+  color: #CE93D8;
+}
+
 /* ==================== SLIDE LIST ==================== */
 
 .slide-list {
@@ -181,7 +376,7 @@
   display: block;
 }
 
-/* ==================== SHELL THUMBNAIL ==================== */
+/* ==================== SHELL THUMBNAIL (legacy, kept for compat) ==================== */
 
 .shell-thumbnail {
   border: 2px dashed #9C27B0;
