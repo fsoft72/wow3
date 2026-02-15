@@ -2,6 +2,44 @@
 
 ## 2026-02-15
 
+### Offline Mode: CDN Dependencies Removed
+
+Removed all CDN dependencies and moved external libraries to the local `ext/` folder for offline operation.
+
+**Downloaded Libraries:**
+- MaterializeCSS v1.0.0 (CSS + JS) → `ext/materialize/`
+- Material Icons font (woff2) → `ext/material-icons/`
+- JSZip v3.10.1 → `ext/jszip/`
+- html2canvas v1.4.1 → `ext/html2canvas/`
+
+**Changes:**
+- Created custom Material Icons CSS file with local font reference
+- Updated all CDN URLs in `index.html` to point to local files
+- App now works completely offline without internet connection
+
+**Updated Files:**
+- `index.html`: Replaced all 5 CDN links with local file references
+- `ext/material-icons/material-icons.css`: New local font CSS file
+
+**New Directory Structure:**
+```
+ext/
+├── html2canvas/
+│   └── html2canvas.min.js
+├── jszip/
+│   └── jszip.min.js
+├── material-icons/
+│   ├── MaterialIcons-Regular.woff2
+│   └── material-icons.css
+└── materialize/
+    ├── materialize.min.css
+    └── materialize.min.js
+```
+
+---
+
+## 2026-02-15
+
 ### Settings Window
 
 Added a floating Settings panel with General and Theme tabs, accessible from the status bar.
