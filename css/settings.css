@@ -553,6 +553,14 @@ body.dark-mode .control-group label {
   color: #ddd;
 }
 
+body.dark-mode .control-group label span {
+  color: #ddd;
+}
+
+body.dark-mode input[type="checkbox"] + span {
+  color: #ddd;
+}
+
 body.dark-mode .panel-tab {
   color: #aaa;
 }

@@ -360,7 +360,7 @@ export class PlaybackController {
     if (next !== -1) {
       this.showSlide(next);
     } else {
-      toast.info('End of presentation');
+      this._showEndSlide();
     }
   }
 
@@ -372,6 +372,47 @@ export class PlaybackController {
     if (prev !== -1) {
       this.showSlide(prev);
     }
+  }
+
+  /**
+   * Show end-of-presentation slide
+   */
+  _showEndSlide() {
+    if (!this.presentationView) return;
+
+    // Clean up countdown timer
+    this._stopCountdown();
+
+    // Clean up animation state
+    if (this._animationManager) {
+      this._animationManager.cleanup();
+      this._animationManager = null;
+    }
+
+    // Clear and create end slide
+    this.presentationView.innerHTML = '';
+
+    const endSlide = document.createElement('div');
+    endSlide.style.cssText = `
+      width: 1280px;
+      height: 720px;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    `;
+
+    const text = document.createElement('div');
+    text.textContent = 'Presentation ended';
+    text.style.cssText = `
+      color: #fff;
+      font-size: 48px;
+      font-weight: 300;
+    `;
+
+    endSlide.appendChild(text);
+    this.presentationView.appendChild(endSlide);
   }
 
   /**

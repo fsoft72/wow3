@@ -2,58 +2,35 @@
 
 ## 2026-02-15
 
+### Feature: Presentation End Slide
+
+Added a dedicated end slide shown when advancing past the last slide during playback.
+
+**Changes:**
+- When pressing "next" on the last slide, shows a black slide with white "Presentation ended" text
+- Replaces the previous toast notification approach
+- Properly cleans up countdown timers and animations before showing end slide
+
+**Updated Files:**
+- `js/controllers/PlaybackController.js`: Added `_showEndSlide()` method, modified `nextSlide()` to call it
+
+---
+
 ### Fix: Dark Mode Text Contrast
 
 Fixed poor contrast in dark mode where labels and form controls were barely visible.
 
 **Changes:**
 - Added dark mode styles for all `.control-group label` elements (changed from `#333` to `#ddd`)
+- Added dark mode styles for checkbox labels (`input[type="checkbox"] + span`)
 - Added dark mode styles for panel tabs, inputs, sliders, and buttons
 - Added dark mode styles for color pickers, upload areas, and section titles
 - All form controls now have proper contrast in dark mode with light text on dark backgrounds
 
 **Updated Files:**
-- `css/settings.css`: Added comprehensive dark mode overrides for property panels
+- `css/settings.css`: Added comprehensive dark mode overrides for property panels and checkbox labels
 
 ---
-
-### Offline Mode: CDN Dependencies Removed
-
-Removed all CDN dependencies and moved external libraries to the local `ext/` folder for offline operation.
-
-**Downloaded Libraries:**
-- MaterializeCSS v1.0.0 (CSS + JS) → `ext/materialize/`
-- Material Icons font (woff2) → `ext/material-icons/`
-- JSZip v3.10.1 → `ext/jszip/`
-- html2canvas v1.4.1 → `ext/html2canvas/`
-
-**Changes:**
-- Created custom Material Icons CSS file with local font reference
-- Updated all CDN URLs in `index.html` to point to local files
-- App now works completely offline without internet connection
-
-**Updated Files:**
-- `index.html`: Replaced all 5 CDN links with local file references
-- `ext/material-icons/material-icons.css`: New local font CSS file
-
-**New Directory Structure:**
-```
-ext/
-├── html2canvas/
-│   └── html2canvas.min.js
-├── jszip/
-│   └── jszip.min.js
-├── material-icons/
-│   ├── MaterialIcons-Regular.woff2
-│   └── material-icons.css
-└── materialize/
-    ├── materialize.min.css
-    └── materialize.min.js
-```
-
----
-
-## 2026-02-15
 
 ### Settings Window
 
