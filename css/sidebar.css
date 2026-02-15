@@ -32,8 +32,8 @@
 }
 
 .sidebar-tab.active {
-  color: #1565C0;
-  border-bottom-color: #1565C0;
+  color: var(--primary-nav, #1565C0);
+  border-bottom-color: var(--primary-nav, #1565C0);
 }
 
 .sidebar-tab[data-sidebar-tab="shells"].active {

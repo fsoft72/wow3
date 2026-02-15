@@ -10,8 +10,10 @@ import {
   SlideController,
   ElementController,
   AnimationEditorController,
-  PlaybackController
+  PlaybackController,
+  SettingsController
 } from './controllers/index.js';
+import { loadSettings } from './utils/settings.js';
 import {
   DragHandler,
   ResizeHandler,
@@ -25,6 +27,8 @@ class WOW3App {
   constructor() {
     this.editor = null;
     this.uiManager = null;
+    this.settingsController = null;
+    this._autosaveIntervalId = null;
     this.initialized = false;
   }
 
@@ -52,10 +56,14 @@ class WOW3App {
       this.editor.animationEditorController = new AnimationEditorController(this.editor);
       this.editor.playbackController = new PlaybackController(this.editor);
 
+      // Initialize Settings Controller
+      this.settingsController = new SettingsController(this.editor);
+
       await this.editor.slideController.init();
       await this.editor.elementController.init();
       await this.editor.animationEditorController.init();
       await this.editor.playbackController.init();
+      this.settingsController.init();
 
       // Initialize interaction handlers
       this.editor.elementController.dragHandler = new DragHandler(this.editor.elementController);
@@ -73,6 +81,9 @@ class WOW3App {
 
       // Load or create presentation
       await this.loadPresentation();
+
+      // Apply saved theme before first render
+      this.settingsController.applyTheme();
 
       // Setup global event listeners
       this.setupGlobalEvents();
@@ -161,13 +172,8 @@ class WOW3App {
    * Setup global event listeners
    */
   setupGlobalEvents() {
-    // Auto-save interval
-    setInterval(() => {
-      if (this.editor && this.editor.hasUnsavedChanges && this.editor.hasUnsavedChanges()) {
-        console.log('Auto-saving...');
-        this.editor.autoSave();
-      }
-    }, 30000); // Every 30 seconds
+    // Start autosave with settings-driven interval
+    this._startAutosave();
 
     // Window resize
     window.addEventListener('resize', () => {
@@ -293,6 +299,20 @@ class WOW3App {
         }
       }
     });
+  }
+
+  /**
+   * Start or restart the autosave interval using the settings value.
+   */
+  _startAutosave() {
+    if (this._autosaveIntervalId) clearInterval(this._autosaveIntervalId);
+    const seconds = loadSettings().general.autosaveInterval || 15;
+    this._autosaveIntervalId = setInterval(() => {
+      if (this.editor && this.editor.hasUnsavedChanges && this.editor.hasUnsavedChanges()) {
+        console.log('Auto-saving...');
+        this.editor.autoSave();
+      }
+    }, seconds * 1000);
   }
 
   /**

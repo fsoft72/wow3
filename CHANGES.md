@@ -2,6 +2,41 @@
 
 ## 2026-02-15
 
+### Settings Window
+
+Added a floating Settings panel with General and Theme tabs, accessible from the status bar.
+
+**General Tab:**
+- Autosave interval (5-300 seconds, default 15s) — changes restart the autosave timer immediately
+
+**Theme Tab:**
+- Light / Dark mode toggle
+- Color pickers for Navbar, Buttons, and Panel headers with hex text input and reset-to-default buttons
+- All color changes apply immediately via CSS custom properties
+
+**Dark Mode:**
+- Full dark mode support for sidebars, status bar, property panels, tabs, inputs, floating panels
+- Slide canvas is NOT affected (keeps per-slide background)
+
+**Persistence:**
+- All settings stored in `localStorage` under key `"wow3"`
+- Settings restored on page reload, including theme colors and dark mode
+
+**New Files:**
+- `js/utils/settings.js`: Settings model with `loadSettings()`, `saveSettings()`, `getSetting()`, `setSetting()`, exposed as `window.WOW3Settings`
+- `js/controllers/SettingsController.js`: Floating panel controller with drag, tab switching, theme application
+- `css/settings.css`: Panel styles, form controls, dark mode overrides
+
+**Updated Files:**
+- `index.html`: Added settings panel HTML, status bar button, CSS link, script tag
+- `js/controllers/index.js`: Export `SettingsController`
+- `js/app.js`: Import & init SettingsController, refactored autosave to be restartable via `_startAutosave()`, apply theme on startup
+- `css/main.css`: Added CSS custom properties (`--primary-nav`, `--primary-button`, `--primary-panel`)
+- `css/animation-editor.css`: Replaced hardcoded `#1565c0` with `var(--primary-panel)` in panel header
+- `css/sidebar.css`: Replaced hardcoded `#1565C0` with `var(--primary-nav)` in active tab
+
+---
+
 ### Multi-Shell Support
 
 Replaced the single-shell model with a multi-shell system. Each slide can now choose which shell (or none) to display, and multiple shells can coexist in a presentation.

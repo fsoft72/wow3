@@ -10,6 +10,9 @@
   --canvas-bg: #f5f5f5;
   --sidebar-bg: #ffffff;
   --border-color: #e0e0e0;
+  --primary-nav: #1565C0;
+  --primary-button: #1976D2;
+  --primary-panel: #1565C0;
 }
 
 * {

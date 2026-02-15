@@ -8,3 +8,4 @@ export { SlideController } from './SlideController.js';
 export { ElementController } from './ElementController.js';
 export { AnimationEditorController } from './AnimationEditorController.js';
 export { PlaybackController } from './PlaybackController.js';
+export { SettingsController } from './SettingsController.js';

@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="css/dialog.css">
   <link rel="stylesheet" href="css/panels.css">
   <link rel="stylesheet" href="css/countdown-timer.css">
+  <link rel="stylesheet" href="css/settings.css">
 </head>
 <body>
   <!-- Top Menu Bar -->
@@ -178,6 +179,10 @@
       <i class="material-icons">layers_clear</i>
       <span>Shell</span>
     </button>
+    <button id="settings-panel-btn" class="settings-panel-toggle" title="Settings">
+      <i class="material-icons">settings</i>
+      <span>Settings</span>
+    </button>
     <span id="zoom-level">100%</span>
   </footer>
 
@@ -219,6 +224,25 @@
     </div>
   </div>
 
+  <!-- Settings Panel (floating) -->
+  <div id="settings-panel" class="settings-panel">
+    <div class="settings-panel-header">
+      <div class="settings-panel-tabs">
+        <button class="settings-panel-tab active" data-settings-tab="general">
+          <i class="material-icons">tune</i> General
+        </button>
+        <button class="settings-panel-tab" data-settings-tab="theme">
+          <i class="material-icons">palette</i> Theme
+        </button>
+      </div>
+      <button class="settings-panel-close"><i class="material-icons">close</i></button>
+    </div>
+    <div class="settings-panel-body">
+      <div id="settings-tab-general" class="settings-panel-content active"></div>
+      <div id="settings-tab-theme" class="settings-panel-content"></div>
+    </div>
+  </div>
+
   <!-- Presentation View (Fullscreen) -->
   <div id="presentation-view" style="display: none;">
     <!-- Presentation slides rendered here during playback -->
@@ -243,6 +267,7 @@
   <script src="js/utils/presentation_manager.js"></script>
   <script src="js/utils/templates_db.js"></script>
   <script src="js/utils/template_manager.js"></script>
+  <script src="js/utils/settings.js"></script>
 
   <!-- Application JavaScript (ES6 Modules) -->
   <script type="module" src="js/app.js"></script>
