@@ -2,18 +2,33 @@
 
 ## 2026-02-15
 
+### Feature: Presentation End Slide
+
+Added a dedicated end slide shown when advancing past the last slide during playback.
+
+**Changes:**
+- When pressing "next" on the last slide, shows a black slide with white "Presentation ended" text
+- Replaces the previous toast notification approach
+- Properly cleans up countdown timers and animations before showing end slide
+
+**Updated Files:**
+- `js/controllers/PlaybackController.js`: Added `_showEndSlide()` method, modified `nextSlide()` to call it
+
+---
+
 ### Fix: Dark Mode Text Contrast
 
 Fixed poor contrast in dark mode where labels and form controls were barely visible.
 
 **Changes:**
 - Added dark mode styles for all `.control-group label` elements (changed from `#333` to `#ddd`)
+- Added dark mode styles for checkbox labels (`input[type="checkbox"] + span`)
 - Added dark mode styles for panel tabs, inputs, sliders, and buttons
 - Added dark mode styles for color pickers, upload areas, and section titles
 - All form controls now have proper contrast in dark mode with light text on dark backgrounds
 
 **Updated Files:**
-- `css/settings.css`: Added comprehensive dark mode overrides for property panels
+- `css/settings.css`: Added comprehensive dark mode overrides for property panels and checkbox labels
 
 ---
 
