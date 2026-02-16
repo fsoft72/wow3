@@ -192,22 +192,17 @@ export class PlaybackController {
 
     this.currentSlideIndex = index;
 
-    // Preserve continuing audio element before clearing
-    let continuingAudioElement = null;
-    if (window.AudioManager) {
-      const continuingAudioId = window.AudioManager.getContinuingAudio();
-      if (continuingAudioId) {
-        // Find the audio element wrapper in the DOM by its id
-        const audioWrapper = document.getElementById(continuingAudioId);
-        if (audioWrapper) {
-          continuingAudioElement = audioWrapper;
-          audioWrapper.remove(); // Detach from DOM but keep reference
-        }
-      }
-    }
+    // Get continuing audio ID before clearing
+    const continuingAudioId = window.AudioManager?.getContinuingAudio();
 
-    // Clear presentation view
-    this.presentationView.innerHTML = '';
+    // Clear presentation view, but preserve continuing audio element
+    Array.from(this.presentationView.children).forEach(child => {
+      // Skip the continuing audio element if it exists
+      if (continuingAudioId && child.id === continuingAudioId) {
+        return; // Keep this element in the DOM
+      }
+      child.remove();
+    });
 
     // Create slide container at design dimensions
     const slideContainer = document.createElement('div');
@@ -320,15 +315,18 @@ export class PlaybackController {
       await this._animationManager.play();
     }
 
-    // Re-append continuing audio element if it should continue on this slide
-    if (continuingAudioElement) {
+    // Remove continuing audio element if new slide has autoplay audio
+    if (continuingAudioId) {
       const hasAutoplayAudio = slide.elements && slide.elements.some(
         el => el.type === 'audio' && el.properties && el.properties.autoplay
       );
 
-      if (!hasAutoplayAudio) {
-        // No competing audio on this slide - re-attach continuing audio
-        slideContainer.appendChild(continuingAudioElement);
+      if (hasAutoplayAudio) {
+        // New slide has competing audio - remove the continuing audio element
+        const continuingAudioElement = document.getElementById(continuingAudioId);
+        if (continuingAudioElement) {
+          continuingAudioElement.remove();
+        }
       }
     }
 
