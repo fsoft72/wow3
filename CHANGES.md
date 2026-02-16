@@ -2,6 +2,25 @@
 
 ## 2026-02-16
 
+### Fix: Slide Drag-and-Drop Reordering
+
+Restored the ability to reorder slides via drag-and-drop in the left panel.
+
+**Root Cause:**
+- Child elements inside slide thumbnails (slide number, visibility button, preview, name label) were blocking drag events
+- When hovering over a slide, the name label's `pointer-events: auto` was capturing drag events instead of letting them bubble to the parent thumbnail element
+- The parent thumbnail has `draggable="true"`, but the child elements were interfering
+
+**Fix:**
+- Set `draggable="false"` on all child elements (slide number, visibility button, preview, name label)
+- Added `mousedown` stopPropagation on name label to prevent drag conflicts
+- Drag events now properly reach the parent thumbnail element
+
+**Updated Files:**
+- `js/controllers/SlideController.js`: Added draggable=false to all child elements in createSlideThumbnail()
+
+---
+
 ### Fix: Presentation Canvas Now Fullscreen During Playback
 
 Fixed the presentation to properly scale and fill the entire screen while maintaining the 16:9 aspect ratio.
