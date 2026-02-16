@@ -198,9 +198,11 @@ export class PlaybackController {
 
     // Clear presentation view, but preserve continuing audio element
     // First, detach the continuing audio element if it exists
+    // IMPORTANT: Search within presentation view only, not entire document
+    // (there may be another element with same ID in the editor)
     let continuingAudioElement = null;
     if (continuingAudioId) {
-      continuingAudioElement = document.getElementById(continuingAudioId);
+      continuingAudioElement = this.presentationView.querySelector(`#${continuingAudioId}`);
       console.log('[PlaybackController] Found continuing audio element:', continuingAudioElement);
       console.log('[PlaybackController] Continuing audio element parent:', continuingAudioElement?.parentElement?.className);
       console.log('[PlaybackController] Is audio playing?', continuingAudioElement?.querySelector('audio')?.paused === false);
