@@ -192,6 +192,20 @@ export class PlaybackController {
 
     this.currentSlideIndex = index;
 
+    // Preserve continuing audio element before clearing
+    let continuingAudioElement = null;
+    if (window.AudioManager) {
+      const continuingAudioId = window.AudioManager.getContinuingAudio();
+      if (continuingAudioId) {
+        // Find the audio element wrapper in the DOM by its id
+        const audioWrapper = document.getElementById(continuingAudioId);
+        if (audioWrapper) {
+          continuingAudioElement = audioWrapper;
+          audioWrapper.remove(); // Detach from DOM but keep reference
+        }
+      }
+    }
+
     // Clear presentation view
     this.presentationView.innerHTML = '';
 
@@ -304,6 +318,18 @@ export class PlaybackController {
       this._animationManager.loadSequence(slide.animationSequence);
       this._animationManager.prepareInitialState();
       await this._animationManager.play();
+    }
+
+    // Re-append continuing audio element if it should continue on this slide
+    if (continuingAudioElement) {
+      const hasAutoplayAudio = slide.elements && slide.elements.some(
+        el => el.type === 'audio' && el.properties && el.properties.autoplay
+      );
+
+      if (!hasAutoplayAudio) {
+        // No competing audio on this slide - re-attach continuing audio
+        slideContainer.appendChild(continuingAudioElement);
+      }
     }
 
     // Notify AudioManager of slide change
