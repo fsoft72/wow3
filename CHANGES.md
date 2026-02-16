@@ -4,20 +4,26 @@
 
 ### Fix: Presentation Canvas Now Fullscreen During Playback
 
-Fixed the presentation canvas to properly fill the entire screen instead of appearing as a small 1280x720px box in the center.
+Fixed the presentation to properly scale and fill the entire screen while maintaining the 16:9 aspect ratio.
 
 **Root Cause:**
-- Slide containers were hardcoded to fixed dimensions (1280x720px) instead of filling the fullscreen presentation view
-- The `#presentation-view` container was correctly fullscreen (100vw x 100vh), but slide containers inside were limited to 16:9 design dimensions
+- Initial fix made containers 100% width/height, but elements were positioned at 1280x720 design coordinates
+- Elements appeared small in the top-left corner because they weren't scaled to match the fullscreen container
+
+**Solution:**
+- Keep slide containers at their design dimensions (1280x720px)
+- Calculate scale factor to fit viewport: `scale = Math.min(viewportWidth/1280, viewportHeight/720)`
+- Apply CSS `transform: scale()` with center origin to scale content proportionally
+- The `#presentation-view` flexbox centers the scaled container
 
 **Changes:**
-- Updated `showSlide()` method to use 100% width/height for slide containers
-- Updated `_showEndSlide()` method to use 100% width/height for end slide
-- Removed unnecessary `box-shadow` styling for cleaner fullscreen appearance
-- Slides now scale to fill the entire screen while maintaining their designed layout
+- Updated `showSlide()` to calculate viewport-based scale and apply transform
+- Updated `_showEndSlide()` to apply the same scaling logic
+- Content now scales proportionally to fill available screen space while maintaining aspect ratio
+- Slides are centered on screen regardless of viewport size
 
 **Updated Files:**
-- `js/controllers/PlaybackController.js`: Changed slide container dimensions from fixed pixels to percentage-based
+- `js/controllers/PlaybackController.js`: Added scale calculation and CSS transform to slide containers
 
 ---
 
