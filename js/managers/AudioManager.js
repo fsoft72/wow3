@@ -174,23 +174,31 @@ class AudioManager {
 		console.log('[AudioManager] onSlideChange called, slide:', slide.title || 'untitled');
 		console.log('[AudioManager] Current continuing audio ID:', this._continuingAudioId);
 
-		// Check if new slide has any audio elements that will autoplay
-		const hasAutoplayAudio = slide.elements && slide.elements.some(
-			el => el.type === 'audio' && el.properties && el.properties.autoplay
-		);
-		console.log('[AudioManager] Slide has autoplay audio:', hasAutoplayAudio);
+		// Check if the continuing audio is one of this slide's audio elements
+		const continuingAudioOnThisSlide = this._continuingAudioId && slide.elements &&
+			slide.elements.some(el => el.id === this._continuingAudioId);
+		console.log('[AudioManager] Continuing audio is on this slide:', continuingAudioOnThisSlide);
 
-		if ( hasAutoplayAudio ) {
-			// New slide has autoplay audio - fade out and stop continuing audio
+		// Check if new slide has any autoplay audio (excluding the continuing audio itself)
+		const hasCompetingAutoplayAudio = slide.elements && slide.elements.some(
+			el => el.type === 'audio' &&
+			      el.properties &&
+			      el.properties.autoplay &&
+			      el.id !== this._continuingAudioId
+		);
+		console.log('[AudioManager] Slide has competing autoplay audio:', hasCompetingAutoplayAudio);
+
+		if ( hasCompetingAutoplayAudio ) {
+			// New slide has competing autoplay audio - fade out and stop continuing audio
 			if ( this._continuingAudioId ) {
 				console.log('[AudioManager] Fading out continuing audio:', this._continuingAudioId);
 				this._fadeOutAndStop(this._continuingAudioId);
 				this._continuingAudioId = null;
 			}
 		} else {
-			console.log('[AudioManager] No autoplay audio, continuing audio should continue');
+			console.log('[AudioManager] No competing autoplay audio, continuing audio should continue');
 		}
-		// If no autoplay audio, let continuing audio continue playing
+		// If no competing autoplay audio, let continuing audio continue playing
 
 		// Start autoplay audio if present on new slide
 		if ( slide.elements ) {
