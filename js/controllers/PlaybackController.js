@@ -194,13 +194,16 @@ export class PlaybackController {
 
     // Get continuing audio ID before clearing
     const continuingAudioId = window.AudioManager?.getContinuingAudio();
+    console.log('[PlaybackController] Continuing audio ID:', continuingAudioId);
 
     // Clear presentation view, but preserve continuing audio element
     Array.from(this.presentationView.children).forEach(child => {
       // Skip the continuing audio element if it exists
       if (continuingAudioId && child.id === continuingAudioId) {
+        console.log('[PlaybackController] Preserving continuing audio element:', child.id);
         return; // Keep this element in the DOM
       }
+      console.log('[PlaybackController] Removing child:', child.id || child.className);
       child.remove();
     });
 
@@ -320,13 +323,17 @@ export class PlaybackController {
       const hasAutoplayAudio = slide.elements && slide.elements.some(
         el => el.type === 'audio' && el.properties && el.properties.autoplay
       );
+      console.log('[PlaybackController] New slide has autoplay audio:', hasAutoplayAudio);
 
       if (hasAutoplayAudio) {
         // New slide has competing audio - remove the continuing audio element
         const continuingAudioElement = document.getElementById(continuingAudioId);
+        console.log('[PlaybackController] Removing continuing audio element (competing audio)');
         if (continuingAudioElement) {
           continuingAudioElement.remove();
         }
+      } else {
+        console.log('[PlaybackController] Continuing audio should continue playing');
       }
     }
 

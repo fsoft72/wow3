@@ -58,6 +58,7 @@ class AudioManager {
 		audioElement.addEventListener('play', () => {
 			// If this audio has continueOnSlides enabled, mark it as continuing
 			if ( properties.continueOnSlides ) {
+				console.log('[AudioManager] Audio started with continueOnSlides, setting as continuing:', elementId);
 				this._continuingAudioId = elementId;
 			}
 			this.emit('playStateChanged', { elementId, playing: true });
@@ -170,17 +171,24 @@ class AudioManager {
 	onSlideChange(slide) {
 		if ( ! slide ) return;
 
+		console.log('[AudioManager] onSlideChange called, slide:', slide.title || 'untitled');
+		console.log('[AudioManager] Current continuing audio ID:', this._continuingAudioId);
+
 		// Check if new slide has any audio elements that will autoplay
 		const hasAutoplayAudio = slide.elements && slide.elements.some(
 			el => el.type === 'audio' && el.properties && el.properties.autoplay
 		);
+		console.log('[AudioManager] Slide has autoplay audio:', hasAutoplayAudio);
 
 		if ( hasAutoplayAudio ) {
 			// New slide has autoplay audio - fade out and stop continuing audio
 			if ( this._continuingAudioId ) {
+				console.log('[AudioManager] Fading out continuing audio:', this._continuingAudioId);
 				this._fadeOutAndStop(this._continuingAudioId);
 				this._continuingAudioId = null;
 			}
+		} else {
+			console.log('[AudioManager] No autoplay audio, continuing audio should continue');
 		}
 		// If no autoplay audio, let continuing audio continue playing
 
@@ -202,7 +210,10 @@ class AudioManager {
 	 * @param {boolean} fadeOut - Whether to fade out (default: false)
 	 */
 	stopAll(fadeOut = false) {
+		console.log('[AudioManager] stopAll called, fadeOut:', fadeOut);
+		console.log('[AudioManager] Continuing audio ID before stopAll:', this._continuingAudioId);
 		this._audioRegistry.forEach((audio, elementId) => {
+			console.log('[AudioManager] Stopping audio:', elementId);
 			if ( fadeOut ) {
 				this._fadeOutAndStop(elementId);
 			} else {
@@ -211,6 +222,7 @@ class AudioManager {
 		});
 
 		this._continuingAudioId = null;
+		console.log('[AudioManager] Cleared continuing audio ID');
 	}
 
 	/**
