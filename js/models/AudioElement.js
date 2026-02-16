@@ -39,7 +39,7 @@ export class AudioElement extends Element {
     if (this.properties.url) {
       const audio = document.createElement('audio');
       audio.controls = this.properties.controls;
-      audio.autoplay = this.properties.autoplay;
+      audio.autoplay = isPresentation && this.properties.autoplay;
       audio.loop = this.properties.loop;
       audio.style.cssText = `
         width: 90%;
