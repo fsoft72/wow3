@@ -31,6 +31,7 @@ Fixed audio playback behavior during presentation transitions and in editor mode
 5. **Fixed Continue-on-Slides Functionality**
    - Continuing audio no longer stops when navigating to slides with non-autoplay audio
    - Only stops when new slide has competing autoplay audio
+   - Audio element is now preserved across slide transitions (no longer removed from DOM)
    - Proper cross-slide audio continuity restored
 
 6. **Improved Editor Play Button Styling**
