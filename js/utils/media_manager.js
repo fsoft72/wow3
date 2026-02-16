@@ -224,7 +224,7 @@ const MediaManager = {
     
         handleUpload: async function(files) {
             const folderId = this.state.currentFolderId === 'all' ? null : this.state.currentFolderId;
-    
+
             for (const file of files) {
                 const metadata = { lastModified: file.lastModified };
                 if (file.type.startsWith('image/')) {

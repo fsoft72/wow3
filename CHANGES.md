@@ -2,6 +2,40 @@
 
 ## 2026-02-16
 
+### Fix: Media Upload Fails When Accessed Over HTTP
+
+Fixed issue where audio files (mp3, etc.) and other media could not be uploaded when the application was accessed over HTTP (non-HTTPS).
+
+**Root Cause:**
+- `MediaDB._computeHash()` uses `crypto.subtle.digest()` for file deduplication
+- `crypto.subtle` is only available in secure contexts (HTTPS or localhost)
+- When accessing over HTTP (e.g., `http://192.168.x.x`), `crypto.subtle` is `undefined`
+- This caused `TypeError: Cannot read properties of undefined (reading 'digest')`
+- Upload failed silently because the error was in an async function
+
+**Investigation Process:**
+- Added diagnostic logging to trace execution path
+- User reported: mp3 files selectable but "nothing happens", drag-and-drop shows visual feedback but no upload
+- Console revealed: `crypto.subtle` was undefined when trying to compute SHA-256 hash
+- Confirmed: accessing via IP address over HTTP (non-secure context)
+
+**Fix:**
+- Added graceful degradation in `_computeHash()`: check if `crypto.subtle` exists before using it
+- Return `null` for hash when crypto.subtle unavailable (logs warning to console)
+- Modified `addMedia()` to skip deduplication check when hash is `null`
+- Files now upload successfully in non-secure contexts, with deduplication disabled
+
+**Impact:**
+- ✅ Media uploads (including mp3 audio files) now work over HTTP
+- ⚠️ File deduplication disabled when accessing over HTTP (duplicates will be stored)
+- 💡 Full functionality (including deduplication) works when accessing via HTTPS or localhost
+- Warning displayed in console: "crypto.subtle not available (requires HTTPS or localhost)"
+
+**Updated Files:**
+- `js/utils/media_db.js`: Added crypto.subtle availability check, graceful degradation for hashing
+
+---
+
 ### Fix: Slide Drag-and-Drop Reordering
 
 Restored the ability to reorder slides via drag-and-drop in the left panel.
