@@ -69,6 +69,12 @@ export class PlaybackController {
     if (!this.presentationView) return;
 
     this.isPlaying = true;
+
+    // Stop any playing audio from editor with smooth fade-out
+    if (window.AudioManager) {
+      window.AudioManager.stopAll(true);
+    }
+
     this.currentSlideIndex = 0;
 
     // Show presentation view
