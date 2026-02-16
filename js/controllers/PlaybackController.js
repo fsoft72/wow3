@@ -201,17 +201,24 @@ export class PlaybackController {
     let continuingAudioElement = null;
     if (continuingAudioId) {
       continuingAudioElement = document.getElementById(continuingAudioId);
+      console.log('[PlaybackController] Found continuing audio element:', continuingAudioElement);
+      console.log('[PlaybackController] Continuing audio element parent:', continuingAudioElement?.parentElement?.className);
+      console.log('[PlaybackController] Is audio playing?', continuingAudioElement?.querySelector('audio')?.paused === false);
+
       if (continuingAudioElement) {
         console.log('[PlaybackController] Detaching continuing audio element:', continuingAudioId);
         continuingAudioElement.remove(); // Detach but keep reference
+        console.log('[PlaybackController] After detach - is audio still playing?', continuingAudioElement?.querySelector('audio')?.paused === false);
       }
     }
 
     // Remove all children (slide containers, indicators, etc.)
+    console.log('[PlaybackController] Presentation view children before clearing:', this.presentationView.children.length);
     Array.from(this.presentationView.children).forEach(child => {
       console.log('[PlaybackController] Removing child:', child.id || child.className);
       child.remove();
     });
+    console.log('[PlaybackController] Presentation view children after clearing:', this.presentationView.children.length);
 
     // Create slide container at design dimensions
     const slideContainer = document.createElement('div');
@@ -344,7 +351,10 @@ export class PlaybackController {
       if (!continuingAudioOnThisSlide && !hasCompetingAutoplayAudio) {
         // Re-attach to the new slide container
         console.log('[PlaybackController] Re-attaching continuing audio to new slide');
+        console.log('[PlaybackController] Before re-attach - is audio playing?', continuingAudioElement?.querySelector('audio')?.paused === false);
         slideContainer.appendChild(continuingAudioElement);
+        console.log('[PlaybackController] After re-attach - is audio playing?', continuingAudioElement?.querySelector('audio')?.paused === false);
+        console.log('[PlaybackController] Audio element parent after re-attach:', continuingAudioElement?.parentElement?.className);
       } else if (hasCompetingAutoplayAudio) {
         console.log('[PlaybackController] Not re-attaching - competing audio will fade it out');
         // Don't re-attach - AudioManager will fade it out
