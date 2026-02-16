@@ -7,17 +7,23 @@
 Restored the ability to reorder slides via drag-and-drop in the left panel.
 
 **Root Cause:**
-- Child elements inside slide thumbnails (slide number, visibility button, preview, name label) were blocking drag events
-- When hovering over a slide, the name label's `pointer-events: auto` was capturing drag events instead of letting them bubble to the parent thumbnail element
-- The parent thumbnail has `draggable="true"`, but the child elements were interfering
+- Child elements (preview, name label, buttons) cover the entire slide thumbnail
+- HTML5 drag-and-drop looks at the element you click on - if it has `draggable="false"`, drag won't start
+- Setting `draggable="false"` on child elements prevented drag from initiating entirely
 
 **Fix:**
-- Set `draggable="false"` on all child elements (slide number, visibility button, preview, name label)
-- Added `mousedown` stopPropagation on name label to prevent drag conflicts
-- Drag events now properly reach the parent thumbnail element
+- Removed all `draggable="false"` attributes from child elements
+- Used event delegation in dragstart/dragend handlers: `e.target.closest('.slide-thumbnail')`
+- Added `e.preventDefault()` on dragstart for specific UI elements (visibility button, name label) to prevent drag from those elements
+- Added diagnostic logging to help debug drag events
+
+**How it works:**
+- Dragging from anywhere on the thumbnail (except buttons/labels) now initiates drag
+- Event delegation finds the closest `.slide-thumbnail` parent
+- Interactive elements (buttons, labels) prevent dragstart with `e.preventDefault()`
 
 **Updated Files:**
-- `js/controllers/SlideController.js`: Added draggable=false to all child elements in createSlideThumbnail()
+- `js/controllers/SlideController.js`: Event delegation in drag handlers, removed draggable=false, added preventDefault on UI elements
 
 ---
 
