@@ -22,6 +22,7 @@ import {
   CropHandler,
   CanvasDropHandler
 } from './interactions/index.js';
+import './managers/AudioManager.js';
 
 class WOW3App {
   constructor() {

@@ -2,6 +2,63 @@
 
 ## 2026-02-16
 
+### Feature: Audio Component Enhancements
+
+Enhanced audio elements with centralized playback control, cross-slide continuity, and improved editor controls.
+
+**New Features:**
+
+1. **AudioManager Service** (`js/managers/AudioManager.js`)
+   - Singleton service managing all audio playback across the presentation
+   - Centralized play/pause/stop/toggle controls
+   - Smart fade-out transitions (500ms) when slides change
+   - Cross-slide audio continuity support
+   - Event emitter for UI updates
+
+2. **Editor Playback Controls**
+   - Canvas overlay play button when controls are disabled
+   - Play/pause buttons in Elements Control Center
+   - Real-time icon updates based on playback state
+   - Only visible in editor mode (hidden in presentation)
+
+3. **Continue on Slides Property**
+   - New checkbox in audio settings: "Continue on Slides"
+   - Audio with this enabled keeps playing across slide transitions
+   - Automatically stops when reaching a slide with other audio elements
+   - Smooth 500ms fade-out when stopping
+
+4. **Smart Audio Management**
+   - Automatic registration when audio elements render
+   - Automatic cleanup when audio elements deleted
+   - Integration with PlaybackController for presentation lifecycle
+   - Slide transition handling with autoplay support
+
+**Technical Implementation:**
+- Created `js/managers/` directory for singleton services
+- Modified `AudioElement.js`: added continueOnSlides property, editor controls, AudioManager registration
+- Modified `PlaybackController.js`: integrated onSlideChange() and stopAll() calls
+- Modified `ElementController.js`: added AudioManager.unregister() on element deletion
+- Modified `AudioPanel.js`: added "Continue on Slides" checkbox
+- Modified `AnimationEditorController.js`: added audio control buttons in Elements Control Center
+- Modified `app.js`: imported AudioManager for global initialization
+
+**User-Facing Changes:**
+- Audio elements with disabled controls now show a play button in the editor
+- Elements Control Center shows play/pause buttons for audio elements
+- New "Continue on Slides" setting allows background music/narration
+- Smooth audio transitions with automatic fade-out
+
+**Updated Files:**
+- `js/managers/AudioManager.js` (new)
+- `js/models/AudioElement.js`
+- `js/controllers/PlaybackController.js`
+- `js/controllers/ElementController.js`
+- `js/controllers/AnimationEditorController.js`
+- `js/panels/AudioPanel.js`
+- `js/app.js`
+
+---
+
 ### Fix: Media Upload Fails When Accessed Over HTTP
 
 Fixed issue where audio files (mp3, etc.) and other media could not be uploaded when the application was accessed over HTTP (non-HTTPS).

@@ -64,6 +64,13 @@ export class AudioPanel {
             <span>Muted</span>
           </label>
         </div>
+
+        <div class="control-group">
+          <label>
+            <input type="checkbox" id="audio-continue" class="filled-in" ${props.continueOnSlides ? 'checked' : ''}>
+            <span>Continue on Slides</span>
+          </label>
+        </div>
       </div>
     `;
   }
@@ -170,7 +177,8 @@ export class AudioPanel {
       { id: 'audio-controls', path: 'properties.controls' },
       { id: 'audio-autoplay', path: 'properties.autoplay' },
       { id: 'audio-loop', path: 'properties.loop' },
-      { id: 'audio-muted', path: 'properties.muted' }
+      { id: 'audio-muted', path: 'properties.muted' },
+      { id: 'audio-continue', path: 'properties.continueOnSlides' }
     ];
 
     checkboxes.forEach(({ id, path }) => {

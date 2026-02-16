@@ -150,6 +150,12 @@ export class ElementController {
    */
   deleteElement(elementId) {
     const currentSlide = this.editor.getActiveSlide();
+
+    // Unregister from AudioManager if it's an audio element
+    if (window.AudioManager) {
+      window.AudioManager.unregister(elementId);
+    }
+
     const success = currentSlide.removeElement(elementId);
 
     if (success) {
@@ -178,6 +184,11 @@ export class ElementController {
     const ids = this.selectedElements.map((el) => el.id);
 
     ids.forEach((id) => {
+      // Unregister from AudioManager if it's an audio element
+      if (window.AudioManager) {
+        window.AudioManager.unregister(id);
+      }
+
       currentSlide.removeElement(id);
       appEvents.emit(AppEvents.ELEMENT_REMOVED, id);
     });

@@ -21,6 +21,7 @@ export class AudioElement extends Element {
     this.properties.autoplay = properties.properties?.autoplay || false;
     this.properties.loop = properties.properties?.loop || false;
     this.properties.controls = properties.properties?.controls !== false;
+    this.properties.continueOnSlides = properties.properties?.continueOnSlides || false;
   }
 
   /**
@@ -31,6 +32,9 @@ export class AudioElement extends Element {
   render(zIndex = null) {
     const el = super.render(zIndex);
     el.classList.add('audio-element');
+
+    // Detect mode: editor or presentation
+    const isPresentation = document.getElementById('presentation-view')?.classList.contains('active');
 
     if (this.properties.url) {
       const audio = document.createElement('audio');
@@ -61,12 +65,83 @@ export class AudioElement extends Element {
       el.style.background = '#f5f5f5';
       el.style.border = '2px dashed #ccc';
 
+      // Add audio element
       el.appendChild(audio);
+
+      // Register with AudioManager
+      if (window.AudioManager) {
+        window.AudioManager.register(this.id, audio, this.properties);
+      }
+
+      // Add editor play button if controls are disabled and we're in editor mode
+      if (!this.properties.controls && !isPresentation) {
+        const playButton = document.createElement('button');
+        playButton.className = 'audio-editor-play-btn';
+        playButton.innerHTML = '<i class="material-icons">play_arrow</i>';
+        playButton.style.cssText = `
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: rgba(0, 0, 0, 0.7);
+          color: white;
+          border: none;
+          border-radius: 50%;
+          width: 48px;
+          height: 48px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10;
+          transition: background 0.2s;
+        `;
+
+        playButton.addEventListener('mouseenter', () => {
+          playButton.style.background = 'rgba(0, 0, 0, 0.85)';
+        });
+
+        playButton.addEventListener('mouseleave', () => {
+          playButton.style.background = 'rgba(0, 0, 0, 0.7)';
+        });
+
+        playButton.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (window.AudioManager) {
+            window.AudioManager.toggle(this.id);
+            // Update button icon
+            this._updatePlayButtonIcon(playButton);
+          }
+        });
+
+        el.appendChild(playButton);
+
+        // Store reference for updates
+        this._playButton = playButton;
+
+        // Update icon based on initial state
+        this._updatePlayButtonIcon(playButton);
+      }
     } else {
       el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f5f5f5;color:#999;border:2px dashed #ccc;"><i class="material-icons" style="font-size:48px;">audiotrack</i></div>';
     }
 
     return el;
+  }
+
+  /**
+   * Update play button icon based on playback state
+   * @param {HTMLElement} button - Play button element
+   * @private
+   */
+  _updatePlayButtonIcon(button) {
+    if (!button || !window.AudioManager) return;
+
+    const isPlaying = window.AudioManager.isPlaying(this.id);
+    const icon = button.querySelector('i');
+    if (icon) {
+      icon.textContent = isPlaying ? 'pause' : 'play_arrow';
+    }
   }
 
   /**

@@ -54,6 +54,15 @@ export class AnimationEditorController {
       }
     });
 
+    // Listen for audio playback state changes to update UI
+    if (window.AudioManager) {
+      window.AudioManager.on('playStateChanged', () => {
+        if (this._activeTab === 'elements') {
+          this._renderElementsList();
+        }
+      });
+    }
+
     console.log('AnimationEditorController initialized');
   }
 
@@ -454,15 +463,28 @@ export class AnimationEditorController {
 
     const selectedId = this._currentElement ? this._currentElement.id : null;
 
+    // Check if we're in presentation mode
+    const isPresentation = document.getElementById('presentation-view')?.classList.contains('active');
+
     container.innerHTML = slide.elements.map((el) => {
       const icon = ELEMENT_ICONS[el.type] || 'widgets';
       const name = this._getElementLabel(el);
       const isSelected = el.id === selectedId;
 
+      // Add audio control button if element is audio and has a URL
+      const hasAudioControl = el.type === 'audio' && el.properties?.url && !isPresentation;
+      const isPlaying = hasAudioControl && window.AudioManager && window.AudioManager.isPlaying(el.id);
+      const audioControlBtn = hasAudioControl
+        ? `<button class="audio-control-btn" data-element-id="${el.id}" title="${isPlaying ? 'Pause' : 'Play'} audio">
+             <i class="material-icons">${isPlaying ? 'pause' : 'play_arrow'}</i>
+           </button>`
+        : '';
+
       return `<div class="panel-element-item ${isSelected ? 'selected' : ''}" data-element-id="${el.id}">
         <i class="material-icons">${icon}</i>
         <span class="panel-element-name">${name}</span>
         <span class="panel-element-type">${el.type}</span>
+        ${audioControlBtn}
         <button class="element-visibility-toggle" data-element-id="${el.id}" title="${el.hiddenInEditor ? 'Show' : 'Hide'} in editor">
           <i class="material-icons">${el.hiddenInEditor ? 'visibility_off' : 'visibility'}</i>
         </button>
@@ -478,6 +500,19 @@ export class AnimationEditorController {
 
         if (this.editor.elementController) {
           this.editor.elementController.selectElement(element);
+        }
+      });
+    });
+
+    // Bind audio controls
+    container.querySelectorAll('.audio-control-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Don't trigger element selection
+        const elementId = btn.dataset.elementId;
+        if (window.AudioManager) {
+          window.AudioManager.toggle(elementId);
+          // Refresh UI to update button icon
+          this._renderElementsList();
         }
       });
     });

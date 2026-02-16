@@ -300,6 +300,11 @@ export class PlaybackController {
       await this._animationManager.play();
     }
 
+    // Notify AudioManager of slide change
+    if (window.AudioManager) {
+      window.AudioManager.onSlideChange(slide);
+    }
+
     appEvents.emit(AppEvents.SLIDE_SELECTED, index);
   }
 
@@ -437,6 +442,11 @@ export class PlaybackController {
    */
   stop() {
     this.isPlaying = false;
+
+    // Stop all audio immediately
+    if (window.AudioManager) {
+      window.AudioManager.stopAll(false);
+    }
 
     // Clean up active countdown timer
     this._stopCountdown();
