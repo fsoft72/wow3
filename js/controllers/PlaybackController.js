@@ -192,11 +192,10 @@ export class PlaybackController {
     // Create slide container
     const slideContainer = document.createElement('div');
     slideContainer.style.cssText = `
-      width: 1280px;
-      height: 720px;
+      width: 100%;
+      height: 100%;
       background: ${slide.background};
       position: relative;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     `;
 
     // Create shell and slide layers
@@ -394,13 +393,12 @@ export class PlaybackController {
 
     const endSlide = document.createElement('div');
     endSlide.style.cssText = `
-      width: 1280px;
-      height: 720px;
+      width: 100%;
+      height: 100%;
       background: #000;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     `;
 
     const text = document.createElement('div');
