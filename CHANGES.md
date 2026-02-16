@@ -2,6 +2,27 @@
 
 ## 2026-02-16
 
+### Fix: Presentation Canvas Now Fullscreen During Playback
+
+Fixed the presentation canvas to properly fill the entire screen instead of appearing as a small 1280x720px box in the center.
+
+**Root Cause:**
+- Slide containers were hardcoded to fixed dimensions (1280x720px) instead of filling the fullscreen presentation view
+- The `#presentation-view` container was correctly fullscreen (100vw x 100vh), but slide containers inside were limited to 16:9 design dimensions
+
+**Changes:**
+- Updated `showSlide()` method to use 100% width/height for slide containers
+- Updated `_showEndSlide()` method to use 100% width/height for end slide
+- Removed unnecessary `box-shadow` styling for cleaner fullscreen appearance
+- Slides now scale to fill the entire screen while maintaining their designed layout
+
+**Updated Files:**
+- `js/controllers/PlaybackController.js`: Changed slide container dimensions from fixed pixels to percentage-based
+
+---
+
+## 2026-02-16
+
 ### Feature: Chain Animation Option & Element Visibility Toggle
 
 Added two enhancements to the Elements Control Center for better animation and editor control.
