@@ -492,6 +492,17 @@ export class AnimationEditorController {
         }
       });
     });
+
+    // Bind context menu
+    container.querySelectorAll('.panel-element-item').forEach((item) => {
+      item.addEventListener('contextmenu', (e) => {
+        const elementId = item.dataset.elementId;
+        const element = slide.elements.find((el) => el.id === elementId);
+        if (element && this.editor.elementController) {
+          this.editor.elementController.showElementContextMenu(e, element);
+        }
+      });
+    });
   }
 
   /**

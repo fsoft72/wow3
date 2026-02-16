@@ -32,6 +32,32 @@ Added two enhancements to the Elements Control Center for better animation and e
 
 ---
 
+### Feature: Element Context Menu
+
+Added right-click context menu for elements with quick actions.
+
+**Context Menu Actions:**
+- **Duplicate**: Duplicates the element with +20px offset
+- **Hide / Show**: Toggles element visibility in editor (same as eye icon)
+- **Delete**: Removes the element from the slide
+
+**Access Points:**
+- Right-click on any element on the canvas
+- Right-click on any element in the Elements Control Center (Elements tab)
+
+**Menu Behavior:**
+- Shows appropriate label ("Hide" or "Show") based on current visibility state
+- Automatically selects the element before performing action
+- Closes on click outside or after action execution
+- Prevents propagation to avoid triggering other interactions
+
+**Updated Files:**
+- `js/controllers/ElementController.js`: Added `showElementContextMenu()` method; added contextmenu event listener in `attachHandlers()`
+- `js/controllers/AnimationEditorController.js`: Added contextmenu event listener for Elements tab list items
+- `css/editor.css`: Enhanced context menu styles with icon support (flex layout, gap, icon sizing)
+
+---
+
 ## 2026-02-15
 
 ### Feature: Presentation End Slide

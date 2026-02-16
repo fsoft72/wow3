@@ -400,9 +400,18 @@
 }
 
 .context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 8px 16px;
   cursor: pointer;
   transition: background 0.2s;
+  font-size: 14px;
+}
+
+.context-menu-item i {
+  font-size: 18px;
+  color: #757575;
 }
 
 .context-menu-item:hover {

@@ -367,6 +367,88 @@ export class ElementController {
   }
 
   /**
+   * Show context menu for an element
+   * @param {MouseEvent} e - Mouse event
+   * @param {Element} element - Element to show menu for
+   */
+  showElementContextMenu(e, element) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Remove existing context menu
+    const existingMenu = document.querySelector('.context-menu');
+    if (existingMenu) {
+      existingMenu.remove();
+    }
+
+    // Create context menu
+    const menu = document.createElement('div');
+    menu.className = 'context-menu';
+    menu.style.cssText = `
+      position: fixed;
+      left: ${e.clientX}px;
+      top: ${e.clientY}px;
+    `;
+
+    // Menu options
+    const options = [
+      {
+        label: 'Duplicate',
+        icon: 'content_copy',
+        action: () => {
+          this.selectElement(element);
+          this.duplicateSelectedElements();
+        }
+      },
+      {
+        label: element.hiddenInEditor ? 'Show' : 'Hide',
+        icon: element.hiddenInEditor ? 'visibility' : 'visibility_off',
+        action: () => {
+          this.toggleElementVisibility(element.id);
+        }
+      },
+      { divider: true },
+      {
+        label: 'Delete',
+        icon: 'delete',
+        action: () => {
+          this.selectElement(element);
+          this.deleteSelectedElements();
+        }
+      }
+    ];
+
+    // Build menu HTML
+    options.forEach((option) => {
+      if (option.divider) {
+        const divider = document.createElement('div');
+        divider.className = 'context-menu-divider';
+        menu.appendChild(divider);
+      } else {
+        const item = document.createElement('div');
+        item.className = 'context-menu-item';
+        item.innerHTML = `<i class="material-icons">${option.icon}</i> ${option.label}`;
+        item.addEventListener('click', () => {
+          option.action();
+          menu.remove();
+        });
+        menu.appendChild(item);
+      }
+    });
+
+    document.body.appendChild(menu);
+
+    // Close menu on click outside
+    const closeMenu = (e) => {
+      if (!menu.contains(e.target)) {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', closeMenu), 0);
+  }
+
+  /**
    * Update UI after selection changes (handles, properties panel)
    */
   _updateSelectionUI() {
@@ -449,6 +531,14 @@ export class ElementController {
       } else {
         this.selectElement(element);
       }
+    });
+
+    // Right-click to show context menu
+    elementDOM.addEventListener('contextmenu', (e) => {
+      // Skip hidden elements
+      if (element.hiddenInEditor) return;
+
+      this.showElementContextMenu(e, element);
     });
 
     // Double-click to edit text
