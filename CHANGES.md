@@ -2,6 +2,43 @@
 
 ## 2026-02-16
 
+### Fix: Audio Control During Presentation Transitions
+
+Fixed audio playback behavior during presentation transitions and in editor mode.
+
+**Issues Fixed:**
+
+1. **Editor Autoplay Prevention**
+   - Audio elements no longer autoplay in editor mode
+   - Users must manually play audio in editor using controls or play button
+   - Autoplay only active in presentation mode
+
+2. **Smooth Presentation Start**
+   - All playing audio now fades out (500ms) when starting presentation
+   - Clean transition from editor to presentation mode
+   - Prevents jarring audio overlap
+
+3. **Smooth Presentation Exit**
+   - Audio now fades out (500ms) when exiting presentation (previously immediate stop)
+   - Symmetric, polished transition behavior
+   - Consistent with slide transition fades
+
+**Technical Changes:**
+- Modified `AudioElement.js`: Conditional autoplay based on presentation mode
+- Modified `PlaybackController.js`: Added stopAll(true) on presentation start
+- Modified `PlaybackController.js`: Changed stopAll(false) to stopAll(true) on presentation exit
+
+**User-Facing Changes:**
+- Editor is quieter - no unexpected audio playback while editing
+- Smoother, more professional presentation transitions
+- Better control over audio testing in editor
+
+**Updated Files:**
+- `js/models/AudioElement.js`
+- `js/controllers/PlaybackController.js`
+
+---
+
 ### Feature: Audio Component Enhancements
 
 Enhanced audio elements with centralized playback control, cross-slide continuity, and improved editor controls.
