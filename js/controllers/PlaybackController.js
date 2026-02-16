@@ -189,13 +189,23 @@ export class PlaybackController {
     // Clear presentation view
     this.presentationView.innerHTML = '';
 
-    // Create slide container
+    // Create slide container at design dimensions
     const slideContainer = document.createElement('div');
+
+    // Calculate scale to fit screen while maintaining aspect ratio
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const scaleX = viewportWidth / 1280;
+    const scaleY = viewportHeight / 720;
+    const scale = Math.min(scaleX, scaleY);
+
     slideContainer.style.cssText = `
-      width: 100%;
-      height: 100%;
+      width: 1280px;
+      height: 720px;
       background: ${slide.background};
       position: relative;
+      transform: scale(${scale});
+      transform-origin: center;
     `;
 
     // Create shell and slide layers
@@ -391,14 +401,23 @@ export class PlaybackController {
     // Clear and create end slide
     this.presentationView.innerHTML = '';
 
+    // Calculate scale to fit screen while maintaining aspect ratio
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const scaleX = viewportWidth / 1280;
+    const scaleY = viewportHeight / 720;
+    const scale = Math.min(scaleX, scaleY);
+
     const endSlide = document.createElement('div');
     endSlide.style.cssText = `
-      width: 100%;
-      height: 100%;
+      width: 1280px;
+      height: 720px;
       background: #000;
       display: flex;
       align-items: center;
       justify-content: center;
+      transform: scale(${scale});
+      transform-origin: center;
     `;
 
     const text = document.createElement('div');
