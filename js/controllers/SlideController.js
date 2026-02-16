@@ -247,6 +247,7 @@ export class SlideController {
     const number = document.createElement('div');
     number.className = 'slide-number';
     number.textContent = index + 1;
+    number.draggable = false; // Don't interfere with parent's drag
     div.appendChild(number);
 
     // Visibility toggle (eye icon)
@@ -254,6 +255,7 @@ export class SlideController {
     eyeBtn.className = 'slide-visibility-btn';
     eyeBtn.title = slide.visible ? 'Hide slide' : 'Show slide';
     eyeBtn.innerHTML = `<i class="material-icons">${slide.visible ? 'visibility' : 'visibility_off'}</i>`;
+    eyeBtn.draggable = false; // Don't interfere with parent's drag
     eyeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       slide.visible = !slide.visible;
@@ -266,6 +268,7 @@ export class SlideController {
     const preview = document.createElement('div');
     preview.className = 'slide-preview';
     preview.dataset.slideId = slide.id;
+    preview.draggable = false; // Don't interfere with parent's drag
     preview.style.cssText = `
       width: 100%;
       height: 100%;
@@ -297,9 +300,14 @@ export class SlideController {
     const nameLabel = document.createElement('div');
     nameLabel.className = 'slide-name-label';
     nameLabel.textContent = slide.title || 'Untitled Slide';
+    nameLabel.draggable = false; // Don't interfere with parent's drag
     nameLabel.addEventListener('click', (e) => {
       e.stopPropagation();
       this._startInlineRename(div, slide, nameLabel);
+    });
+    nameLabel.addEventListener('mousedown', (e) => {
+      // Prevent mousedown from interfering with drag on parent
+      e.stopPropagation();
     });
     div.appendChild(nameLabel);
 
