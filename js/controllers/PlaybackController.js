@@ -197,12 +197,18 @@ export class PlaybackController {
     console.log('[PlaybackController] Continuing audio ID:', continuingAudioId);
 
     // Clear presentation view, but preserve continuing audio element
-    Array.from(this.presentationView.children).forEach(child => {
-      // Skip the continuing audio element if it exists
-      if (continuingAudioId && child.id === continuingAudioId) {
-        console.log('[PlaybackController] Preserving continuing audio element:', child.id);
-        return; // Keep this element in the DOM
+    // First, detach the continuing audio element if it exists
+    let continuingAudioElement = null;
+    if (continuingAudioId) {
+      continuingAudioElement = document.getElementById(continuingAudioId);
+      if (continuingAudioElement) {
+        console.log('[PlaybackController] Detaching continuing audio element:', continuingAudioId);
+        continuingAudioElement.remove(); // Detach but keep reference
       }
+    }
+
+    // Remove all children (slide containers, indicators, etc.)
+    Array.from(this.presentationView.children).forEach(child => {
       console.log('[PlaybackController] Removing child:', child.id || child.className);
       child.remove();
     });
@@ -318,22 +324,33 @@ export class PlaybackController {
       await this._animationManager.play();
     }
 
-    // Remove continuing audio element if new slide has autoplay audio
-    if (continuingAudioId) {
-      const hasAutoplayAudio = slide.elements && slide.elements.some(
-        el => el.type === 'audio' && el.properties && el.properties.autoplay
-      );
-      console.log('[PlaybackController] New slide has autoplay audio:', hasAutoplayAudio);
+    // Re-attach continuing audio element if it should continue
+    if (continuingAudioElement) {
+      // Check if the continuing audio is on this slide
+      const continuingAudioOnThisSlide = slide.elements &&
+        slide.elements.some(el => el.id === continuingAudioId);
 
-      if (hasAutoplayAudio) {
-        // New slide has competing audio - remove the continuing audio element
-        const continuingAudioElement = document.getElementById(continuingAudioId);
-        console.log('[PlaybackController] Removing continuing audio element (competing audio)');
-        if (continuingAudioElement) {
-          continuingAudioElement.remove();
-        }
+      // Check if slide has competing autoplay audio
+      const hasCompetingAutoplayAudio = slide.elements && slide.elements.some(
+        el => el.type === 'audio' &&
+             el.properties &&
+             el.properties.autoplay &&
+             el.id !== continuingAudioId
+      );
+
+      console.log('[PlaybackController] Continuing audio on this slide:', continuingAudioOnThisSlide);
+      console.log('[PlaybackController] Has competing autoplay audio:', hasCompetingAutoplayAudio);
+
+      if (!continuingAudioOnThisSlide && !hasCompetingAutoplayAudio) {
+        // Re-attach to the new slide container
+        console.log('[PlaybackController] Re-attaching continuing audio to new slide');
+        slideContainer.appendChild(continuingAudioElement);
+      } else if (hasCompetingAutoplayAudio) {
+        console.log('[PlaybackController] Not re-attaching - competing audio will fade it out');
+        // Don't re-attach - AudioManager will fade it out
       } else {
-        console.log('[PlaybackController] Continuing audio should continue playing');
+        console.log('[PlaybackController] Not re-attaching - audio is on this slide (will be rendered)');
+        // Don't re-attach - the audio will be rendered as part of this slide
       }
     }
 
