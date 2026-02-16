@@ -449,9 +449,9 @@ export class PlaybackController {
   stop() {
     this.isPlaying = false;
 
-    // Stop all audio immediately
+    // Stop all audio with smooth fade-out
     if (window.AudioManager) {
-      window.AudioManager.stopAll(false);
+      window.AudioManager.stopAll(true);
     }
 
     // Clean up active countdown timer
