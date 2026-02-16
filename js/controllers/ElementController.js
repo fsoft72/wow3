@@ -302,6 +302,39 @@ export class ElementController {
   }
 
   /**
+   * Toggle element visibility in editor (does not affect playback)
+   * @param {string} elementId - Element ID to toggle
+   */
+  toggleElementVisibility(elementId) {
+    const slide = this.editor.getActiveSlide();
+    if (!slide) return;
+
+    const element = slide.getElement(elementId);
+    if (!element) return;
+
+    // Toggle visibility
+    element.hiddenInEditor = !element.hiddenInEditor;
+
+    // If element is currently selected and being hidden, deselect it
+    if (element.hiddenInEditor && this._selectedElements.has(element)) {
+      this.deselectElement(element);
+    }
+
+    // Record history for undo/redo
+    this.editor.recordHistory();
+
+    // Re-render canvas to show/hide element
+    this.editor.slideController.renderCurrentSlide();
+
+    // Re-render elements list to update eye icon
+    if (this.editor.animationEditorController) {
+      this.editor.animationEditorController._renderElementsList();
+    }
+
+    toast.info(element.hiddenInEditor ? 'Element hidden in editor' : 'Element visible in editor');
+  }
+
+  /**
    * Enter crop mode for the given element
    * @param {Element} element - Element to crop
    */
@@ -398,6 +431,9 @@ export class ElementController {
     // Click to select (with Ctrl/Shift+Click support)
     elementDOM.addEventListener('click', (e) => {
       e.stopPropagation();
+
+      // Skip hidden elements
+      if (element.hiddenInEditor) return;
 
       // Don't re-select while in crop mode (would exit crop via deselectAll)
       if (this._cropMode) return;

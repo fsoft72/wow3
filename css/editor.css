@@ -41,6 +41,12 @@
   cursor: grabbing;
 }
 
+/* Hidden elements in editor (still visible during playback) */
+.editor-hidden {
+  opacity: 0.1 !important;
+  pointer-events: none !important;
+}
+
 /* ==================== TEXT ELEMENT ==================== */
 
 .text-element {

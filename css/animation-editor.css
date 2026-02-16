@@ -347,6 +347,39 @@
   flex-shrink: 0;
 }
 
+/* Eye icon visibility toggle button */
+.element-visibility-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.element-visibility-toggle:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.element-visibility-toggle i {
+  font-size: 18px;
+  color: #757575;
+}
+
+.element-visibility-toggle:hover i {
+  color: #1565c0;
+}
+
+/* Update panel-element-item to accommodate eye icon */
+.panel-element-item {
+  padding-right: 4px; /* Make room for eye icon */
+}
+
 /* ==================== BUILD ORDER LIST ==================== */
 
 #build-order-list {

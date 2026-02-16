@@ -1,5 +1,37 @@
 # WOW3 Development Changelog
 
+## 2026-02-16
+
+### Feature: Chain Animation Option & Element Visibility Toggle
+
+Added two enhancements to the Elements Control Center for better animation and editor control.
+
+**Chain Animation Option:**
+- Added "Chain" trigger option to animation sequence dropdown (Sequence tab)
+- Maps to existing `ANIMATION_TRIGGER.WITH_PREVIOUS` — plays simultaneously with the previous animation
+- Chained animations show visual indentation (margin + blue left border) in the sequence list
+- Provides three trigger options: Auto (afterPrevious), On Click (onClick), Chain (withPrevious)
+
+**Element Visibility Toggle:**
+- Added eye icon button to Elements tab for hiding/showing elements in the editor
+- Hidden elements render with 0.1 opacity and no pointer events during editing
+- Hidden elements appear normally during presentation playback
+- Visibility state persists in presentation saves and history (undo/redo)
+- Hidden elements cannot be selected on canvas (click or marquee) but remain selectable from Elements tab
+- Selecting a hidden element from the Elements tab keeps it selected (for property editing)
+- Deselecting a visible element when hiding it to avoid confusion
+
+**Updated Files:**
+- `js/controllers/AnimationEditorController.js`: Added "Chain" option to trigger dropdown; added eye icon button and visibility toggle event handler in Elements tab
+- `js/models/Element.js`: Added `hiddenInEditor` property (default: false) with serialization
+- `js/controllers/ElementController.js`: Added `toggleElementVisibility()` method; skip hidden elements in click detection
+- `js/controllers/SlideController.js`: Apply `.editor-hidden` class to hidden elements during render
+- `js/interactions/MarqueeHandler.js`: Skip hidden elements in marquee selection
+- `css/animation-editor.css`: Styles for eye icon button with hover states
+- `css/editor.css`: Styles for hidden elements (opacity 0.1, pointer-events none)
+
+---
+
 ## 2026-02-15
 
 ### Feature: Presentation End Slide

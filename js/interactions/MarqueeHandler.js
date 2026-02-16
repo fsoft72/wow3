@@ -117,6 +117,9 @@ export class MarqueeHandler {
       const currentSlide = this.elementController.editor.presentation.getCurrentSlide();
 
       currentSlide.elements.forEach((element) => {
+        // Skip hidden elements
+        if (element.hiddenInEditor) return;
+
         const elRect = {
           x: element.position.x,
           y: element.position.y,

@@ -70,6 +70,9 @@ export class Element {
     this.inEffect = properties.inEffect || null;
     this.outEffect = properties.outEffect || null;
 
+    // Editor visibility
+    this.hiddenInEditor = properties.hiddenInEditor || false;
+
     // Children elements (max 1 level deep)
     this.children = [];
     this.parent = null;
@@ -98,6 +101,7 @@ export class Element {
       properties: JSON.parse(JSON.stringify(this.properties)),
       inEffect: this.inEffect ? { ...this.inEffect } : null,
       outEffect: this.outEffect ? { ...this.outEffect } : null,
+      hiddenInEditor: this.hiddenInEditor,
       children: this.children.map(child => child.toJSON())
     };
   }

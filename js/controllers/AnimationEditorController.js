@@ -463,6 +463,9 @@ export class AnimationEditorController {
         <i class="material-icons">${icon}</i>
         <span class="panel-element-name">${name}</span>
         <span class="panel-element-type">${el.type}</span>
+        <button class="element-visibility-toggle" data-element-id="${el.id}" title="${el.hiddenInEditor ? 'Show' : 'Hide'} in editor">
+          <i class="material-icons">${el.hiddenInEditor ? 'visibility_off' : 'visibility'}</i>
+        </button>
       </div>`;
     }).join('');
 
@@ -475,6 +478,17 @@ export class AnimationEditorController {
 
         if (this.editor.elementController) {
           this.editor.elementController.selectElement(element);
+        }
+      });
+    });
+
+    // Bind visibility toggle
+    container.querySelectorAll('.element-visibility-toggle').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Don't trigger element selection
+        const elementId = btn.dataset.elementId;
+        if (this.editor.elementController) {
+          this.editor.elementController.toggleElementVisibility(elementId);
         }
       });
     });
@@ -582,8 +596,9 @@ export class AnimationEditorController {
         </div>
         <div class="build-order-controls">
           <select class="build-order-trigger browser-default" data-anim-id="${anim.id}">
-            <option value="${ANIMATION_TRIGGER.AFTER_PREVIOUS}" ${anim.trigger !== ANIMATION_TRIGGER.ON_CLICK ? 'selected' : ''}>Auto</option>
+            <option value="${ANIMATION_TRIGGER.AFTER_PREVIOUS}" ${anim.trigger === ANIMATION_TRIGGER.AFTER_PREVIOUS ? 'selected' : ''}>Auto</option>
             <option value="${ANIMATION_TRIGGER.ON_CLICK}" ${anim.trigger === ANIMATION_TRIGGER.ON_CLICK ? 'selected' : ''}>On Click</option>
+            <option value="${ANIMATION_TRIGGER.WITH_PREVIOUS}" ${anim.trigger === ANIMATION_TRIGGER.WITH_PREVIOUS ? 'selected' : ''}>Chain</option>
           </select>
           <input type="number" class="build-order-duration browser-default"
                  data-anim-id="${anim.id}" value="${anim.duration}"

@@ -653,6 +653,12 @@ export class SlideController {
     // Render all elements with proper z-index
     activeSlide.elements.forEach((element, index) => {
       const elementDOM = element.render(index);
+
+      // Apply editor-hidden class if needed
+      if (element.hiddenInEditor) {
+        elementDOM.classList.add('editor-hidden');
+      }
+
       canvas.appendChild(elementDOM);
 
       // Attach interaction handlers
