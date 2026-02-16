@@ -59,11 +59,17 @@ export class AudioElement extends Element {
         el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f5f5f5;color:#999;">Audio not found</div>';
       };
 
-      el.style.display = 'flex';
-      el.style.alignItems = 'center';
-      el.style.justifyContent = 'center';
-      el.style.background = '#f5f5f5';
-      el.style.border = '2px dashed #ccc';
+      // In presentation mode with no controls, make container invisible
+      if (isPresentation && !this.properties.controls) {
+        el.style.opacity = '0';
+        el.style.pointerEvents = 'none';
+      } else {
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.style.background = '#f5f5f5';
+        el.style.border = '2px dashed #ccc';
+      }
 
       // Add audio element
       el.appendChild(audio);
@@ -86,7 +92,7 @@ export class AudioElement extends Element {
           background: rgba(0, 0, 0, 0.7);
           color: white;
           border: none;
-          border-radius: 50%;
+          border-radius: 6px;
           width: 48px;
           height: 48px;
           cursor: pointer;

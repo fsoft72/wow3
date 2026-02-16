@@ -170,17 +170,19 @@ class AudioManager {
 	onSlideChange(slide) {
 		if ( ! slide ) return;
 
-		// Check if new slide has any audio elements
-		const hasAudioElements = slide.elements && slide.elements.some(el => el.type === 'audio');
+		// Check if new slide has any audio elements that will autoplay
+		const hasAutoplayAudio = slide.elements && slide.elements.some(
+			el => el.type === 'audio' && el.properties && el.properties.autoplay
+		);
 
-		if ( hasAudioElements ) {
-			// New slide has audio - fade out and stop continuing audio
+		if ( hasAutoplayAudio ) {
+			// New slide has autoplay audio - fade out and stop continuing audio
 			if ( this._continuingAudioId ) {
 				this._fadeOutAndStop(this._continuingAudioId);
 				this._continuingAudioId = null;
 			}
 		}
-		// If no audio elements, let continuing audio continue playing
+		// If no autoplay audio, let continuing audio continue playing
 
 		// Start autoplay audio if present on new slide
 		if ( slide.elements ) {
