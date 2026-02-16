@@ -23,8 +23,25 @@ Fixed audio playback behavior during presentation transitions and in editor mode
    - Symmetric, polished transition behavior
    - Consistent with slide transition fades
 
+4. **Invisible Audio in Presentation Mode**
+   - Audio elements with controls disabled are now invisible in presentation mode
+   - Audio still functions for playback but shows no visual element
+   - Cleaner presentation appearance
+
+5. **Fixed Continue-on-Slides Functionality**
+   - Continuing audio no longer stops when navigating to slides with non-autoplay audio
+   - Only stops when new slide has competing autoplay audio
+   - Proper cross-slide audio continuity restored
+
+6. **Improved Editor Play Button Styling**
+   - Play/pause button changed from circle to small rounded square
+   - Better visual consistency with UI design
+
 **Technical Changes:**
 - Modified `AudioElement.js`: Conditional autoplay based on presentation mode
+- Modified `AudioElement.js`: Hide container in presentation when controls disabled
+- Modified `AudioElement.js`: Changed play button border-radius from 50% to 6px
+- Modified `AudioManager.js`: Check for autoplay audio instead of any audio when stopping continuing audio
 - Modified `PlaybackController.js`: Added stopAll(true) on presentation start
 - Modified `PlaybackController.js`: Changed stopAll(false) to stopAll(true) on presentation exit
 
@@ -35,6 +52,7 @@ Fixed audio playback behavior during presentation transitions and in editor mode
 
 **Updated Files:**
 - `js/models/AudioElement.js`
+- `js/managers/AudioManager.js`
 - `js/controllers/PlaybackController.js`
 
 ---
