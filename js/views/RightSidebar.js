@@ -184,13 +184,11 @@ export class RightSidebar {
     const yInput = document.getElementById('prop-y');
     const widthInput = document.getElementById('prop-width');
     const heightInput = document.getElementById('prop-height');
-    const rotationInput = document.getElementById('prop-rotation');
-
     if (xInput) xInput.value = Math.round(element.position.x);
     if (yInput) yInput.value = Math.round(element.position.y);
     if (widthInput) widthInput.value = Math.round(element.position.width);
     if (heightInput) heightInput.value = Math.round(element.position.height);
-    if (rotationInput) rotationInput.value = Math.round(element.position.rotation);
+    if (this._rotationRange) this._rotationRange.update(Math.round(element.position.rotation));
   }
 
   /**
@@ -296,11 +294,25 @@ export class RightSidebar {
 
     section.appendChild(grid2);
 
-    section.appendChild(
-      this.createNumberInput('Rotation', element.position.rotation, (val) => {
-        window.app.editor.elementController.updateElementProperty('position.rotation', parseFloat(val));
-      }, { min: 0, max: 360, step: 1 })
-    );
+    // Rotation — RangeInput slider (-360 to 360)
+    const rotationWrapper = document.createElement('div');
+    rotationWrapper.className = 'range-field';
+    rotationWrapper.id = 'prop-rotation-range';
+    section.appendChild(rotationWrapper);
+
+    requestAnimationFrame(() => {
+      this._rotationRange = new RangeInput('prop-rotation-range', {
+        label: 'Rotation',
+        value: element.position.rotation,
+        min: -360,
+        max: 360,
+        step: 1,
+        unit: '°',
+        onChange: (val) => {
+          window.app.editor.elementController.updateElementProperty('position.rotation', val);
+        }
+      });
+    });
 
     this.elementTab.appendChild(section);
   }

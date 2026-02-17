@@ -2,6 +2,15 @@
 
 ## 2026-02-17
 
+### Feat: Use RangeInput for rotation property
+
+Replaced the plain number input for the Rotation field in the Element properties panel with a `RangeInput` slider component (range: -360 to 360, step: 1, unit: °). The `updatePositionValues` method now calls `RangeInput.update()` to keep the slider in sync during drag-rotation.
+
+**Changes:**
+- `js/views/RightSidebar.js`: Replaced `createNumberInput('Rotation', ...)` with a `RangeInput` instance; updated `updatePositionValues()` to use `this._rotationRange.update()`
+
+---
+
 ### Fix: Layout shifts when right panel overflows viewport
 
 Made both sidebars `position: fixed` so they are independent of the flex flow. This prevents the right sidebar's tall content from affecting the main layout or triggering document-level scrolling.
