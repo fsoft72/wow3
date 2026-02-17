@@ -517,12 +517,15 @@ const GradientManager = {
     // Saved gradients
     gradients.forEach(g => {
       const css = this.toCSS(g);
+      const isPreset = g.id.startsWith('grad_preset_');
+      const editBtn = isPreset ? '' : `<button class="gradient-selector-item-edit" data-edit-id="${g.id}" title="Edit gradient">&#9998;</button>`;
+      const deleteBtn = isPreset ? '' : `<button class="gradient-selector-item-delete" data-delete-id="${g.id}" title="Delete gradient">&times;</button>`;
       html += `
         <div class="gradient-selector-item" data-gradient-id="${g.id}">
           <div class="gradient-selector-item-preview" style="background: ${css}"></div>
           <span class="gradient-selector-item-label">${g.name}</span>
-          <button class="gradient-selector-item-edit" data-edit-id="${g.id}" title="Edit gradient">&#9998;</button>
-          <button class="gradient-selector-item-delete" data-delete-id="${g.id}" title="Delete gradient">&times;</button>
+          ${editBtn}
+          ${deleteBtn}
         </div>
       `;
     });
@@ -625,6 +628,7 @@ const GradientManager = {
 
     let editedGradient = JSON.parse(JSON.stringify(gradient));
     let editedCSS = this.toCSS(editedGradient);
+    let editedName = gradient.name;
 
     Dialog.show({
       title: 'Custom Gradient',
@@ -649,13 +653,20 @@ const GradientManager = {
             editedCSS = css;
           }
         });
+
+        // Capture name on every keystroke — the Dialog removes the DOM before .then() runs
+        const nameInput = box.querySelector('.gradient-dialog-name');
+        if ( nameInput ) {
+          nameInput.addEventListener('input', (e) => {
+            editedName = e.target.value.trim();
+          });
+        }
       }
     }).then((result) => {
       if ( result === false || result === null ) return;
 
-      const nameInput = document.querySelector('.gradient-dialog-name');
-      if ( nameInput && nameInput.value.trim() ) {
-        editedGradient.name = nameInput.value.trim();
+      if ( editedName ) {
+        editedGradient.name = editedName;
       }
 
       if ( result === 'save' ) {
