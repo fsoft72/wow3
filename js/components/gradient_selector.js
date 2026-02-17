@@ -85,14 +85,6 @@ class GradientSelector {
           </div>
         </div>
         <div class="gradient-angle-row" ${!isLinear ? 'style="display:none"' : ''}>
-          <label>Angle</label>
-          <div class="slider-row">
-            <input type="range" class="gradient-angle-slider slider" min="0" max="360" step="1" value="${gAngle}">
-            <div class="number-box">
-              <input type="number" class="gradient-angle-input number-input" min="0" max="360" step="1" value="${gAngle}">
-              <span class="unit-label">°</span>
-            </div>
-          </div>
         </div>
       </div>
     `;
@@ -106,15 +98,26 @@ class GradientSelector {
       label:       this._container.querySelector('.gradient-selector-label'),
       controls:    this._container.querySelector('.gradient-controls'),
       angleRow:    this._container.querySelector('.gradient-angle-row'),
-      angleSlider: this._container.querySelector('.gradient-angle-slider'),
-      angleInput:  this._container.querySelector('.gradient-angle-input'),
       typeBtns:    this._container.querySelectorAll('.gradient-type-btn')
     };
+
+    // Angle RangeInput — rendered inside the angleRow container
+    const angleRowEl = this._els.angleRow;
+    angleRowEl.id = this._containerId + '-angle-range';
+    this._angleRange = new RangeInput(angleRowEl.id, {
+      label: 'Angle',
+      value: gAngle,
+      min: 0,
+      max: 360,
+      step: 1,
+      unit: '°',
+      onChange: (val) => this._updateAngle(val)
+    });
   }
 
   /** Bind all event listeners. */
   _bind() {
-    const { current, selector, typeBtns, angleSlider, angleInput } = this._els;
+    const { current, selector, typeBtns } = this._els;
 
     // Toggle dropdown
     current.addEventListener('click', (e) => {
@@ -149,9 +152,6 @@ class GradientSelector {
       });
     });
 
-    // Angle slider + number input sync
-    angleSlider.addEventListener('input', (e) => this._updateAngle(e.target.value));
-    angleInput.addEventListener('change', (e) => this._updateAngle(e.target.value));
   }
 
   // ─── Dropdown ─────────────────────────────────────────────
@@ -371,13 +371,10 @@ class GradientSelector {
     this._onChange(this._value);
   }
 
-  /** Update angle from slider or number input. */
+  /** Update angle from RangeInput. */
   _updateAngle(val) {
     if ( ! this._gradient ) return;
-    const clamped = Math.max(0, Math.min(360, parseInt(val, 10) || 0));
-    this._gradient.angle = clamped;
-    this._els.angleSlider.value = clamped;
-    this._els.angleInput.value = clamped;
+    this._gradient.angle = val;
     this._applyGradient();
   }
 
@@ -390,7 +387,7 @@ class GradientSelector {
 
   /** Sync type toggle and angle controls to match current gradient state. */
   _syncControls() {
-    const { controls, typeBtns, angleRow, angleSlider, angleInput } = this._els;
+    const { controls, typeBtns, angleRow } = this._els;
     if ( ! controls ) return;
 
     if ( ! this._gradient ) {
@@ -406,8 +403,7 @@ class GradientSelector {
     });
 
     if ( angleRow ) angleRow.style.display = isLinear ? '' : 'none';
-    if ( angleSlider ) angleSlider.value = this._gradient.angle;
-    if ( angleInput ) angleInput.value = this._gradient.angle;
+    if ( this._angleRange ) this._angleRange.update(this._gradient.angle);
   }
 
   /** Close the selector dropdown. */
