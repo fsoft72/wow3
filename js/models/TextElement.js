@@ -50,11 +50,18 @@ export class TextElement extends Element {
       ? `-webkit-text-stroke: ${st.width}px ${st.color}; paint-order: stroke fill;`
       : '';
 
+    // Detect gradient vs solid color
+    const fontColor = this.properties.font.color;
+    const isGradient = fontColor && fontColor.includes('gradient(');
+    const colorCSS = isGradient
+      ? `background: ${fontColor}; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;`
+      : `color: ${fontColor};`;
+
     // Apply text styles — use CSS Grid so text-align still works
     textContent.style.cssText = `
       font-family: ${this.properties.font.family};
       font-size: ${this.properties.font.size}px;
-      color: ${this.properties.font.color};
+      ${colorCSS}
       font-style: ${this.properties.font.style};
       font-weight: ${this.properties.font.weight};
       text-decoration: ${this.properties.font.decoration};

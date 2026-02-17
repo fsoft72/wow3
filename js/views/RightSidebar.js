@@ -329,11 +329,29 @@ export class RightSidebar {
       }, { min: 8, max: 144 })
     );
 
-    section.appendChild(
-      this.createColorInput('Color', element.properties.font.color, (val) => {
-        window.app.editor.elementController.updateElementProperty('properties.font.color', val);
-      })
-    );
+    // Text color — gradient selector (full width)
+    const colorWrapper = document.createElement('div');
+    colorWrapper.className = 'input-field';
+    const colorLabel = document.createElement('label');
+    colorLabel.textContent = 'Color';
+    colorLabel.classList.add('active');
+    const colorContainer = document.createElement('div');
+    colorContainer.id = 'text-color-gradient-selector';
+    colorWrapper.appendChild(colorLabel);
+    colorWrapper.appendChild(colorContainer);
+    section.appendChild(colorWrapper);
+
+    // Instantiate GradientSelector after DOM insertion
+    requestAnimationFrame(() => {
+      if ( window.GradientSelector ) {
+        this._textColorSelector = new GradientSelector('text-color-gradient-selector', {
+          value: element.properties.font.color,
+          onChange: (val) => {
+            window.app.editor.elementController.updateElementProperty('properties.font.color', val);
+          }
+        });
+      }
+    });
 
     section.appendChild(
       this.createSelect(

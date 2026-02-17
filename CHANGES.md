@@ -2,6 +2,14 @@
 
 ## 2026-02-17
 
+### Feature: Add Gradient Support to Text Color
+
+Replaced the simple color picker for text color with a `GradientSelector`, allowing text elements to use gradient fills in addition to solid colors.
+
+**Modified Files:**
+- `js/views/RightSidebar.js`: Replaced `createColorInput('Color', ...)` in `addTextProperties()` with a `GradientSelector` widget (same pattern as shape fill/stroke).
+- `js/models/TextElement.js`: Updated `render()` to detect gradient values in `font.color` and apply CSS `background-clip: text` technique for gradient text rendering. Solid colors continue to use the standard `color` property.
+
 ### Feature: Gradient Manager for Slide Backgrounds
 
 Added a GradientManager that allows creating, editing, saving, and selecting CSS gradients. The first integration point is the slide background picker in the right sidebar.
