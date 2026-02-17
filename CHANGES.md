@@ -2,6 +2,18 @@
 
 ## 2026-02-17
 
+### Fix: Layout shifts when right panel overflows viewport
+
+Made both sidebars `position: fixed` so they are independent of the flex flow. This prevents the right sidebar's tall content from affecting the main layout or triggering document-level scrolling.
+
+**Changes:**
+- `.sidebar`: Changed from flex children to `position: fixed` with `top`/`bottom` anchored to toolbar and status bar
+- `#left-sidebar` / `#right-sidebar`: Added `left: 0` / `right: 0` positioning
+- `.canvas-area`: Added `margin-left` and `margin-right` of `--sidebar-width` to account for fixed sidebars
+
+**Modified Files:**
+- `css/main.css`
+
 ### Feature: Add Gradient Support to Text Color
 
 Replaced the simple color picker for text color with a `GradientSelector`, allowing text elements to use gradient fills in addition to solid colors.
