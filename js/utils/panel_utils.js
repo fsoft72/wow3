@@ -175,14 +175,16 @@ window.PanelUtils = {
    * Bind a gradient picker (creates a GradientSelector instance).
    * @param {string} id - Container element ID
    * @param {string} currentValue - Current CSS background value
-   * @param {Function} onChange - Callback with new CSS value
+   * @param {Function} onChange - Callback with new CSS value (receives cssValue, animationSpeed)
+   * @param {number} [animationSpeed=0] - Optional gradient animation speed (0-10)
    * @returns {GradientSelector|null} The selector instance, or null
    */
-  bindGradientPicker(id, currentValue, onChange) {
+  bindGradientPicker(id, currentValue, onChange, animationSpeed) {
     if ( ! window.GradientSelector ) return null;
 
     return new GradientSelector(id, {
       value: currentValue || '#ffffff',
+      animationSpeed: animationSpeed ?? 0,
       onChange: onChange
     });
   }

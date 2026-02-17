@@ -358,10 +358,8 @@ export class RightSidebar {
       if ( window.GradientSelector ) {
         this._textColorSelector = new GradientSelector('text-color-gradient-selector', {
           value: element.properties.font.color,
-          animationSpeed: element.properties.font.colorAnimationSpeed ?? 0,
-          onChange: (val, animationSpeed) => {
+          onChange: (val) => {
             window.app.editor.elementController.updateElementProperty('properties.font.color', val);
-            window.app.editor.elementController.updateElementProperty('properties.font.colorAnimationSpeed', animationSpeed);
           }
         });
       }

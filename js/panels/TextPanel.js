@@ -179,9 +179,10 @@ export class TextPanel {
     });
 
     // Font color (gradient selector)
-    PanelUtils.bindGradientPicker('font-color-gradient-selector', element.properties.font.color, (value) => {
+    PanelUtils.bindGradientPicker('font-color-gradient-selector', element.properties.font.color, (value, animationSpeed) => {
       updateProperty('properties.font.color', value);
-    });
+      updateProperty('properties.font.colorAnimationSpeed', animationSpeed);
+    }, element.properties.font.colorAnimationSpeed);
 
     // Font weight
     const fontWeight = document.getElementById('font-weight');
