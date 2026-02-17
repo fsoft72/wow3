@@ -125,6 +125,11 @@ const _injectStyles = () => {
 	document.head.appendChild(style);
 };
 
+/* ── deduplication ────────────────────────────────── */
+
+/** @type {Set<string>} Active toast keys (type::message) to prevent duplicates */
+const _activeToasts = new Set();
+
 /* ── container cache ──────────────────────────────── */
 
 /** @type {Record<string, HTMLDivElement>} */
@@ -167,6 +172,11 @@ const _getContainer = (pos) => {
  */
 const _show = (type, message, opts = {}) => {
 	_injectStyles();
+
+	// Deduplicate: skip if an identical toast is already visible
+	const toastKey = `${type}::${message}`;
+	if (_activeToasts.has(toastKey)) return;
+	_activeToasts.add(toastKey);
 
 	const {
 		duration = DEFAULT_DURATION,
@@ -263,6 +273,7 @@ const _show = (type, message, opts = {}) => {
 
 	/** Dismiss a toast with exit animation + collapse */
 	const _dismiss = () => {
+		_activeToasts.delete(toastKey);
 		if (timer) {
 			clearTimeout(timer);
 			timer = null;
