@@ -63,7 +63,6 @@ const MediaManager = {
                             </div>
                         </div>
                     </div>
-                    <div id="mm-context-menu"></div>
                     <div id="mm-preview-overlay" onclick="this.classList.remove('active')">
                         <img id="mm-preview-img" src="">
                         <div id="mm-audio-preview-container" onclick="event.stopPropagation()"></div>
@@ -82,12 +81,6 @@ const MediaManager = {
             this.refresh();
         };
 
-        // Context Menu handling
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('#mm-context-menu')) {
-                document.getElementById('mm-context-menu').style.display = 'none';
-            }
-        });
     },
 
     open: async function(onSelectCallback) {
@@ -354,31 +347,19 @@ const MediaManager = {
         // --- CONTEXT MENUS & ACTIONS ---
     
         showItemContextMenu: function(e, id) {
-            e.preventDefault();
-            const menu = document.getElementById('mm-context-menu');
-            menu.style.top = e.clientY + 'px';
-            menu.style.left = e.clientX + 'px';
-            menu.style.display = 'block';
-    
-            menu.innerHTML = `
-                <div class="mm-context-item" onclick="MediaManager.deleteItem('${id}')"><i class="material-icons">delete</i> ${__('delete')}</div>
-                <div class="mm-context-separator"></div>
-                <div class="mm-context-item"><i class="material-icons">info</i> Properties</div>
-            `;
+            ContextMenu.show(e, [
+                { label: __('delete'), icon: 'delete', action: () => MediaManager.deleteItem(id) },
+                { divider: true },
+                { label: 'Properties', icon: 'info', action: () => {} }
+            ]);
         },
-    
+
         showFolderContextMenu: function(e, id) {
-            e.preventDefault();
-            if(id === 'all') return;
-            const menu = document.getElementById('mm-context-menu');
-            menu.style.top = e.clientY + 'px';
-            menu.style.left = e.clientX + 'px';
-            menu.style.display = 'block';
-    
-            menu.innerHTML = `
-                <div class="mm-context-item" onclick="MediaManager.promptRenameFolder('${id}')"><i class="material-icons">edit</i> Rename</div>
-                <div class="mm-context-item" onclick="MediaManager.deleteFolder('${id}')"><i class="material-icons">delete</i> ${__('delete')}</div>
-            `;
+            if (id === 'all') return;
+            ContextMenu.show(e, [
+                { label: 'Rename', icon: 'edit', action: () => MediaManager.promptRenameFolder(id) },
+                { label: __('delete'), icon: 'delete', action: () => MediaManager.deleteFolder(id) }
+            ]);
         },
     promptCreateFolder: async function() {
         const name = await Dialog.prompt("New Album Name:");

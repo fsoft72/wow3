@@ -320,7 +320,6 @@ const TemplateManager = {
           </div>
         </div>
       </div>
-      <div id="tm-context-menu"></div>
     `;
     document.body.insertAdjacentHTML('beforeend', html);
   },
@@ -342,13 +341,6 @@ const TemplateManager = {
       };
     }
 
-    // Dismiss context menu on click outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('#tm-context-menu')) {
-        const menu = document.getElementById('tm-context-menu');
-        if (menu) menu.style.display = 'none';
-      }
-    });
   },
 
   /**
@@ -664,28 +656,12 @@ const TemplateManager = {
    * @param {string} id - Template ID
    */
   showContextMenu: function(e, id) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const menu = document.getElementById('tm-context-menu');
-    if (!menu) return;
-
-    menu.style.top = e.clientY + 'px';
-    menu.style.left = e.clientX + 'px';
-    menu.style.display = 'block';
-
-    menu.innerHTML = `
-      <div class="tm-context-item" onclick="TemplateManager.useTemplate('${id}', false)">
-        <i class="material-icons">add</i> Use
-      </div>
-      <div class="tm-context-item" onclick="TemplateManager.renameTemplate('${id}')">
-        <i class="material-icons">edit</i> Rename
-      </div>
-      <div class="tm-context-separator"></div>
-      <div class="tm-context-item" onclick="TemplateManager.deleteTemplate('${id}')">
-        <i class="material-icons">delete</i> Delete
-      </div>
-    `;
+    ContextMenu.show(e, [
+      { label: 'Use', icon: 'add', action: () => TemplateManager.useTemplate(id, false) },
+      { label: 'Rename', icon: 'edit', action: () => TemplateManager.renameTemplate(id) },
+      { divider: true },
+      { label: 'Delete', icon: 'delete', action: () => TemplateManager.deleteTemplate(id) }
+    ]);
   }
 };
 

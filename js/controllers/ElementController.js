@@ -383,26 +383,7 @@ export class ElementController {
    * @param {Element} element - Element to show menu for
    */
   showElementContextMenu(e, element) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Remove existing context menu
-    const existingMenu = document.querySelector('.context-menu');
-    if (existingMenu) {
-      existingMenu.remove();
-    }
-
-    // Create context menu
-    const menu = document.createElement('div');
-    menu.className = 'context-menu';
-    menu.style.cssText = `
-      position: fixed;
-      left: ${e.clientX}px;
-      top: ${e.clientY}px;
-    `;
-
-    // Menu options
-    const options = [
+    ContextMenu.show(e, [
       {
         label: 'Duplicate',
         icon: 'content_copy',
@@ -427,36 +408,7 @@ export class ElementController {
           this.deleteSelectedElements();
         }
       }
-    ];
-
-    // Build menu HTML
-    options.forEach((option) => {
-      if (option.divider) {
-        const divider = document.createElement('div');
-        divider.className = 'context-menu-divider';
-        menu.appendChild(divider);
-      } else {
-        const item = document.createElement('div');
-        item.className = 'context-menu-item';
-        item.innerHTML = `<i class="material-icons">${option.icon}</i> ${option.label}`;
-        item.addEventListener('click', () => {
-          option.action();
-          menu.remove();
-        });
-        menu.appendChild(item);
-      }
-    });
-
-    document.body.appendChild(menu);
-
-    // Close menu on click outside
-    const closeMenu = (e) => {
-      if (!menu.contains(e.target)) {
-        menu.remove();
-        document.removeEventListener('click', closeMenu);
-      }
-    };
-    setTimeout(() => document.addEventListener('click', closeMenu), 0);
+    ], { theme: 'light' });
   }
 
   /**

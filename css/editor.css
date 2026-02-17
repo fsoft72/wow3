@@ -389,39 +389,79 @@
 
 /* ==================== CONTEXT MENU ==================== */
 
-.context-menu {
+#ctx-menu {
   position: fixed;
-  background: white;
-  border: 1px solid #ccc;
+  background: #222;
+  border: 1px solid #444;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: 10000;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  z-index: 100000;
   min-width: 150px;
+  display: none;
 }
 
-.context-menu-item {
+#ctx-menu.ctx-menu--light {
+  background: white;
+  border-color: #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ctx-menu-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 10px 15px;
   cursor: pointer;
-  transition: background 0.2s;
-  font-size: 14px;
+  font-size: 13px;
+  color: #eee;
+  transition: background 0.15s;
 }
 
-.context-menu-item i {
-  font-size: 18px;
+.ctx-menu-item i {
+  font-size: 16px;
+}
+
+.ctx-menu-item:hover {
+  background: #007bff;
+  color: white;
+}
+
+.ctx-menu-item--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ctx-menu-item--disabled:hover {
+  background: transparent;
+  color: #eee;
+}
+
+/* Light theme overrides */
+#ctx-menu.ctx-menu--light .ctx-menu-item {
+  color: #333;
+}
+
+#ctx-menu.ctx-menu--light .ctx-menu-item i {
   color: #757575;
 }
 
-.context-menu-item:hover {
+#ctx-menu.ctx-menu--light .ctx-menu-item:hover {
   background: #f5f5f5;
+  color: #333;
 }
 
-.context-menu-divider {
-  height: 1px;
-  background: #e0e0e0;
-  margin: 4px 0;
+#ctx-menu.ctx-menu--light .ctx-menu-item--disabled:hover {
+  background: transparent;
+  color: #333;
+}
+
+.ctx-menu-divider {
+  border-top: 1px solid #444;
+  margin: 2px 0;
+}
+
+#ctx-menu.ctx-menu--light .ctx-menu-divider {
+  border-top-color: #e0e0e0;
 }
 
 /* ==================== PLACEHOLDER TEXT ==================== */

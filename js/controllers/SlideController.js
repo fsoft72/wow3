@@ -733,30 +733,9 @@ export class SlideController {
    * @param {number} index - Slide index
    */
   showSlideContextMenu(e, index) {
-    // Remove existing context menu
-    const existingMenu = document.querySelector('.context-menu');
-    if (existingMenu) {
-      existingMenu.remove();
-    }
-
-    // Create context menu
-    const menu = document.createElement('div');
-    menu.className = 'context-menu';
-    menu.style.cssText = `
-      position: fixed;
-      left: ${e.clientX}px;
-      top: ${e.clientY}px;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      z-index: 10000;
-      min-width: 150px;
-    `;
-
-    // Menu options
     const slide = this.editor.presentation.slides[index];
-    const options = [
+
+    ContextMenu.show(e, [
       {
         label: slide.visible ? 'Hide Slide' : 'Show Slide',
         icon: slide.visible ? 'visibility_off' : 'visibility',
@@ -784,53 +763,7 @@ export class SlideController {
         action: () => this.deleteSlide(index),
         disabled: this.editor.presentation.slides.length <= 1
       }
-    ];
-
-    options.forEach((opt) => {
-      const item = document.createElement('div');
-      item.className = 'context-menu-item';
-      item.innerHTML = `
-        <i class="material-icons" style="font-size:18px;margin-right:8px;">${opt.icon}</i>
-        <span>${opt.label}</span>
-      `;
-      item.style.cssText = `
-        padding: 8px 16px;
-        cursor: ${opt.disabled ? 'not-allowed' : 'pointer'};
-        display: flex;
-        align-items: center;
-        opacity: ${opt.disabled ? '0.5' : '1'};
-      `;
-
-      if (!opt.disabled) {
-        item.addEventListener('mouseenter', () => {
-          item.style.background = '#f5f5f5';
-        });
-
-        item.addEventListener('mouseleave', () => {
-          item.style.background = 'white';
-        });
-
-        item.addEventListener('click', () => {
-          opt.action();
-          menu.remove();
-        });
-      }
-
-      menu.appendChild(item);
-    });
-
-    document.body.appendChild(menu);
-
-    // Remove menu on click outside
-    setTimeout(() => {
-      const closeMenu = (e) => {
-        if (!menu.contains(e.target)) {
-          menu.remove();
-          document.removeEventListener('click', closeMenu);
-        }
-      };
-      document.addEventListener('click', closeMenu);
-    }, 0);
+    ], { theme: 'light' });
   }
 
   /**

@@ -2,6 +2,25 @@
 
 ## 2026-02-17
 
+### Refactor: Unified ContextMenu component
+
+Extracted a single reusable `ContextMenu` component to replace 6 separate context menu implementations across the codebase. All menus now use the same positioning, dismiss, and rendering logic with dark (default) and light theme variants.
+
+**New Files:**
+- `js/components/context_menu.js`: `ContextMenu` class with static `show(event, items, options)` and `hide()` methods; singleton DOM element, viewport clamping, click-outside and Escape dismiss
+
+**Updated Files:**
+- `css/editor.css`: Replaced `.context-menu` / `.context-menu-item` / `.context-menu-divider` styles with `#ctx-menu` / `.ctx-menu-item` / `.ctx-menu-divider` (dark default + `.ctx-menu--light` modifier)
+- `css/media-manager.css`: Removed `#mm-context-menu`, `.mm-context-item`, `.mm-context-separator` rules
+- `css/presentation-manager.css`: Removed `#pm-context-menu`, `.pm-context-item`, `.pm-context-separator` rules
+- `css/template-manager.css`: Removed `#tm-context-menu`, `.tm-context-item`, `.tm-context-separator` rules
+- `js/controllers/SlideController.js`: Replaced `showSlideContextMenu()` body with `ContextMenu.show(e, items, { theme: 'light' })`
+- `js/controllers/ElementController.js`: Replaced `showElementContextMenu()` body with `ContextMenu.show(e, items, { theme: 'light' })`
+- `js/utils/media_manager.js`: Replaced `showItemContextMenu()` / `showFolderContextMenu()` with `ContextMenu.show()`; removed static `#mm-context-menu` div and global click listener
+- `js/utils/presentation_manager.js`: Replaced `showContextMenu()` with `ContextMenu.show()`; removed `#pm-context-menu` div and global click listener
+- `js/utils/template_manager.js`: Replaced `showContextMenu()` with `ContextMenu.show()`; removed `#tm-context-menu` div and global click listener
+- `index.html`: Added `<script src="js/components/context_menu.js">` before consumer scripts
+
 ### Feature: Auto-create album on .wow3 import
 
 When importing a `.wow3` presentation that contains media assets, an album is automatically created in the Media Manager using the presentation title. All imported assets are placed into this album.
