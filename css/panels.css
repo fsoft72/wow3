@@ -94,6 +94,17 @@
 
 /* ==================== SLIDERS ==================== */
 
+.range-field {
+  margin-bottom: 16px;
+}
+
+.range-field > label {
+  display: block;
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 6px;
+}
+
 .slider-row {
   display: flex;
   gap: 12px;

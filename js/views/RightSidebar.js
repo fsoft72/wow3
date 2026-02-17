@@ -567,13 +567,24 @@ export class RightSidebar {
 
     // Stroke Width
     const widthWrapper = document.createElement('div');
-    widthWrapper.className = 'input-field';
-    widthWrapper.appendChild(
-      this.createNumberInput('Stroke Width', element.properties.strokeWidth, (val) => {
-        window.app.editor.elementController.updateElementProperty('properties.strokeWidth', parseFloat(val));
-      }, { min: 0, max: 20 })
-    );
+    widthWrapper.className = 'range-field';
+    widthWrapper.id = 'shape-stroke-width-range';
     section.appendChild(widthWrapper);
+
+    // Instantiate RangeInput after DOM insertion
+    requestAnimationFrame(() => {
+      new RangeInput('shape-stroke-width-range', {
+        label: 'Stroke Width',
+        value: element.properties.strokeWidth,
+        min: 0,
+        max: 20,
+        step: 0.5,
+        unit: 'px',
+        onChange: (val) => {
+          window.app.editor.elementController.updateElementProperty('properties.strokeWidth', val);
+        }
+      });
+    });
 
     this.elementTab.appendChild(section);
   }
