@@ -9,6 +9,56 @@
   padding: 8px 0;
 }
 
+/* ==================== TYPE TOGGLE ==================== */
+
+.gradient-type-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.gradient-type-row label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 40px;
+}
+
+.gradient-type-toggle {
+  display: flex;
+  gap: 4px;
+  background: #f5f5f5;
+  padding: 3px;
+  border-radius: 4px;
+}
+
+.gradient-type-btn {
+  background: transparent;
+  border: none;
+  padding: 4px 14px;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.gradient-type-btn:hover {
+  color: #333;
+  background: #e0e0e0;
+}
+
+.gradient-type-btn.active {
+  background: #2196F3;
+  color: white;
+}
+
+/* ==================== ANGLE ROW ==================== */
+
 .gradient-angle-row {
   display: flex;
   align-items: center;
@@ -25,38 +75,8 @@
   min-width: 40px;
 }
 
-.gradient-angle-slider {
+.gradient-angle-row .slider-row {
   flex: 1;
-  -webkit-appearance: none;
-  height: 4px;
-  border-radius: 2px;
-  background: #e0e0e0;
-  outline: none;
-}
-
-.gradient-angle-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #2196F3;
-  cursor: pointer;
-}
-
-.gradient-angle-slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #2196F3;
-  cursor: pointer;
-  border: none;
-}
-
-.gradient-angle-value {
-  font-size: 13px;
-  color: #666;
-  min-width: 36px;
-  text-align: right;
 }
 
 /* ==================== GRADIENT BAR ==================== */
@@ -308,25 +328,32 @@
 
 /* ==================== DARK MODE ==================== */
 
-/* Editor */
-body.dark-mode .gradient-angle-row label {
+/* Editor — type toggle */
+body.dark-mode .gradient-type-row label {
   color: #ddd;
 }
 
-body.dark-mode .gradient-angle-slider {
-  background: #555;
+body.dark-mode .gradient-type-toggle {
+  background: #333;
 }
 
-body.dark-mode .gradient-angle-slider::-webkit-slider-thumb {
-  background: #64b5f6;
-}
-
-body.dark-mode .gradient-angle-slider::-moz-range-thumb {
-  background: #64b5f6;
-}
-
-body.dark-mode .gradient-angle-value {
+body.dark-mode .gradient-type-btn {
   color: #aaa;
+}
+
+body.dark-mode .gradient-type-btn:hover {
+  color: #ddd;
+  background: #444;
+}
+
+body.dark-mode .gradient-type-btn.active {
+  background: #1565c0;
+  color: #fff;
+}
+
+/* Editor — angle row */
+body.dark-mode .gradient-angle-row label {
+  color: #ddd;
 }
 
 body.dark-mode .gradient-bar {

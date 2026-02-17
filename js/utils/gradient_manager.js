@@ -190,13 +190,28 @@ const GradientManager = {
   fromCSS(css) {
     if ( ! css ) return null;
 
+    let type = null;
+    let angle = 90;
+    let stopsStr = null;
+
     const linearMatch = css.match(/^linear-gradient\(\s*(\d+)deg\s*,\s*(.+)\)$/i);
-    if ( ! linearMatch ) return null;
+    if ( linearMatch ) {
+      type = 'linear';
+      angle = parseInt(linearMatch[1], 10);
+      stopsStr = linearMatch[2];
+    }
 
-    const angle = parseInt(linearMatch[1], 10);
-    const stopsStr = linearMatch[2];
+    if ( ! type ) {
+      const radialMatch = css.match(/^radial-gradient\(\s*(?:circle|ellipse)?\s*,?\s*(.+)\)$/i);
+      if ( radialMatch ) {
+        type = 'radial';
+        stopsStr = radialMatch[1];
+      }
+    }
+
+    if ( ! type || ! stopsStr ) return null;
+
     const stops = [];
-
     // Match color + position pairs like "#ff512f 0%" or "rgb(255,0,0) 50%"
     const stopRegex = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\))\s+(\d+(?:\.\d+)?)%/g;
     let match;
@@ -212,7 +227,7 @@ const GradientManager = {
     return {
       id: this._generateId(),
       name: 'Imported Gradient',
-      type: 'linear',
+      type: type,
       angle: angle,
       stops: stops
     };
@@ -287,12 +302,26 @@ const GradientManager = {
     const container = state.container;
     const gradient = state.gradient;
 
+    const isLinear = gradient.type !== 'radial';
+
     container.innerHTML = `
       <div class="gradient-editor" id="${containerId}-editor">
-        <div class="gradient-angle-row">
+        <div class="gradient-type-row">
+          <label>Type</label>
+          <div class="gradient-type-toggle">
+            <button class="gradient-type-btn ${isLinear ? 'active' : ''}" data-type="linear">Linear</button>
+            <button class="gradient-type-btn ${!isLinear ? 'active' : ''}" data-type="radial">Radial</button>
+          </div>
+        </div>
+        <div class="gradient-angle-row" ${!isLinear ? 'style="display:none"' : ''}>
           <label>Angle</label>
-          <input type="range" class="gradient-angle-slider" min="0" max="360" step="1" value="${gradient.angle}">
-          <span class="gradient-angle-value">${gradient.angle}°</span>
+          <div class="slider-row">
+            <input type="range" class="gradient-angle-slider slider" min="0" max="360" step="1" value="${gradient.angle}">
+            <div class="number-box">
+              <input type="number" class="gradient-angle-input number-input" min="0" max="360" step="1" value="${gradient.angle}">
+              <span class="unit-label">°</span>
+            </div>
+          </div>
         </div>
         <div class="gradient-bar-wrapper">
           <div class="gradient-bar" style="background: ${this.toCSS(gradient)}"></div>
@@ -305,7 +334,9 @@ const GradientManager = {
     const bar = container.querySelector('.gradient-bar');
     const stopsContainer = container.querySelector('.gradient-stops');
     const angleSlider = container.querySelector('.gradient-angle-slider');
-    const angleValue = container.querySelector('.gradient-angle-value');
+    const angleInput = container.querySelector('.gradient-angle-input');
+    const angleRow = container.querySelector('.gradient-angle-row');
+    const typeBtns = container.querySelectorAll('.gradient-type-btn');
 
     /** Update preview and fire onChange */
     const update = () => {
@@ -408,12 +439,28 @@ const GradientManager = {
       });
     };
 
-    // Angle slider
-    angleSlider.addEventListener('input', (e) => {
-      state.gradient.angle = parseInt(e.target.value, 10);
-      angleValue.textContent = state.gradient.angle + '°';
-      update();
+    // Type toggle
+    typeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        typeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.gradient.type = btn.dataset.type;
+        angleRow.style.display = btn.dataset.type === 'linear' ? '' : 'none';
+        update();
+      });
     });
+
+    // Angle slider + number input sync
+    const updateAngle = (val) => {
+      const clamped = Math.max(0, Math.min(360, parseInt(val, 10) || 0));
+      state.gradient.angle = clamped;
+      angleSlider.value = clamped;
+      angleInput.value = clamped;
+      update();
+    };
+
+    angleSlider.addEventListener('input', (e) => updateAngle(e.target.value));
+    angleInput.addEventListener('change', (e) => updateAngle(e.target.value));
 
     // Double-click bar to add stop
     bar.addEventListener('dblclick', (e) => {
