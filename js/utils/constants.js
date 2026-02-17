@@ -101,7 +101,8 @@ export const STORAGE_KEYS = {
   CURRENT_PRESENTATION: 'wow3_current_presentation',
   SNAPSHOT: 'wow3_snapshot',
   AUTO_SAVE: 'wow3_autosave',
-  PREFERENCES: 'wow3_preferences'
+  PREFERENCES: 'wow3_preferences',
+  GRADIENTS: 'wow3_gradients'
 };
 
 // Auto-save interval (milliseconds)

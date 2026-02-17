@@ -1,5 +1,32 @@
 # WOW3 Development Changelog
 
+## 2026-02-17
+
+### Feature: Gradient Manager for Slide Backgrounds
+
+Added a GradientManager that allows creating, editing, saving, and selecting CSS gradients. The first integration point is the slide background picker in the right sidebar.
+
+**New Files:**
+- `js/utils/gradient_manager.js`: Object-literal singleton (`window.GradientManager`) with core API (create, save, delete, toCSS, fromCSS, localStorage persistence), an interactive gradient editor widget (draggable color stops, angle slider, real-time preview), and a selector/dropdown widget with Dialog integration for custom gradients.
+- `css/gradient-manager.css`: Styles for the gradient editor, selector dropdown, stop handles, and dialog sizing override.
+
+**Modified Files:**
+- `js/utils/constants.js`: Added `GRADIENTS: 'wow3_gradients'` to `STORAGE_KEYS`.
+- `index.html`: Added CSS/JS links for gradient manager; replaced `<input type="color" id="slide-background">` with a gradient selector container div.
+- `js/controllers/EditorController.js`: Replaced slide-background color input listener in `setupEventListeners()` with `GradientManager.renderSelector()` initialization; replaced `updateUI()` color input sync with `GradientManager.updateSelector()`.
+- `js/utils/panel_utils.js`: Added `renderGradientPicker()` and `bindGradientPicker()` convenience helpers for future reuse in property panels.
+
+**Features:**
+- 6 built-in gradient presets (Sunset, Ocean, Forest, Purple Haze, Midnight, Peach) seeded on first init
+- Interactive gradient bar with draggable color-stop handles
+- Double-click bar to add new stops; drag stops vertically to remove (min 2 enforced)
+- Click stop to open color picker with real-time gradient updates
+- Angle slider for linear gradients
+- Selector dropdown with saved gradients, "Solid Color" fallback, and "Custom Gradient..." dialog
+- Delete saved gradients from dropdown
+- Persists to localStorage across sessions
+- Existing slides with plain hex backgrounds continue to work
+
 ## 2026-02-16
 
 ### Fix: Audio Control During Presentation Transitions

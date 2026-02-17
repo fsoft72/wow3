@@ -153,5 +153,36 @@ window.PanelUtils = {
         if (onChange) onChange(value);
       }
     });
+  },
+
+  /**
+   * Render a gradient picker control (uses GradientManager selector).
+   * @param {string} label - Display label
+   * @param {string} id - Unique ID for the container
+   * @param {string} value - Current CSS value (color or gradient)
+   * @returns {string} HTML string
+   */
+  renderGradientPicker(label, id, value) {
+    return `
+      <div class="control-group">
+        <label>${label}</label>
+        <div id="${id}"></div>
+      </div>
+    `;
+  },
+
+  /**
+   * Bind a gradient picker (initialize GradientManager selector).
+   * @param {string} id - Container element ID
+   * @param {string} currentValue - Current CSS background value
+   * @param {Function} onChange - Callback with new CSS value
+   */
+  bindGradientPicker(id, currentValue, onChange) {
+    if ( ! window.GradientManager ) return;
+
+    GradientManager.renderSelector(id, {
+      value: currentValue || '#ffffff',
+      onChange: onChange
+    });
   }
 };
