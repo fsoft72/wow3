@@ -117,13 +117,17 @@ const MediaManager = {
     renderSidebar: function() {
         const list = document.getElementById('mm-folder-list');
         list.innerHTML = this.state.folders.map(f => `
-            <div class="mm-nav-item ${this.state.currentFolderId === f.id ? 'active' : ''}" 
+            <div class="mm-nav-item ${this.state.currentFolderId === f.id ? 'active' : ''}"
                  onclick="MediaManager.selectFolder('${f.id}')"
                  oncontextmenu="MediaManager.showFolderContextMenu(event, '${f.id}')"
                  ondrop="MediaManager.handleMoveToFolder(event, '${f.id}')"
                  ondragover="MediaManager.handleDragOver(event)"
                  ondragleave="MediaManager.handleDragLeave(event)">
-                <i class="material-icons">folder</i> ${f.name}
+                <i class="material-icons">folder</i>
+                <span class="mm-folder-name">${f.name}</span>
+                <button class="mm-folder-delete" onclick="event.stopPropagation(); MediaManager.deleteFolder('${f.id}')" title="Delete album">
+                    <i class="material-icons">delete</i>
+                </button>
             </div>
         `).join('');
         

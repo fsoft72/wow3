@@ -2,6 +2,21 @@
 
 ## 2026-02-17
 
+### Feature: Auto-create album on .wow3 import
+
+When importing a `.wow3` presentation that contains media assets, an album is automatically created in the Media Manager using the presentation title. All imported assets are placed into this album.
+
+**Changes:**
+- `js/utils/storage.js`: In `importZip()`, create a folder via `MediaDB.createFolder()` when assets exist and pass `folderId` to `addMedia()`
+
+### Feature: Album delete button in Media Manager sidebar
+
+Each album in the Media Manager sidebar now shows a delete button (trash icon) on hover, providing a quicker alternative to the right-click context menu.
+
+**Changes:**
+- `js/utils/media_manager.js`: Added delete button markup in `renderSidebar()` with `stopPropagation` to avoid selecting the folder
+- `css/media-manager.css`: Added `.mm-folder-name`, `.mm-folder-delete` styles with hover reveal pattern
+
 ### Fix: Deduplicate toast notifications
 
 Duplicate toast messages (same type and text) are now suppressed while an identical toast is still visible. Once the toast is dismissed, the same message can appear again.
