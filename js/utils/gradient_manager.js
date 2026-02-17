@@ -521,6 +521,7 @@ const GradientManager = {
         <div class="gradient-selector-item" data-gradient-id="${g.id}">
           <div class="gradient-selector-item-preview" style="background: ${css}"></div>
           <span class="gradient-selector-item-label">${g.name}</span>
+          <button class="gradient-selector-item-edit" data-edit-id="${g.id}" title="Edit gradient">&#9998;</button>
           <button class="gradient-selector-item-delete" data-delete-id="${g.id}" title="Delete gradient">&times;</button>
         </div>
       `;
@@ -557,6 +558,7 @@ const GradientManager = {
     dropdown.querySelectorAll('[data-gradient-id]').forEach(item => {
       item.addEventListener('click', (e) => {
         if ( e.target.classList.contains('gradient-selector-item-delete') ) return;
+        if ( e.target.classList.contains('gradient-selector-item-edit') ) return;
         const id = item.dataset.gradientId;
         const gradient = this.getById(id);
         if ( ! gradient ) return;
@@ -565,6 +567,18 @@ const GradientManager = {
         this._updateSelectorPreview(containerId, css);
         onChange(css);
         this._closeSelector(containerId);
+      });
+    });
+
+    // Bind edit buttons
+    dropdown.querySelectorAll('.gradient-selector-item-edit').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.editId;
+        const gradient = this.getById(id);
+        if ( ! gradient ) return;
+        this._closeSelector(containerId);
+        this._openGradientDialog(containerId, state, onChange, gradient);
       });
     });
 
@@ -590,15 +604,23 @@ const GradientManager = {
   /**
    * Open a Dialog with the full gradient editor inside.
    * @private
+   * @param {string} containerId - Selector container ID
+   * @param {Object} state - Selector state
+   * @param {Function} onChange - Change callback
+   * @param {Object} [existingGradient] - Gradient to edit (omit to create new)
    */
-  _openGradientDialog(containerId, state, onChange) {
-    // Try to parse current value as gradient, or create a new one
-    let gradient = this.fromCSS(state.value);
-    if ( ! gradient ) {
-      gradient = this.create('Custom Gradient', 'linear', 90, [
-        { color: state.value.startsWith('#') ? state.value : '#000000', position: 0 },
-        { color: '#ffffff', position: 100 }
-      ]);
+  _openGradientDialog(containerId, state, onChange, existingGradient) {
+    let gradient;
+    if ( existingGradient ) {
+      gradient = JSON.parse(JSON.stringify(existingGradient));
+    } else {
+      gradient = this.fromCSS(state.value);
+      if ( ! gradient ) {
+        gradient = this.create('Custom Gradient', 'linear', 90, [
+          { color: state.value.startsWith('#') ? state.value : '#000000', position: 0 },
+          { color: '#ffffff', position: 100 }
+        ]);
+      }
     }
 
     let editedGradient = JSON.parse(JSON.stringify(gradient));
