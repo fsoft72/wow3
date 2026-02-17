@@ -541,23 +541,40 @@ export class RightSidebar {
       }
     });
 
-    // Stroke + Stroke Width on one row
-    const row = document.createElement('div');
-    row.className = 'property-row two-col';
+    // Stroke — gradient selector (full width)
+    const strokeWrapper = document.createElement('div');
+    strokeWrapper.className = 'input-field';
+    const strokeLabel = document.createElement('label');
+    strokeLabel.textContent = 'Stroke';
+    strokeLabel.classList.add('active');
+    const strokeContainer = document.createElement('div');
+    strokeContainer.id = 'shape-stroke-gradient-selector';
+    strokeWrapper.appendChild(strokeLabel);
+    strokeWrapper.appendChild(strokeContainer);
+    section.appendChild(strokeWrapper);
 
-    row.appendChild(
-      this.createColorInput('Stroke', element.properties.strokeColor, (val) => {
-        window.app.editor.elementController.updateElementProperty('properties.strokeColor', val);
-      })
-    );
+    // Instantiate stroke GradientSelector after DOM insertion
+    requestAnimationFrame(() => {
+      if ( window.GradientSelector ) {
+        this._shapeStrokeSelector = new GradientSelector('shape-stroke-gradient-selector', {
+          value: element.properties.strokeColor,
+          onChange: (val) => {
+            window.app.editor.elementController.updateElementProperty('properties.strokeColor', val);
+          }
+        });
+      }
+    });
 
-    row.appendChild(
+    // Stroke Width
+    const widthWrapper = document.createElement('div');
+    widthWrapper.className = 'input-field';
+    widthWrapper.appendChild(
       this.createNumberInput('Stroke Width', element.properties.strokeWidth, (val) => {
         window.app.editor.elementController.updateElementProperty('properties.strokeWidth', parseFloat(val));
       }, { min: 0, max: 20 })
     );
+    section.appendChild(widthWrapper);
 
-    section.appendChild(row);
     this.elementTab.appendChild(section);
   }
 

@@ -67,8 +67,9 @@ export class ShapeElement extends Element {
         break;
     }
 
-    // Resolve fill — CSS gradients need SVG <defs> translation
-    const fillValue = this._resolveSvgFill(svg, this.properties.fillColor);
+    // Resolve fill and stroke — CSS gradients need SVG <defs> translation
+    const fillValue = this._resolveSvgFill(svg, this.properties.fillColor, 'fill');
+    const strokeValue = this._resolveSvgFill(svg, this.properties.strokeColor, 'stroke');
 
     // Apply styles — lines have no fill area, so use fillColor as stroke
     if (this.properties.shapeType === 'line') {
@@ -78,7 +79,7 @@ export class ShapeElement extends Element {
       shape.setAttribute('vector-effect', 'non-scaling-stroke');
     } else {
       shape.setAttribute('fill', fillValue);
-      shape.setAttribute('stroke', this.properties.strokeColor);
+      shape.setAttribute('stroke', strokeValue);
       shape.setAttribute('stroke-width', this.properties.strokeWidth);
     }
 
@@ -97,26 +98,33 @@ export class ShapeElement extends Element {
   }
 
   /**
-   * Resolve a CSS color or gradient string into an SVG-compatible fill value.
-   * If the color is a CSS gradient, creates a <defs> block with the SVG gradient
-   * and returns url(#id). Otherwise returns the color as-is.
+   * Resolve a CSS color or gradient string into an SVG-compatible fill/stroke value.
+   * If the color is a CSS gradient, creates an SVG gradient def and returns url(#id).
+   * Otherwise returns the color as-is.
    * @param {SVGElement} svg - Parent SVG element to insert defs into
    * @param {string} color - CSS color or gradient string
-   * @returns {string} SVG fill value
+   * @param {string} suffix - Unique suffix for the def ID (e.g. 'fill', 'stroke')
+   * @returns {string} SVG fill/stroke value
    * @private
    */
-  _resolveSvgFill(svg, color) {
+  _resolveSvgFill(svg, color, suffix = 'fill') {
     if ( ! color ) return 'none';
 
-    // Use GradientManager to parse if available
     const gm = window.GradientManager;
     if ( ! gm ) return color;
 
     const grad = gm.fromCSS(color);
     if ( ! grad ) return color;
 
-    const gradId = 'svggrad-' + this.id;
-    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const gradId = `svggrad-${suffix}-${this.id}`;
+
+    // Reuse existing <defs> or create one
+    let defs = svg.querySelector('defs');
+    if ( ! defs ) {
+      defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      svg.insertBefore(defs, svg.firstChild);
+    }
+
     const sortedStops = [...grad.stops].sort((a, b) => a.position - b.position);
 
     let svgGrad;
@@ -152,7 +160,6 @@ export class ShapeElement extends Element {
     });
 
     defs.appendChild(svgGrad);
-    svg.insertBefore(defs, svg.firstChild);
 
     return `url(#${gradId})`;
   }
