@@ -570,12 +570,20 @@ const importZip = async (file) => {
       if (!entry.dir) assetFiles.push({ relativePath, entry });
     });
 
+    // Auto-create an album for the imported assets
+    let folderId = null;
+    if (assetFiles.length > 0) {
+      const albumName = jsonData.title?.trim() || 'Imported Presentation';
+      const folder = await window.MediaDB.createFolder(albumName);
+      folderId = folder.id;
+    }
+
     for (const { relativePath, entry } of assetFiles) {
       try {
         const blob = await entry.async('blob');
         const mimeType = mimeFromFilename(relativePath);
         const mediaFile = new File([blob], relativePath, { type: mimeType });
-        const item = await window.MediaDB.addMedia(mediaFile);
+        const item = await window.MediaDB.addMedia(mediaFile, folderId);
         filenameToId.set(relativePath, item.id);
       } catch (err) {
         console.warn(`⚠️ Failed to import asset ${relativePath}:`, err);

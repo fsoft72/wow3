@@ -95,6 +95,22 @@
 .mm-nav-item.active { background: #2a2a2a; color: #fff; font-weight: 500; }
 .mm-nav-item i { font-size: 18px; color: #777; }
 .mm-nav-item.active i { color: #007bff; }
+.mm-folder-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mm-folder-delete {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 2px;
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+}
+.mm-nav-item:hover .mm-folder-delete { opacity: 1; }
+.mm-folder-delete:hover { color: #dc3545; }
+.mm-folder-delete i { font-size: 16px; }
 
 /* Main Grid */
 .mm-content {
