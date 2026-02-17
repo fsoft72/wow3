@@ -292,3 +292,123 @@
 .gradient-dialog-name {
   flex: 1;
 }
+
+/* ==================== DARK MODE ==================== */
+
+/* Editor */
+body.dark-mode .gradient-angle-row label {
+  color: #ddd;
+}
+
+body.dark-mode .gradient-angle-slider {
+  background: #555;
+}
+
+body.dark-mode .gradient-angle-slider::-webkit-slider-thumb {
+  background: #64b5f6;
+}
+
+body.dark-mode .gradient-angle-slider::-moz-range-thumb {
+  background: #64b5f6;
+}
+
+body.dark-mode .gradient-angle-value {
+  color: #aaa;
+}
+
+body.dark-mode .gradient-bar {
+  border-color: #555;
+}
+
+body.dark-mode .gradient-stop-handle {
+  border-color: #1e1e1e;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+body.dark-mode .gradient-stop-handle:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+body.dark-mode .gradient-stop-handle.dragging {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.8);
+}
+
+body.dark-mode .gradient-editor-hint {
+  color: #777;
+}
+
+/* Selector */
+body.dark-mode .gradient-selector-current {
+  background: #333;
+  border-color: #555;
+}
+
+body.dark-mode .gradient-selector-current:hover {
+  border-color: #64b5f6;
+}
+
+body.dark-mode .gradient-selector.open .gradient-selector-current {
+  border-color: #64b5f6;
+}
+
+body.dark-mode .gradient-selector-preview {
+  border-color: #555;
+}
+
+body.dark-mode .gradient-selector-label {
+  color: #eee;
+}
+
+body.dark-mode .gradient-selector-chevron {
+  color: #aaa;
+}
+
+/* Dropdown */
+body.dark-mode .gradient-selector-dropdown {
+  background: #2a2a2a;
+  border-color: #444;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .gradient-selector-item:hover {
+  background: #3a3a3a;
+}
+
+body.dark-mode .gradient-selector-item-preview {
+  border-color: #555;
+}
+
+body.dark-mode .gradient-selector-item-label {
+  color: #ddd;
+}
+
+body.dark-mode .gradient-selector-item-delete {
+  color: #777;
+}
+
+body.dark-mode .gradient-selector-item-delete:hover {
+  color: #ef5350;
+}
+
+body.dark-mode .gradient-selector-custom {
+  border-top-color: #444;
+}
+
+body.dark-mode .gradient-selector-custom .gradient-selector-item-label {
+  color: #64b5f6;
+}
+
+/* Dialog */
+body.dark-mode .gradient-dialog-name-row label {
+  color: #ddd;
+}
+
+body.dark-mode .gradient-dialog-name {
+  background: #333;
+  color: #eee;
+  border-color: #555;
+}
+
+body.dark-mode .gradient-dialog-name:focus {
+  border-color: #64b5f6;
+}
