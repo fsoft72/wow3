@@ -7,6 +7,7 @@
 Replaced the simple color picker for text color with a `GradientSelector`, allowing text elements to use gradient fills in addition to solid colors.
 
 **Modified Files:**
+- `js/panels/TextPanel.js`: Replaced `renderColorPicker`/`bindColorPicker` with `renderGradientPicker`/`bindGradientPicker` for the Text Color control in the Style tab.
 - `js/views/RightSidebar.js`: Replaced `createColorInput('Color', ...)` in `addTextProperties()` with a `GradientSelector` widget (same pattern as shape fill/stroke).
 - `js/models/TextElement.js`: Updated `render()` to detect gradient values in `font.color` and apply CSS `background-clip: text` technique for gradient text rendering. Solid colors continue to use the standard `color` property.
 

@@ -36,7 +36,7 @@ export class TextPanel {
 
         ${PanelUtils.renderSlider('Font Size', 'font-size', font.size, 8, 144, 1, 'px')}
 
-        ${PanelUtils.renderColorPicker('Text Color', 'font-color', font.color)}
+        ${PanelUtils.renderGradientPicker('Text Color', 'font-color-gradient-selector', font.color)}
 
         <div class="control-group">
           <label>Font Weight</label>
@@ -178,8 +178,8 @@ export class TextPanel {
       updateProperty('properties.font.size', parseInt(value));
     });
 
-    // Font color
-    PanelUtils.bindColorPicker('font-color', (value) => {
+    // Font color (gradient selector)
+    PanelUtils.bindGradientPicker('font-color-gradient-selector', element.properties.font.color, (value) => {
       updateProperty('properties.font.color', value);
     });
 
