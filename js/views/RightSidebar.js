@@ -517,15 +517,33 @@ export class RightSidebar {
       )
     );
 
-    // Fill + Stroke + Stroke Width on one row
-    const row = document.createElement('div');
-    row.className = 'property-row three-col';
+    // Fill — gradient selector (full width)
+    const fillWrapper = document.createElement('div');
+    fillWrapper.className = 'input-field';
+    const fillLabel = document.createElement('label');
+    fillLabel.textContent = 'Fill';
+    fillLabel.classList.add('active');
+    const fillContainer = document.createElement('div');
+    fillContainer.id = 'shape-fill-gradient-selector';
+    fillWrapper.appendChild(fillLabel);
+    fillWrapper.appendChild(fillContainer);
+    section.appendChild(fillWrapper);
 
-    row.appendChild(
-      this.createColorInput('Fill', element.properties.fillColor, (val) => {
-        window.app.editor.elementController.updateElementProperty('properties.fillColor', val);
-      })
-    );
+    // Instantiate GradientSelector after DOM insertion
+    requestAnimationFrame(() => {
+      if ( window.GradientSelector ) {
+        this._shapeFillSelector = new GradientSelector('shape-fill-gradient-selector', {
+          value: element.properties.fillColor,
+          onChange: (val) => {
+            window.app.editor.elementController.updateElementProperty('properties.fillColor', val);
+          }
+        });
+      }
+    });
+
+    // Stroke + Stroke Width on one row
+    const row = document.createElement('div');
+    row.className = 'property-row two-col';
 
     row.appendChild(
       this.createColorInput('Stroke', element.properties.strokeColor, (val) => {
