@@ -226,6 +226,37 @@ export class AnimationEditorController {
     this._renderBuildOrder();
   }
 
+  /**
+   * Handle reorder of element z-index via drag-and-drop
+   * @param {number} fromIndex - Source index in slide.elements
+   * @param {number} toIndex - Destination index in slide.elements
+   */
+  handleElementReorder(fromIndex, toIndex) {
+    const slide = this.editor.getActiveSlide();
+    if (!slide) return;
+
+    const element = slide.elements[fromIndex];
+    if (!element) return;
+
+    slide.reorderElement(element.id, toIndex);
+    this.editor.recordHistory();
+
+    // Re-render canvas with new z-order
+    if (this.editor.slideController) {
+      this.editor.slideController.renderCurrentSlide();
+    }
+
+    // Re-render elements list
+    this._renderElementsList();
+
+    // Re-select the element if it was selected
+    if (this._currentElement && this._currentElement.id === element.id) {
+      if (this.editor.elementController) {
+        this.editor.elementController.selectElement(element);
+      }
+    }
+  }
+
   // ==================== PRIVATE ====================
 
   /**
@@ -466,7 +497,7 @@ export class AnimationEditorController {
     // Check if we're in presentation mode
     const isPresentation = document.getElementById('presentation-view')?.classList.contains('active');
 
-    container.innerHTML = slide.elements.map((el) => {
+    container.innerHTML = slide.elements.map((el, idx) => {
       const icon = ELEMENT_ICONS[el.type] || 'widgets';
       const name = this._getElementLabel(el);
       const isSelected = el.id === selectedId;
@@ -480,7 +511,8 @@ export class AnimationEditorController {
            </button>`
         : '';
 
-      return `<div class="panel-element-item ${isSelected ? 'selected' : ''}" data-element-id="${el.id}">
+      return `<div class="panel-element-item ${isSelected ? 'selected' : ''}" data-element-id="${el.id}" data-element-index="${idx}">
+        <i class="material-icons element-drag-handle" title="Drag to reorder">drag_indicator</i>
         <i class="material-icons">${icon}</i>
         <span class="panel-element-name">${name}</span>
         <span class="panel-element-type">${el.type}</span>
@@ -538,6 +570,9 @@ export class AnimationEditorController {
         }
       });
     });
+
+    // Setup drag-to-reorder on element items
+    this._setupElementDragReorder(container);
   }
 
   /**
@@ -717,6 +752,101 @@ export class AnimationEditorController {
       card.addEventListener('dragend', () => {
         card.classList.remove('dragging');
         list.querySelectorAll('.drag-over').forEach((c) => c.classList.remove('drag-over'));
+      });
+    });
+  }
+
+  /**
+   * Setup pointer-based vertical-only drag reorder on element items.
+   * Drag is initiated by the .element-drag-handle grip icon.
+   * @param {HTMLElement} container - The #panel-elements-list container
+   * @private
+   */
+  _setupElementDragReorder(container) {
+    const items = container.querySelectorAll('.panel-element-item');
+    if (items.length < 2) return;
+
+    items.forEach((item) => {
+      const handle = item.querySelector('.element-drag-handle');
+      if (!handle) return;
+
+      handle.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const srcIndex = parseInt(item.dataset.elementIndex);
+        const itemRect = item.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const startY = e.clientY;
+        const itemHeight = itemRect.height + 4; // include margin-bottom
+
+        // Create a visual clone that follows the cursor vertically
+        const ghost = item.cloneNode(true);
+        ghost.classList.add('element-drag-ghost');
+        ghost.style.position = 'fixed';
+        ghost.style.left = `${itemRect.left}px`;
+        ghost.style.top = `${itemRect.top}px`;
+        ghost.style.width = `${itemRect.width}px`;
+        ghost.style.zIndex = '100000';
+        ghost.style.pointerEvents = 'none';
+        document.body.appendChild(ghost);
+
+        // Mark source item as being dragged
+        item.classList.add('dragging');
+
+        // Build a list of midpoints for drop position calculation
+        const allItems = [...container.querySelectorAll('.panel-element-item')];
+        const midpoints = allItems.map((el) => {
+          const r = el.getBoundingClientRect();
+          return r.top + r.height / 2;
+        });
+
+        let currentDropIndex = srcIndex;
+
+        const onPointerMove = (ev) => {
+          const dy = ev.clientY - startY;
+          ghost.style.top = `${itemRect.top + dy}px`;
+
+          // Determine drop target based on cursor Y
+          let newIndex = allItems.length - 1;
+          for (let i = 0; i < midpoints.length; i++) {
+            if (ev.clientY < midpoints[i]) {
+              newIndex = i;
+              break;
+            }
+          }
+
+          // Update visual indicators
+          if (newIndex !== currentDropIndex) {
+            allItems.forEach((el) => el.classList.remove('drag-over-above', 'drag-over-below'));
+            if (newIndex !== srcIndex) {
+              if (newIndex < srcIndex) {
+                allItems[newIndex]?.classList.add('drag-over-above');
+              } else {
+                allItems[newIndex]?.classList.add('drag-over-below');
+              }
+            }
+            currentDropIndex = newIndex;
+          }
+        };
+
+        const onPointerUp = () => {
+          document.removeEventListener('pointermove', onPointerMove);
+          document.removeEventListener('pointerup', onPointerUp);
+
+          // Cleanup
+          ghost.remove();
+          item.classList.remove('dragging');
+          allItems.forEach((el) => el.classList.remove('drag-over-above', 'drag-over-below'));
+
+          // Commit reorder if position changed
+          if (currentDropIndex !== srcIndex) {
+            this.handleElementReorder(srcIndex, currentDropIndex);
+          }
+        };
+
+        document.addEventListener('pointermove', onPointerMove);
+        document.addEventListener('pointerup', onPointerUp);
       });
     });
   }

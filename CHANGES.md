@@ -2,6 +2,27 @@
 
 ## 2026-02-17
 
+### Fix: Right panel tabs empty at startup
+
+The "Slide" and "Element" tab contents in the right panel were invisible at startup. Root cause: the CSS rule `.tab-content:first-of-type { display: block }` never matched `#tab-slide` because the first `<div>` sibling in `#right-sidebar` is `.media-manager-button-wrapper`. Replaced with `.tab-content.active { display: block }` which correctly targets the Materialize-managed active tab. Also removed the redundant `DOMContentLoaded` handler in `app.js` that was double-initializing Materialize components.
+
+**Changes:**
+- `css/main.css`: Changed `.tab-content:first-of-type` to `.tab-content.active`
+- `js/app.js`: Removed redundant `M.AutoInit()` / `M.Tabs.init()` in `initMaterialize()`
+
+---
+
+### Feat: Drag-to-reorder elements in Elements Control Center
+
+Added vertical-only drag-to-reorder for elements in the "Elements" tab of the Elements Control Center. Dragging elements changes their z-index order on the slide. Uses pointer events for smooth vertical-only constraint with a visual ghost element.
+
+**Changes:**
+- `js/controllers/AnimationEditorController.js`: Added drag handle to element items, `_setupElementDragReorder()` method with pointer-based vertical drag, and `handleElementReorder()` that calls `Slide.reorderElement()`
+- `css/animation-editor.css`: Added styles for `.element-drag-handle`, drag states (`.dragging`, `.drag-over-above`, `.drag-over-below`), and `.element-drag-ghost`
+- `css/settings.css`: Added dark mode styles for drag handle and ghost
+
+---
+
 ### Feat: Use RangeInput for rotation property
 
 Replaced the plain number input for the Rotation field in the Element properties panel with a `RangeInput` slider component (range: -360 to 360, step: 1, unit: °). The `updatePositionValues` method now calls `RangeInput.update()` to keep the slider in sync during drag-rotation.
