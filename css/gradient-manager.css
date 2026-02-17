@@ -9,6 +9,12 @@
   padding: 8px 0;
 }
 
+/* ==================== GRADIENT CONTROLS (below selector) ==================== */
+
+.gradient-controls {
+  margin-top: 10px;
+}
+
 /* ==================== TYPE TOGGLE ==================== */
 
 .gradient-type-row {

@@ -302,27 +302,8 @@ const GradientManager = {
     const container = state.container;
     const gradient = state.gradient;
 
-    const isLinear = gradient.type !== 'radial';
-
     container.innerHTML = `
       <div class="gradient-editor" id="${containerId}-editor">
-        <div class="gradient-type-row">
-          <label>Type</label>
-          <div class="gradient-type-toggle">
-            <button class="gradient-type-btn ${isLinear ? 'active' : ''}" data-type="linear">Linear</button>
-            <button class="gradient-type-btn ${!isLinear ? 'active' : ''}" data-type="radial">Radial</button>
-          </div>
-        </div>
-        <div class="gradient-angle-row" ${!isLinear ? 'style="display:none"' : ''}>
-          <label>Angle</label>
-          <div class="slider-row">
-            <input type="range" class="gradient-angle-slider slider" min="0" max="360" step="1" value="${gradient.angle}">
-            <div class="number-box">
-              <input type="number" class="gradient-angle-input number-input" min="0" max="360" step="1" value="${gradient.angle}">
-              <span class="unit-label">°</span>
-            </div>
-          </div>
-        </div>
         <div class="gradient-bar-wrapper">
           <div class="gradient-bar" style="background: ${this.toCSS(gradient)}"></div>
           <div class="gradient-stops"></div>
@@ -333,10 +314,6 @@ const GradientManager = {
 
     const bar = container.querySelector('.gradient-bar');
     const stopsContainer = container.querySelector('.gradient-stops');
-    const angleSlider = container.querySelector('.gradient-angle-slider');
-    const angleInput = container.querySelector('.gradient-angle-input');
-    const angleRow = container.querySelector('.gradient-angle-row');
-    const typeBtns = container.querySelectorAll('.gradient-type-btn');
 
     /** Update preview and fire onChange */
     const update = () => {
@@ -439,29 +416,6 @@ const GradientManager = {
       });
     };
 
-    // Type toggle
-    typeBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        typeBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.gradient.type = btn.dataset.type;
-        angleRow.style.display = btn.dataset.type === 'linear' ? '' : 'none';
-        update();
-      });
-    });
-
-    // Angle slider + number input sync
-    const updateAngle = (val) => {
-      const clamped = Math.max(0, Math.min(360, parseInt(val, 10) || 0));
-      state.gradient.angle = clamped;
-      angleSlider.value = clamped;
-      angleInput.value = clamped;
-      update();
-    };
-
-    angleSlider.addEventListener('input', (e) => updateAngle(e.target.value));
-    angleInput.addEventListener('change', (e) => updateAngle(e.target.value));
-
     // Double-click bar to add stop
     bar.addEventListener('dblclick', (e) => {
       const rect = bar.getBoundingClientRect();
@@ -500,12 +454,21 @@ const GradientManager = {
     const value = options.value || '#ffffff';
     const onChange = options.onChange || (() => {});
 
+    // Parse gradient object from value if possible
+    const parsed = this._isGradient(value) ? this.fromCSS(value) : null;
+
     const state = {
       value: value,
+      gradient: parsed,
       open: false,
       onChange: onChange
     };
     this._selectors[containerId] = state;
+
+    const isGrad = !!parsed;
+    const gType = parsed ? parsed.type : 'linear';
+    const gAngle = parsed ? parsed.angle : 90;
+    const isLinear = gType !== 'radial';
 
     container.innerHTML = `
       <div class="gradient-selector" id="${containerId}-selector">
@@ -516,11 +479,69 @@ const GradientManager = {
         </div>
         <div class="gradient-selector-dropdown"></div>
       </div>
+      <div class="gradient-controls" ${!isGrad ? 'style="display:none"' : ''}>
+        <div class="gradient-type-row">
+          <label>Type</label>
+          <div class="gradient-type-toggle">
+            <button class="gradient-type-btn ${isLinear ? 'active' : ''}" data-type="linear">Linear</button>
+            <button class="gradient-type-btn ${!isLinear ? 'active' : ''}" data-type="radial">Radial</button>
+          </div>
+        </div>
+        <div class="gradient-angle-row" ${!isLinear ? 'style="display:none"' : ''}>
+          <label>Angle</label>
+          <div class="slider-row">
+            <input type="range" class="gradient-angle-slider slider" min="0" max="360" step="1" value="${gAngle}">
+            <div class="number-box">
+              <input type="number" class="gradient-angle-input number-input" min="0" max="360" step="1" value="${gAngle}">
+              <span class="unit-label">°</span>
+            </div>
+          </div>
+        </div>
+      </div>
     `;
 
     const selector = container.querySelector('.gradient-selector');
     const current = container.querySelector('.gradient-selector-current');
     const dropdown = container.querySelector('.gradient-selector-dropdown');
+    const controls = container.querySelector('.gradient-controls');
+    const angleRow = container.querySelector('.gradient-angle-row');
+    const angleSlider = container.querySelector('.gradient-angle-slider');
+    const angleInput = container.querySelector('.gradient-angle-input');
+    const typeBtns = container.querySelectorAll('.gradient-type-btn');
+
+    /** Recompute CSS from the current gradient object and fire onChange */
+    const applyGradient = () => {
+      if ( ! state.gradient ) return;
+      const css = this.toCSS(state.gradient);
+      state.value = css;
+      this._updateSelectorPreview(containerId, css);
+      onChange(css);
+    };
+
+    // Type toggle
+    typeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if ( ! state.gradient ) return;
+        typeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.gradient.type = btn.dataset.type;
+        angleRow.style.display = btn.dataset.type === 'linear' ? '' : 'none';
+        applyGradient();
+      });
+    });
+
+    // Angle slider + number input sync
+    const updateAngle = (val) => {
+      if ( ! state.gradient ) return;
+      const clamped = Math.max(0, Math.min(360, parseInt(val, 10) || 0));
+      state.gradient.angle = clamped;
+      angleSlider.value = clamped;
+      angleInput.value = clamped;
+      applyGradient();
+    };
+
+    angleSlider.addEventListener('input', (e) => updateAngle(e.target.value));
+    angleInput.addEventListener('change', (e) => updateAngle(e.target.value));
 
     // Toggle dropdown
     current.addEventListener('click', (e) => {
@@ -599,7 +620,9 @@ const GradientManager = {
     solidInput.addEventListener('input', (e) => {
       const color = e.target.value;
       state.value = color;
+      state.gradient = null;
       this._updateSelectorPreview(containerId, color);
+      this._syncControls(containerId);
       onChange(color);
     });
     solidInput.addEventListener('change', (e) => {
@@ -615,9 +638,11 @@ const GradientManager = {
         const id = item.dataset.gradientId;
         const gradient = this.getById(id);
         if ( ! gradient ) return;
-        const css = this.toCSS(gradient);
+        state.gradient = JSON.parse(JSON.stringify(gradient));
+        const css = this.toCSS(state.gradient);
         state.value = css;
         this._updateSelectorPreview(containerId, css);
+        this._syncControls(containerId);
         onChange(css);
         this._closeSelector(containerId);
       });
@@ -741,9 +766,11 @@ const GradientManager = {
         this.save(editedGradient);
       }
 
-      const css = this.toCSS(editedGradient);
+      state.gradient = JSON.parse(JSON.stringify(editedGradient));
+      const css = this.toCSS(state.gradient);
       state.value = css;
       this._updateSelectorPreview(containerId, css);
+      this._syncControls(containerId);
       onChange(css);
     });
   },
@@ -779,6 +806,17 @@ const GradientManager = {
   },
 
   /**
+   * Check if a CSS value is a gradient (vs solid color).
+   * @private
+   * @param {string} value - CSS value
+   * @returns {boolean}
+   */
+  _isGradient(value) {
+    if ( ! value ) return false;
+    return value.startsWith('linear-gradient') || value.startsWith('radial-gradient');
+  },
+
+  /**
    * Derive a display label from a CSS value.
    * @private
    * @param {string} value - CSS color or gradient string
@@ -798,6 +836,46 @@ const GradientManager = {
   },
 
   /**
+   * Sync the type toggle and angle controls to match current state.
+   * Shows/hides the controls panel based on whether a gradient is active.
+   * @private
+   * @param {string} containerId - Selector container ID
+   */
+  _syncControls(containerId) {
+    const container = document.getElementById(containerId);
+    if ( ! container ) return;
+
+    const state = this._selectors[containerId];
+    if ( ! state ) return;
+
+    const controls = container.querySelector('.gradient-controls');
+    if ( ! controls ) return;
+
+    if ( ! state.gradient ) {
+      controls.style.display = 'none';
+      return;
+    }
+
+    controls.style.display = '';
+    const g = state.gradient;
+    const isLinear = g.type !== 'radial';
+
+    // Sync type buttons
+    controls.querySelectorAll('.gradient-type-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.type === g.type);
+    });
+
+    // Sync angle row visibility and values
+    const angleRow = controls.querySelector('.gradient-angle-row');
+    if ( angleRow ) angleRow.style.display = isLinear ? '' : 'none';
+
+    const angleSlider = controls.querySelector('.gradient-angle-slider');
+    const angleInput = controls.querySelector('.gradient-angle-input');
+    if ( angleSlider ) angleSlider.value = g.angle;
+    if ( angleInput ) angleInput.value = g.angle;
+  },
+
+  /**
    * Update a selector from external state (e.g. when switching slides).
    * @param {string} containerId - The selector container ID
    * @param {string} cssValue - The current CSS background value
@@ -807,7 +885,9 @@ const GradientManager = {
     if ( ! state ) return;
 
     state.value = cssValue || '#ffffff';
+    state.gradient = this._isGradient(state.value) ? this.fromCSS(state.value) : null;
     this._updateSelectorPreview(containerId, state.value);
+    this._syncControls(containerId);
   }
 };
 
