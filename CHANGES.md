@@ -2,6 +2,13 @@
 
 ## 2026-02-17
 
+### Fix: Deduplicate toast notifications
+
+Duplicate toast messages (same type and text) are now suppressed while an identical toast is still visible. Once the toast is dismissed, the same message can appear again.
+
+**Changes:**
+- `js/utils/toasts.js`: Added `_activeToasts` Set to track visible toasts by `type::message` key; skip `_show()` if key is active; clean up key on dismiss
+
 ### Fix: Skip "New Presentation" dialog at startup
 
 The confirmation dialog for creating a new presentation was appearing at startup when no saved presentation existed, forcing the user to click "OK" on an empty canvas. Added a `skipConfirm` parameter to `createNewPresentation()` so startup calls bypass the dialog.
