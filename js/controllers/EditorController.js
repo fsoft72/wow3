@@ -135,9 +135,9 @@ export class EditorController {
     }
 
     // Slide background gradient selector
-    if ( window.GradientManager ) {
+    if ( window.GradientManager && window.GradientSelector ) {
       GradientManager.init();
-      GradientManager.renderSelector('slide-background-gradient-selector', {
+      this._bgSelector = new GradientSelector('slide-background-gradient-selector', {
         value: '#ffffff',
         onChange: (cssValue) => {
           const activeSlide = this.getActiveSlide();
@@ -456,8 +456,8 @@ export class EditorController {
       slideTitle.value = activeSlide.title;
     }
 
-    if ( window.GradientManager ) {
-      GradientManager.updateSelector('slide-background-gradient-selector', activeSlide.background);
+    if ( this._bgSelector ) {
+      this._bgSelector.update(activeSlide.background);
     }
 
     // Shell dropdown — populate with available shells

@@ -156,7 +156,7 @@ window.PanelUtils = {
   },
 
   /**
-   * Render a gradient picker control (uses GradientManager selector).
+   * Render a gradient picker control (uses GradientSelector).
    * @param {string} label - Display label
    * @param {string} id - Unique ID for the container
    * @param {string} value - Current CSS value (color or gradient)
@@ -172,15 +172,16 @@ window.PanelUtils = {
   },
 
   /**
-   * Bind a gradient picker (initialize GradientManager selector).
+   * Bind a gradient picker (creates a GradientSelector instance).
    * @param {string} id - Container element ID
    * @param {string} currentValue - Current CSS background value
    * @param {Function} onChange - Callback with new CSS value
+   * @returns {GradientSelector|null} The selector instance, or null
    */
   bindGradientPicker(id, currentValue, onChange) {
-    if ( ! window.GradientManager ) return;
+    if ( ! window.GradientSelector ) return null;
 
-    GradientManager.renderSelector(id, {
+    return new GradientSelector(id, {
       value: currentValue || '#ffffff',
       onChange: onChange
     });

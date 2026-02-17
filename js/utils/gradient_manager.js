@@ -1,6 +1,7 @@
 /**
  * Gradient Manager for WOW3
- * Handles creation, editing, saving and selecting CSS gradients.
+ * Data layer for CSS gradients: creation, persistence, CSS conversion.
+ * UI rendering is handled by GradientSelector (js/components/gradient_selector.js).
  * Follows the same object-literal singleton pattern as MediaManager/PanelUtils.
  */
 
@@ -77,9 +78,6 @@ const GradientManager = {
   /** @type {Object} Active editor state keyed by containerId */
   _editors: {},
 
-  /** @type {Object} Active selector state keyed by containerId */
-  _selectors: {},
-
   // ─── Core API ───────────────────────────────────────────────
 
   /**
@@ -100,7 +98,7 @@ const GradientManager = {
   /**
    * Create a new gradient object.
    * @param {string} name - Display name
-   * @param {string} type - 'linear' (only supported for now)
+   * @param {string} type - 'linear' or 'radial'
    * @param {number} angle - Degrees (linear only)
    * @param {Array} stops - Array of {color, position} objects
    * @returns {Object} The created gradient
@@ -178,7 +176,6 @@ const GradientManager = {
       return `linear-gradient(${gradient.angle}deg, ${stopsStr})`;
     }
 
-    // Radial deferred but handle gracefully
     return `radial-gradient(circle, ${stopsStr})`;
   },
 
@@ -212,7 +209,6 @@ const GradientManager = {
     if ( ! type || ! stopsStr ) return null;
 
     const stops = [];
-    // Match color + position pairs like "#ff512f 0%" or "rgb(255,0,0) 50%"
     const stopRegex = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\))\s+(\d+(?:\.\d+)?)%/g;
     let match;
     while ( (match = stopRegex.exec(stopsStr)) !== null ) {
@@ -264,10 +260,10 @@ const GradientManager = {
     }
   },
 
-  // ─── Gradient Editor Widget ─────────────────────────────────
+  // ─── Gradient Editor Widget (used inside the dialog) ──────
 
   /**
-   * Render an interactive gradient editor inside the given container.
+   * Render an interactive color-stop editor inside the given container.
    * @param {string} containerId - DOM element ID to render into
    * @param {Object} options - { gradient, onChange }
    * @returns {Object} Editor state handle
@@ -438,456 +434,6 @@ const GradientManager = {
     });
 
     renderStops();
-  },
-
-  // ─── Gradient Selector / Dropdown Widget ────────────────────
-
-  /**
-   * Render a gradient selector (dropdown) inside the given container.
-   * @param {string} containerId - DOM element ID to render into
-   * @param {Object} options - { value, onChange }
-   */
-  renderSelector(containerId, options = {}) {
-    const container = document.getElementById(containerId);
-    if ( ! container ) return;
-
-    const value = options.value || '#ffffff';
-    const onChange = options.onChange || (() => {});
-
-    // Parse gradient object from value if possible
-    const parsed = this._isGradient(value) ? this.fromCSS(value) : null;
-
-    const state = {
-      value: value,
-      gradient: parsed,
-      open: false,
-      onChange: onChange
-    };
-    this._selectors[containerId] = state;
-
-    const isGrad = !!parsed;
-    const gType = parsed ? parsed.type : 'linear';
-    const gAngle = parsed ? parsed.angle : 90;
-    const isLinear = gType !== 'radial';
-
-    container.innerHTML = `
-      <div class="gradient-selector" id="${containerId}-selector">
-        <div class="gradient-selector-current">
-          <div class="gradient-selector-preview" style="background: ${value}"></div>
-          <span class="gradient-selector-label">${this._labelForValue(value)}</span>
-          <span class="gradient-selector-chevron">&#9662;</span>
-        </div>
-        <div class="gradient-selector-dropdown"></div>
-      </div>
-      <div class="gradient-controls" ${!isGrad ? 'style="display:none"' : ''}>
-        <div class="gradient-type-row">
-          <label>Type</label>
-          <div class="gradient-type-toggle">
-            <button class="gradient-type-btn ${isLinear ? 'active' : ''}" data-type="linear">Linear</button>
-            <button class="gradient-type-btn ${!isLinear ? 'active' : ''}" data-type="radial">Radial</button>
-          </div>
-        </div>
-        <div class="gradient-angle-row" ${!isLinear ? 'style="display:none"' : ''}>
-          <label>Angle</label>
-          <div class="slider-row">
-            <input type="range" class="gradient-angle-slider slider" min="0" max="360" step="1" value="${gAngle}">
-            <div class="number-box">
-              <input type="number" class="gradient-angle-input number-input" min="0" max="360" step="1" value="${gAngle}">
-              <span class="unit-label">°</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    const selector = container.querySelector('.gradient-selector');
-    const current = container.querySelector('.gradient-selector-current');
-    const dropdown = container.querySelector('.gradient-selector-dropdown');
-    const controls = container.querySelector('.gradient-controls');
-    const angleRow = container.querySelector('.gradient-angle-row');
-    const angleSlider = container.querySelector('.gradient-angle-slider');
-    const angleInput = container.querySelector('.gradient-angle-input');
-    const typeBtns = container.querySelectorAll('.gradient-type-btn');
-
-    /** Recompute CSS from the current gradient object and fire onChange */
-    const applyGradient = () => {
-      if ( ! state.gradient ) return;
-      const css = this.toCSS(state.gradient);
-      state.value = css;
-      this._updateSelectorPreview(containerId, css);
-      onChange(css);
-    };
-
-    // Type toggle
-    typeBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        if ( ! state.gradient ) return;
-        typeBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.gradient.type = btn.dataset.type;
-        angleRow.style.display = btn.dataset.type === 'linear' ? '' : 'none';
-        applyGradient();
-      });
-    });
-
-    // Angle slider + number input sync
-    const updateAngle = (val) => {
-      if ( ! state.gradient ) return;
-      const clamped = Math.max(0, Math.min(360, parseInt(val, 10) || 0));
-      state.gradient.angle = clamped;
-      angleSlider.value = clamped;
-      angleInput.value = clamped;
-      applyGradient();
-    };
-
-    angleSlider.addEventListener('input', (e) => updateAngle(e.target.value));
-    angleInput.addEventListener('change', (e) => updateAngle(e.target.value));
-
-    // Toggle dropdown
-    current.addEventListener('click', (e) => {
-      e.stopPropagation();
-      state.open = !state.open;
-      if ( state.open ) {
-        this._populateDropdown(containerId, dropdown, state, onChange);
-        selector.classList.add('open');
-      } else {
-        selector.classList.remove('open');
-      }
-    });
-
-    // Close on outside click
-    document.addEventListener('click', (e) => {
-      if ( state.open && ! selector.contains(e.target) ) {
-        state.open = false;
-        selector.classList.remove('open');
-      }
-    });
-  },
-
-  /**
-   * Build dropdown items: solid color, saved gradients, and custom option.
-   * @private
-   */
-  _populateDropdown(containerId, dropdown, state, onChange) {
-    const gradients = this.getAll();
-
-    let html = '';
-
-    // Solid color option
-    html += `
-      <div class="gradient-selector-item" data-action="solid">
-        <div class="gradient-selector-item-preview" style="background: #ffffff"></div>
-        <span class="gradient-selector-item-label">Solid Color</span>
-        <input type="color" class="gradient-selector-solid-input" value="${state.value.startsWith('#') ? state.value : '#ffffff'}" style="position:absolute;opacity:0;pointer-events:none;">
-      </div>
-    `;
-
-    // Saved gradients
-    gradients.forEach(g => {
-      const css = this.toCSS(g);
-      const isPreset = g.id.startsWith('grad_preset_');
-      const dupBtn = isPreset ? `<button class="gradient-selector-item-dup" data-dup-id="${g.id}" title="Duplicate gradient">&#x2398;</button>` : '';
-      const editBtn = isPreset ? '' : `<button class="gradient-selector-item-edit" data-edit-id="${g.id}" title="Edit gradient">&#9998;</button>`;
-      const deleteBtn = isPreset ? '' : `<button class="gradient-selector-item-delete" data-delete-id="${g.id}" title="Delete gradient">&times;</button>`;
-      html += `
-        <div class="gradient-selector-item" data-gradient-id="${g.id}">
-          <div class="gradient-selector-item-preview" style="background: ${css}"></div>
-          <span class="gradient-selector-item-label">${g.name}</span>
-          ${dupBtn}
-          ${editBtn}
-          ${deleteBtn}
-        </div>
-      `;
-    });
-
-    // Custom gradient option
-    html += `
-      <div class="gradient-selector-item gradient-selector-custom" data-action="custom">
-        <span class="gradient-selector-item-label">Custom Gradient...</span>
-      </div>
-    `;
-
-    dropdown.innerHTML = html;
-
-    // Bind solid color
-    const solidItem = dropdown.querySelector('[data-action="solid"]');
-    const solidInput = dropdown.querySelector('.gradient-selector-solid-input');
-    solidItem.addEventListener('click', (e) => {
-      e.stopPropagation();
-      solidInput.style.pointerEvents = 'auto';
-      solidInput.click();
-    });
-    solidInput.addEventListener('input', (e) => {
-      const color = e.target.value;
-      state.value = color;
-      state.gradient = null;
-      this._updateSelectorPreview(containerId, color);
-      this._syncControls(containerId);
-      onChange(color);
-    });
-    solidInput.addEventListener('change', (e) => {
-      solidInput.style.pointerEvents = 'none';
-    });
-
-    // Bind gradient items
-    dropdown.querySelectorAll('[data-gradient-id]').forEach(item => {
-      item.addEventListener('click', (e) => {
-        if ( e.target.classList.contains('gradient-selector-item-delete') ) return;
-        if ( e.target.classList.contains('gradient-selector-item-edit') ) return;
-        if ( e.target.classList.contains('gradient-selector-item-dup') ) return;
-        const id = item.dataset.gradientId;
-        const gradient = this.getById(id);
-        if ( ! gradient ) return;
-        state.gradient = JSON.parse(JSON.stringify(gradient));
-        const css = this.toCSS(state.gradient);
-        state.value = css;
-        this._updateSelectorPreview(containerId, css);
-        this._syncControls(containerId);
-        onChange(css);
-        this._closeSelector(containerId);
-      });
-    });
-
-    // Bind duplicate buttons
-    dropdown.querySelectorAll('.gradient-selector-item-dup').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const id = btn.dataset.dupId;
-        const source = this.getById(id);
-        if ( ! source ) return;
-        const copy = this.create(
-          source.name + ' Copy',
-          source.type,
-          source.angle,
-          source.stops.map(s => ({ ...s }))
-        );
-        this._closeSelector(containerId);
-        this._openGradientDialog(containerId, state, onChange, copy);
-      });
-    });
-
-    // Bind edit buttons
-    dropdown.querySelectorAll('.gradient-selector-item-edit').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const id = btn.dataset.editId;
-        const gradient = this.getById(id);
-        if ( ! gradient ) return;
-        this._closeSelector(containerId);
-        this._openGradientDialog(containerId, state, onChange, gradient);
-      });
-    });
-
-    // Bind delete buttons
-    dropdown.querySelectorAll('.gradient-selector-item-delete').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const id = btn.dataset.deleteId;
-        this.delete(id);
-        this._populateDropdown(containerId, dropdown, state, onChange);
-      });
-    });
-
-    // Bind custom gradient
-    const customItem = dropdown.querySelector('[data-action="custom"]');
-    customItem.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this._closeSelector(containerId);
-      this._openGradientDialog(containerId, state, onChange);
-    });
-  },
-
-  /**
-   * Open a Dialog with the full gradient editor inside.
-   * @private
-   * @param {string} containerId - Selector container ID
-   * @param {Object} state - Selector state
-   * @param {Function} onChange - Change callback
-   * @param {Object} [existingGradient] - Gradient to edit (omit to create new)
-   */
-  _openGradientDialog(containerId, state, onChange, existingGradient) {
-    let gradient;
-    if ( existingGradient ) {
-      gradient = JSON.parse(JSON.stringify(existingGradient));
-    } else {
-      gradient = this.fromCSS(state.value);
-      if ( ! gradient ) {
-        gradient = this.create('Custom Gradient', 'linear', 90, [
-          { color: state.value.startsWith('#') ? state.value : '#000000', position: 0 },
-          { color: '#ffffff', position: 100 }
-        ]);
-      }
-    }
-
-    let editedGradient = JSON.parse(JSON.stringify(gradient));
-    let editedCSS = this.toCSS(editedGradient);
-    let editedName = gradient.name;
-
-    Dialog.show({
-      title: 'Custom Gradient',
-      boxClass: 'dialog-gradient-editor',
-      body: `
-        <div id="dialog-gradient-editor-container"></div>
-        <div class="gradient-dialog-name-row">
-          <label>Name</label>
-          <input type="text" class="panel-input gradient-dialog-name" value="${gradient.name}" placeholder="Gradient name">
-        </div>
-      `,
-      buttons: [
-        { text: 'Cancel', type: 'secondary', value: false },
-        { text: 'Apply', type: 'primary', value: 'apply' },
-        { text: 'Save & Apply', type: 'primary', value: 'save' }
-      ],
-      onRender: (box) => {
-        this.renderEditor('dialog-gradient-editor-container', {
-          gradient: editedGradient,
-          onChange: (g, css) => {
-            editedGradient = g;
-            editedCSS = css;
-          }
-        });
-
-        // Capture name on every keystroke — the Dialog removes the DOM before .then() runs
-        const nameInput = box.querySelector('.gradient-dialog-name');
-        if ( nameInput ) {
-          nameInput.addEventListener('input', (e) => {
-            editedName = e.target.value.trim();
-          });
-        }
-      }
-    }).then((result) => {
-      if ( result === false || result === null ) return;
-
-      if ( editedName ) {
-        editedGradient.name = editedName;
-      }
-
-      if ( result === 'save' ) {
-        this.save(editedGradient);
-      }
-
-      state.gradient = JSON.parse(JSON.stringify(editedGradient));
-      const css = this.toCSS(state.gradient);
-      state.value = css;
-      this._updateSelectorPreview(containerId, css);
-      this._syncControls(containerId);
-      onChange(css);
-    });
-  },
-
-  /**
-   * Update the selector preview strip and label.
-   * @private
-   */
-  _updateSelectorPreview(containerId, value) {
-    const container = document.getElementById(containerId);
-    if ( ! container ) return;
-
-    const preview = container.querySelector('.gradient-selector-preview');
-    const label = container.querySelector('.gradient-selector-label');
-
-    if ( preview ) preview.style.background = value;
-    if ( label ) label.textContent = this._labelForValue(value);
-  },
-
-  /**
-   * Close the selector dropdown.
-   * @private
-   */
-  _closeSelector(containerId) {
-    const container = document.getElementById(containerId);
-    if ( ! container ) return;
-
-    const selector = container.querySelector('.gradient-selector');
-    if ( selector ) selector.classList.remove('open');
-
-    const state = this._selectors[containerId];
-    if ( state ) state.open = false;
-  },
-
-  /**
-   * Check if a CSS value is a gradient (vs solid color).
-   * @private
-   * @param {string} value - CSS value
-   * @returns {boolean}
-   */
-  _isGradient(value) {
-    if ( ! value ) return false;
-    return value.startsWith('linear-gradient') || value.startsWith('radial-gradient');
-  },
-
-  /**
-   * Derive a display label from a CSS value.
-   * @private
-   * @param {string} value - CSS color or gradient string
-   * @returns {string}
-   */
-  _labelForValue(value) {
-    if ( ! value ) return 'None';
-    if ( value.startsWith('linear-gradient') || value.startsWith('radial-gradient') ) {
-      // Check if it matches a saved gradient
-      const all = this.getAll();
-      for ( const g of all ) {
-        if ( this.toCSS(g) === value ) return g.name;
-      }
-      return 'Custom Gradient';
-    }
-    return value;
-  },
-
-  /**
-   * Sync the type toggle and angle controls to match current state.
-   * Shows/hides the controls panel based on whether a gradient is active.
-   * @private
-   * @param {string} containerId - Selector container ID
-   */
-  _syncControls(containerId) {
-    const container = document.getElementById(containerId);
-    if ( ! container ) return;
-
-    const state = this._selectors[containerId];
-    if ( ! state ) return;
-
-    const controls = container.querySelector('.gradient-controls');
-    if ( ! controls ) return;
-
-    if ( ! state.gradient ) {
-      controls.style.display = 'none';
-      return;
-    }
-
-    controls.style.display = '';
-    const g = state.gradient;
-    const isLinear = g.type !== 'radial';
-
-    // Sync type buttons
-    controls.querySelectorAll('.gradient-type-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.type === g.type);
-    });
-
-    // Sync angle row visibility and values
-    const angleRow = controls.querySelector('.gradient-angle-row');
-    if ( angleRow ) angleRow.style.display = isLinear ? '' : 'none';
-
-    const angleSlider = controls.querySelector('.gradient-angle-slider');
-    const angleInput = controls.querySelector('.gradient-angle-input');
-    if ( angleSlider ) angleSlider.value = g.angle;
-    if ( angleInput ) angleInput.value = g.angle;
-  },
-
-  /**
-   * Update a selector from external state (e.g. when switching slides).
-   * @param {string} containerId - The selector container ID
-   * @param {string} cssValue - The current CSS background value
-   */
-  updateSelector(containerId, cssValue) {
-    const state = this._selectors[containerId];
-    if ( ! state ) return;
-
-    state.value = cssValue || '#ffffff';
-    state.gradient = this._isGradient(state.value) ? this.fromCSS(state.value) : null;
-    this._updateSelectorPreview(containerId, state.value);
-    this._syncControls(containerId);
   }
 };
 
