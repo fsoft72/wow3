@@ -518,12 +518,14 @@ const GradientManager = {
     gradients.forEach(g => {
       const css = this.toCSS(g);
       const isPreset = g.id.startsWith('grad_preset_');
+      const dupBtn = isPreset ? `<button class="gradient-selector-item-dup" data-dup-id="${g.id}" title="Duplicate gradient">&#x2398;</button>` : '';
       const editBtn = isPreset ? '' : `<button class="gradient-selector-item-edit" data-edit-id="${g.id}" title="Edit gradient">&#9998;</button>`;
       const deleteBtn = isPreset ? '' : `<button class="gradient-selector-item-delete" data-delete-id="${g.id}" title="Delete gradient">&times;</button>`;
       html += `
         <div class="gradient-selector-item" data-gradient-id="${g.id}">
           <div class="gradient-selector-item-preview" style="background: ${css}"></div>
           <span class="gradient-selector-item-label">${g.name}</span>
+          ${dupBtn}
           ${editBtn}
           ${deleteBtn}
         </div>
@@ -562,6 +564,7 @@ const GradientManager = {
       item.addEventListener('click', (e) => {
         if ( e.target.classList.contains('gradient-selector-item-delete') ) return;
         if ( e.target.classList.contains('gradient-selector-item-edit') ) return;
+        if ( e.target.classList.contains('gradient-selector-item-dup') ) return;
         const id = item.dataset.gradientId;
         const gradient = this.getById(id);
         if ( ! gradient ) return;
@@ -570,6 +573,24 @@ const GradientManager = {
         this._updateSelectorPreview(containerId, css);
         onChange(css);
         this._closeSelector(containerId);
+      });
+    });
+
+    // Bind duplicate buttons
+    dropdown.querySelectorAll('.gradient-selector-item-dup').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.dupId;
+        const source = this.getById(id);
+        if ( ! source ) return;
+        const copy = this.create(
+          source.name + ' Copy',
+          source.type,
+          source.angle,
+          source.stops.map(s => ({ ...s }))
+        );
+        this._closeSelector(containerId);
+        this._openGradientDialog(containerId, state, onChange, copy);
       });
     });
 
