@@ -138,7 +138,7 @@ export class EditorController {
     if ( window.GradientManager ) {
       GradientManager.init();
       GradientManager.renderSelector('slide-background-gradient-selector', {
-        value: this.getActiveSlide()?.background || '#ffffff',
+        value: '#ffffff',
         onChange: (cssValue) => {
           const activeSlide = this.getActiveSlide();
           activeSlide.setBackground(cssValue);
