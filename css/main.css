@@ -203,7 +203,7 @@ body {
   display: none;
 }
 
-.tab-content:first-of-type {
+.tab-content.active {
   display: block;
 }
 

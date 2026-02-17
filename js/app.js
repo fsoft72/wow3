@@ -107,25 +107,10 @@ class WOW3App {
    * Initialize MaterializeCSS components
    */
   initMaterialize() {
-    document.addEventListener('DOMContentLoaded', () => {
-      // Initialize all Materialize components
-      M.AutoInit();
-
-      // Initialize specific components
-      const tabs = document.querySelectorAll('.tabs');
-      M.Tabs.init(tabs);
-
-      const modals = document.querySelectorAll('.modal');
-      M.Modal.init(modals);
-
-      const selects = document.querySelectorAll('select:not(.browser-default)');
-      M.FormSelect.init(selects);
-
-      const dropdowns = document.querySelectorAll('.dropdown-trigger');
-      M.Dropdown.init(dropdowns);
-
-      console.log('MaterializeCSS components initialized');
-    });
+    // MaterializeCSS components are initialized by UIManager.initTabs()
+    // and individual controllers. No need for a separate DOMContentLoaded
+    // handler that would double-initialize and reset tab state.
+    console.log('MaterializeCSS components initialized');
   }
 
   /**
