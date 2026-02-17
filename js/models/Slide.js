@@ -26,6 +26,7 @@ export class Slide {
     this.title = properties.title || 'Untitled Slide';
     this.background = properties.background || DEFAULTS.BACKGROUND_COLOR;
     this.backgroundAnimationSpeed = properties.backgroundAnimationSpeed ?? 0;
+    this.backgroundAnimationType = properties.backgroundAnimationType || 'pingpong';
     this.visible = properties.visible !== false; // default true
     this.thumbnailId = properties.thumbnailId || null;
 
@@ -247,10 +248,12 @@ export class Slide {
    * Set slide background
    * @param {string} background - Background color or gradient
    * @param {number} [animationSpeed] - Optional gradient animation speed (0-10)
+   * @param {string} [animationType] - Optional animation type ('pingpong' | 'cycle')
    */
-  setBackground(background, animationSpeed) {
+  setBackground(background, animationSpeed, animationType) {
     this.background = background;
     if ( animationSpeed !== undefined ) this.backgroundAnimationSpeed = animationSpeed;
+    if ( animationType !== undefined ) this.backgroundAnimationType = animationType;
   }
 
   /**
@@ -308,6 +311,7 @@ export class Slide {
       title: this.title,
       background: this.background,
       backgroundAnimationSpeed: this.backgroundAnimationSpeed,
+      backgroundAnimationType: this.backgroundAnimationType,
       visible: this.visible,
       shellId: this.shellId,
       shellMode: this.shellMode,

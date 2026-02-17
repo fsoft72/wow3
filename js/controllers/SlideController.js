@@ -669,8 +669,11 @@ export class SlideController {
       canvas.style.background = activeSlide.background;
       if ( activeSlide.backgroundAnimationSpeed > 0 ) {
         const duration = 11 - activeSlide.backgroundAnimationSpeed;
+        const animType = activeSlide.backgroundAnimationType || 'pingpong';
+        const keyframes = animType === 'cycle' ? 'wow3GradientCycleForward' : 'wow3GradientCycle';
+        const easing = animType === 'cycle' ? 'linear' : 'ease';
         canvas.style.backgroundSize = '200% 200%';
-        canvas.style.animation = `wow3GradientCycle ${duration}s ease infinite`;
+        canvas.style.animation = `${keyframes} ${duration}s ${easing} infinite`;
       } else {
         canvas.style.backgroundSize = '';
         canvas.style.animation = '';

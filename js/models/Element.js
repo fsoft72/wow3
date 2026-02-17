@@ -62,7 +62,8 @@ export class Element {
           color: properties.properties?.font?.stroke?.color || '#000000',
           width: properties.properties?.font?.stroke?.width ?? 1
         },
-        colorAnimationSpeed: properties.properties?.font?.colorAnimationSpeed ?? 0
+        colorAnimationSpeed: properties.properties?.font?.colorAnimationSpeed ?? 0,
+        colorAnimationType: properties.properties?.font?.colorAnimationType || 'pingpong'
       },
       ...restProps
     };

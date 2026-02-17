@@ -233,7 +233,13 @@ export class PlaybackController {
     const scale = Math.min(scaleX, scaleY);
 
     const bgAnimCSS = slide.backgroundAnimationSpeed > 0
-      ? `background-size: 200% 200%; animation: wow3GradientCycle ${11 - slide.backgroundAnimationSpeed}s ease infinite;`
+      ? (() => {
+          const dur = 11 - slide.backgroundAnimationSpeed;
+          const animType = slide.backgroundAnimationType || 'pingpong';
+          const kf = animType === 'cycle' ? 'wow3GradientCycleForward' : 'wow3GradientCycle';
+          const ea = animType === 'cycle' ? 'linear' : 'ease';
+          return `background-size: 200% 200%; animation: ${kf} ${dur}s ${ea} infinite;`;
+        })()
       : '';
 
     slideContainer.style.cssText = `

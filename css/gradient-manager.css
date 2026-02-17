@@ -492,10 +492,54 @@ body.dark-mode .gradient-speed-row label {
   color: #ddd;
 }
 
+/* ==================== ANIMATION TYPE ROW ==================== */
+
+.gradient-animation-type-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.gradient-animation-type-row label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 40px;
+}
+
+.gradient-animation-type-row select {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+}
+
+body.dark-mode .gradient-animation-type-row label {
+  color: #ddd;
+}
+
+body.dark-mode .gradient-animation-type-row select {
+  background: #333;
+  color: #eee;
+  border-color: #555;
+}
+
 /* ==================== GRADIENT CYCLING ANIMATION ==================== */
 
 @keyframes wow3GradientCycle {
   0%   { background-position: 0% 50%; }
   50%  { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+@keyframes wow3GradientCycleForward {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
 }

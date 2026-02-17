@@ -179,10 +179,11 @@ export class TextPanel {
     });
 
     // Font color (gradient selector)
-    PanelUtils.bindGradientPicker('font-color-gradient-selector', element.properties.font.color, (value, animationSpeed) => {
+    PanelUtils.bindGradientPicker('font-color-gradient-selector', element.properties.font.color, (value, animationSpeed, animationType) => {
       updateProperty('properties.font.color', value);
       updateProperty('properties.font.colorAnimationSpeed', animationSpeed);
-    }, element.properties.font.colorAnimationSpeed);
+      updateProperty('properties.font.colorAnimationType', animationType);
+    }, element.properties.font.colorAnimationSpeed, element.properties.font.colorAnimationType);
 
     // Font weight
     const fontWeight = document.getElementById('font-weight');

@@ -2,6 +2,27 @@
 
 ## 2026-02-17
 
+### Feature: Gradient animation type selector (Ping Pong / Cycle)
+
+Added a select control in the Gradient Selector to choose between two animation modes:
+- **Ping Pong** (default): Gradient oscillates back and forth (`ease` timing)
+- **Cycle**: Gradient moves continuously in one direction (`linear` timing)
+
+The selector appears below the Speed slider when animation speed > 0.
+
+**Updated Files:**
+- `css/gradient-manager.css`: Added `.gradient-animation-type-row` styles (light + dark mode), added `@keyframes wow3GradientCycleForward` for cycle mode
+- `js/models/Slide.js`: Added `backgroundAnimationType` property, updated `setBackground()` and `toJSON()`
+- `js/models/Element.js`: Added `colorAnimationType` to font properties
+- `js/models/TextElement.js`: Uses correct keyframe and easing based on `colorAnimationType`
+- `js/utils/gradient_manager.js`: `buildAnimationCSS()` now accepts `animationType` parameter
+- `js/components/gradient_selector.js`: Added animation type `<select>`, propagated via `onChange(value, speed, type)` and `update(value, speed, type)`
+- `js/controllers/EditorController.js`: Passes `animationType` to/from `GradientSelector` and `setBackground()`
+- `js/controllers/SlideController.js`: Uses `backgroundAnimationType` for canvas animation
+- `js/controllers/PlaybackController.js`: Uses `backgroundAnimationType` for playback animation
+- `js/panels/TextPanel.js`: Passes `colorAnimationType` through gradient picker
+- `js/utils/panel_utils.js`: `bindGradientPicker()` accepts `animationType` parameter
+
 ### Refactor: Unified ContextMenu component
 
 Extracted a single reusable `ContextMenu` component to replace 6 separate context menu implementations across the codebase. All menus now use the same positioning, dismiss, and rendering logic with dark (default) and light theme variants.

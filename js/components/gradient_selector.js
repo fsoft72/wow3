@@ -31,6 +31,7 @@ class GradientSelector {
     this._onChange = options.onChange || (() => {});
     this._value = options.value || '#ffffff';
     this._animationSpeed = options.animationSpeed ?? 0;
+    this._animationType = options.animationType || 'pingpong';
     this._gradient = this._isGradient(this._value) ? GradientManager.fromCSS(this._value) : null;
     this._open = false;
 
@@ -44,11 +45,13 @@ class GradientSelector {
    * Update the selector from external state (e.g. when switching slides).
    * @param {string} cssValue - The current CSS background value
    * @param {number} [animationSpeed] - Optional gradient animation speed (0-10)
+   * @param {string} [animationType] - Optional animation type ('pingpong' | 'cycle')
    */
-  update(cssValue, animationSpeed) {
+  update(cssValue, animationSpeed, animationType) {
     this._value = cssValue || '#ffffff';
     this._gradient = this._isGradient(this._value) ? GradientManager.fromCSS(this._value) : null;
     if ( animationSpeed !== undefined ) this._animationSpeed = animationSpeed;
+    if ( animationType !== undefined ) this._animationType = animationType;
     this._updatePreview();
     this._syncControls();
   }
@@ -91,6 +94,13 @@ class GradientSelector {
         </div>
         <div class="gradient-speed-row">
         </div>
+        <div class="gradient-animation-type-row" ${(!isGrad || this._animationSpeed <= 0) ? 'style="display:none"' : ''}>
+          <label>Anim</label>
+          <select class="gradient-animation-type-select">
+            <option value="pingpong" ${this._animationType === 'pingpong' ? 'selected' : ''}>Ping Pong</option>
+            <option value="cycle" ${this._animationType === 'cycle' ? 'selected' : ''}>Cycle</option>
+          </select>
+        </div>
       </div>
     `;
 
@@ -104,7 +114,9 @@ class GradientSelector {
       controls:    this._container.querySelector('.gradient-controls'),
       angleRow:    this._container.querySelector('.gradient-angle-row'),
       speedRow:    this._container.querySelector('.gradient-speed-row'),
-      typeBtns:    this._container.querySelectorAll('.gradient-type-btn')
+      typeBtns:    this._container.querySelectorAll('.gradient-type-btn'),
+      animTypeRow: this._container.querySelector('.gradient-animation-type-row'),
+      animTypeSelect: this._container.querySelector('.gradient-animation-type-select')
     };
 
     // Angle RangeInput — rendered inside the angleRow container
@@ -170,6 +182,14 @@ class GradientSelector {
       });
     });
 
+    // Animation type select
+    const { animTypeSelect } = this._els;
+    if ( animTypeSelect ) {
+      animTypeSelect.addEventListener('change', (e) => {
+        this._animationType = e.target.value;
+        this._onChange(this._value, this._animationSpeed, this._animationType);
+      });
+    }
   }
 
   // ─── Dropdown ─────────────────────────────────────────────
@@ -237,7 +257,7 @@ class GradientSelector {
       this._animationSpeed = 0;
       this._updatePreview();
       this._syncControls();
-      this._onChange(this._value, this._animationSpeed);
+      this._onChange(this._value, this._animationSpeed, this._animationType);
     });
     solidInput.addEventListener('change', () => {
       solidInput.style.pointerEvents = 'none';
@@ -255,7 +275,7 @@ class GradientSelector {
         this._value = GradientManager.toCSS(this._gradient);
         this._updatePreview();
         this._syncControls();
-        this._onChange(this._value, this._animationSpeed);
+        this._onChange(this._value, this._animationSpeed, this._animationType);
         this._close();
       });
     });
@@ -376,7 +396,7 @@ class GradientSelector {
       this._value = GradientManager.toCSS(this._gradient);
       this._updatePreview();
       this._syncControls();
-      this._onChange(this._value, this._animationSpeed);
+      this._onChange(this._value, this._animationSpeed, this._animationType);
     });
   }
 
@@ -387,7 +407,7 @@ class GradientSelector {
     if ( ! this._gradient ) return;
     this._value = GradientManager.toCSS(this._gradient);
     this._updatePreview();
-    this._onChange(this._value, this._animationSpeed);
+    this._onChange(this._value, this._animationSpeed, this._animationType);
   }
 
   /** Update angle from RangeInput. */
@@ -400,7 +420,8 @@ class GradientSelector {
   /** Update animation speed from RangeInput. */
   _updateSpeed(val) {
     this._animationSpeed = val;
-    this._onChange(this._value, this._animationSpeed);
+    this._syncAnimTypeVisibility();
+    this._onChange(this._value, this._animationSpeed, this._animationType);
   }
 
   /** Update the preview strip and label. */
@@ -410,7 +431,7 @@ class GradientSelector {
     if ( label ) label.textContent = this._labelForValue(this._value);
   }
 
-  /** Sync type toggle, angle, and speed controls to match current gradient state. */
+  /** Sync type toggle, angle, speed, and animation type controls to match current gradient state. */
   _syncControls() {
     const { controls, typeBtns, angleRow, speedRow } = this._els;
     if ( ! controls ) return;
@@ -431,6 +452,19 @@ class GradientSelector {
     if ( this._angleRange ) this._angleRange.update(this._gradient.angle);
     if ( speedRow ) speedRow.style.display = '';
     if ( this._speedRange ) this._speedRange.update(this._animationSpeed);
+
+    // Animation type select
+    if ( this._els.animTypeSelect ) {
+      this._els.animTypeSelect.value = this._animationType;
+    }
+    this._syncAnimTypeVisibility();
+  }
+
+  /** Show/hide the animation type row based on speed. */
+  _syncAnimTypeVisibility() {
+    const { animTypeRow } = this._els;
+    if ( ! animTypeRow ) return;
+    animTypeRow.style.display = (this._gradient && this._animationSpeed > 0) ? '' : 'none';
   }
 
   /** Close the selector dropdown. */

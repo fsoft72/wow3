@@ -264,12 +264,16 @@ const GradientManager = {
    * Build CSS animation properties for a cycling gradient.
    * Returns empty string when speed is 0 (no animation).
    * @param {number} speed - Animation speed (0 = off, 1 = slow 10s, 10 = fast 1s)
+   * @param {string} [animationType='pingpong'] - Animation type ('pingpong' | 'cycle')
    * @returns {string} CSS property string
    */
-  buildAnimationCSS(speed) {
+  buildAnimationCSS(speed, animationType) {
     if ( ! speed || speed <= 0 ) return '';
     const duration = 11 - speed;
-    return `background-size: 200% 200%; animation: wow3GradientCycle ${duration}s ease infinite;`;
+    const type = animationType || 'pingpong';
+    const keyframes = type === 'cycle' ? 'wow3GradientCycleForward' : 'wow3GradientCycle';
+    const easing = type === 'cycle' ? 'linear' : 'ease';
+    return `background-size: 200% 200%; animation: ${keyframes} ${duration}s ${easing} infinite;`;
   },
 
   // ─── Gradient Editor Widget (used inside the dialog) ──────

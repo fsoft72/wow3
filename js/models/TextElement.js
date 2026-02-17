@@ -54,8 +54,13 @@ export class TextElement extends Element {
     const fontColor = this.properties.font.color;
     const isGradient = fontColor && fontColor.includes('gradient(');
     const fontColorSpeed = this.properties.font.colorAnimationSpeed ?? 0;
+    const fontColorAnimType = this.properties.font.colorAnimationType || 'pingpong';
     const gradientAnimCSS = isGradient && fontColorSpeed > 0
-      ? ` background-size: 200% 200%; animation: wow3GradientCycle ${11 - fontColorSpeed}s ease infinite;`
+      ? (() => {
+          const kf = fontColorAnimType === 'cycle' ? 'wow3GradientCycleForward' : 'wow3GradientCycle';
+          const ea = fontColorAnimType === 'cycle' ? 'linear' : 'ease';
+          return ` background-size: 200% 200%; animation: ${kf} ${11 - fontColorSpeed}s ${ea} infinite;`;
+        })()
       : '';
     const colorCSS = isGradient
       ? `background: ${fontColor}; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;${gradientAnimCSS}`
