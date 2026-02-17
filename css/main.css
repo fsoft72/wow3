@@ -21,9 +21,13 @@
   padding: 0;
 }
 
+html, body {
+  overflow: hidden;
+  height: 100%;
+}
+
 body {
   font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  overflow: hidden;
   background: var(--canvas-bg);
 }
 
@@ -135,6 +139,7 @@ body {
   display: flex;
   height: calc(100vh - var(--toolbar-height) - var(--statusbar-height));
   margin-top: var(--toolbar-height);
+  overflow: hidden;
 }
 
 /* ==================== SIDEBARS ==================== */

@@ -2,6 +2,19 @@
 
 ## 2026-02-17
 
+### Fix: Layout shifts down when right panel overflows
+
+When the right sidebar content was taller than the viewport, the whole layout shifted down and extra space appeared below. The slide was no longer fully visible and the view was broken until clicking another slide reset it.
+
+**Root cause:** The `html` element had no `overflow: hidden`, so the browser could scroll the document when content inside the right sidebar grew tall (e.g., focus events or Materialize tab switches). `body { overflow: hidden }` alone hides the scrollbar but doesn't prevent programmatic/focus-driven scrolling on the `html` element.
+
+**Fix:**
+- Added `overflow: hidden; height: 100%` to `html, body` rule in `css/main.css`
+- Added `overflow: hidden` to `#app-container` to prevent the flex container from overflowing
+
+**Modified Files:**
+- `css/main.css`
+
 ### Feature: Add Gradient Support to Text Color
 
 Replaced the simple color picker for text color with a `GradientSelector`, allowing text elements to use gradient fills in addition to solid colors.
