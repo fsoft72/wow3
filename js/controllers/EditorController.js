@@ -139,9 +139,10 @@ export class EditorController {
       GradientManager.init();
       this._bgSelector = new GradientSelector('slide-background-gradient-selector', {
         value: '#ffffff',
-        onChange: (cssValue) => {
+        animationSpeed: 0,
+        onChange: (cssValue, animationSpeed) => {
           const activeSlide = this.getActiveSlide();
-          activeSlide.setBackground(cssValue);
+          activeSlide.setBackground(cssValue, animationSpeed);
           this.recordHistory();
           this.render();
         }
@@ -457,7 +458,7 @@ export class EditorController {
     }
 
     if ( this._bgSelector ) {
-      this._bgSelector.update(activeSlide.background);
+      this._bgSelector.update(activeSlide.background, activeSlide.backgroundAnimationSpeed);
     }
 
     // Shell dropdown — populate with available shells

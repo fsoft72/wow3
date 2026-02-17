@@ -2,6 +2,26 @@
 
 ## 2026-02-17
 
+### Feature: Gradient Animation Speed
+
+Added an "Animation Speed" control (RangeInput 0-10) to the GradientSelector widget. When speed > 0, gradient colors cycle using a CSS `background-position` animation. Speed 1 = slow (10s cycle), speed 10 = fast (1s cycle). Works for slide backgrounds and text gradient colors. Shape gradient speeds are stored but SVG gradients are not visually animated (future enhancement).
+
+**CSS technique:** `background-size: 200% 200%` with `@keyframes wow3GradientCycle` shifting `background-position` from `0% 50%` → `100% 50%` → `0% 50%`. Duration formula: `(11 - speed)` seconds.
+
+**Changes:**
+- `css/gradient-manager.css`: Added `@keyframes wow3GradientCycle`, `.gradient-speed-row` styles, dark mode rule
+- `js/utils/gradient_manager.js`: Added `buildAnimationCSS(speed)` helper method
+- `js/components/gradient_selector.js`: Added speed RangeInput, `_updateSpeed()` method, extended `onChange` signature to `(cssValue, animationSpeed)`, syncs speed control on gradient selection
+- `js/models/Slide.js`: Added `backgroundAnimationSpeed` property, updated `setBackground()` and `toJSON()`
+- `js/models/Element.js`: Added `font.colorAnimationSpeed` default in constructor
+- `js/controllers/EditorController.js`: Passes `animationSpeed` to GradientSelector, updates `onChange` to call `setBackground(cssValue, animationSpeed)`
+- `js/views/RightSidebar.js`: Passes `animationSpeed` for text color, shape fill, and shape stroke GradientSelectors
+- `js/controllers/SlideController.js`: Applies/clears `backgroundSize` and `animation` CSS on canvas based on `backgroundAnimationSpeed`
+- `js/controllers/PlaybackController.js`: Appends animation CSS to slide container when `backgroundAnimationSpeed > 0`
+- `js/models/TextElement.js`: Appends `background-size` and `animation` to gradient text CSS when `colorAnimationSpeed > 0`
+
+## 2026-02-17
+
 ### Fix: Right panel tabs empty at startup
 
 The "Slide" and "Element" tab contents in the right panel were invisible at startup. Root cause: the CSS rule `.tab-content:first-of-type { display: block }` never matched `#tab-slide` because the first `<div>` sibling in `#right-sidebar` is `.media-manager-button-wrapper`. Replaced with `.tab-content.active { display: block }` which correctly targets the Materialize-managed active tab. Also removed the redundant `DOMContentLoaded` handler in `app.js` that was double-initializing Materialize components.

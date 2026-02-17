@@ -30,6 +30,7 @@ class GradientSelector {
 
     this._onChange = options.onChange || (() => {});
     this._value = options.value || '#ffffff';
+    this._animationSpeed = options.animationSpeed ?? 0;
     this._gradient = this._isGradient(this._value) ? GradientManager.fromCSS(this._value) : null;
     this._open = false;
 
@@ -42,10 +43,12 @@ class GradientSelector {
   /**
    * Update the selector from external state (e.g. when switching slides).
    * @param {string} cssValue - The current CSS background value
+   * @param {number} [animationSpeed] - Optional gradient animation speed (0-10)
    */
-  update(cssValue) {
+  update(cssValue, animationSpeed) {
     this._value = cssValue || '#ffffff';
     this._gradient = this._isGradient(this._value) ? GradientManager.fromCSS(this._value) : null;
+    if ( animationSpeed !== undefined ) this._animationSpeed = animationSpeed;
     this._updatePreview();
     this._syncControls();
   }
@@ -86,6 +89,8 @@ class GradientSelector {
         </div>
         <div class="gradient-angle-row" ${!isLinear ? 'style="display:none"' : ''}>
         </div>
+        <div class="gradient-speed-row">
+        </div>
       </div>
     `;
 
@@ -98,6 +103,7 @@ class GradientSelector {
       label:       this._container.querySelector('.gradient-selector-label'),
       controls:    this._container.querySelector('.gradient-controls'),
       angleRow:    this._container.querySelector('.gradient-angle-row'),
+      speedRow:    this._container.querySelector('.gradient-speed-row'),
       typeBtns:    this._container.querySelectorAll('.gradient-type-btn')
     };
 
@@ -112,6 +118,18 @@ class GradientSelector {
       step: 1,
       unit: '°',
       onChange: (val) => this._updateAngle(val)
+    });
+
+    // Speed RangeInput — rendered inside the speedRow container
+    const speedRowEl = this._els.speedRow;
+    speedRowEl.id = this._containerId + '-speed-range';
+    this._speedRange = new RangeInput(speedRowEl.id, {
+      label: 'Speed',
+      value: this._animationSpeed,
+      min: 0,
+      max: 10,
+      step: 1,
+      onChange: (val) => this._updateSpeed(val)
     });
   }
 
@@ -216,9 +234,10 @@ class GradientSelector {
     solidInput.addEventListener('input', (e) => {
       this._value = e.target.value;
       this._gradient = null;
+      this._animationSpeed = 0;
       this._updatePreview();
       this._syncControls();
-      this._onChange(this._value);
+      this._onChange(this._value, this._animationSpeed);
     });
     solidInput.addEventListener('change', () => {
       solidInput.style.pointerEvents = 'none';
@@ -236,7 +255,7 @@ class GradientSelector {
         this._value = GradientManager.toCSS(this._gradient);
         this._updatePreview();
         this._syncControls();
-        this._onChange(this._value);
+        this._onChange(this._value, this._animationSpeed);
         this._close();
       });
     });
@@ -357,7 +376,7 @@ class GradientSelector {
       this._value = GradientManager.toCSS(this._gradient);
       this._updatePreview();
       this._syncControls();
-      this._onChange(this._value);
+      this._onChange(this._value, this._animationSpeed);
     });
   }
 
@@ -368,7 +387,7 @@ class GradientSelector {
     if ( ! this._gradient ) return;
     this._value = GradientManager.toCSS(this._gradient);
     this._updatePreview();
-    this._onChange(this._value);
+    this._onChange(this._value, this._animationSpeed);
   }
 
   /** Update angle from RangeInput. */
@@ -378,6 +397,12 @@ class GradientSelector {
     this._applyGradient();
   }
 
+  /** Update animation speed from RangeInput. */
+  _updateSpeed(val) {
+    this._animationSpeed = val;
+    this._onChange(this._value, this._animationSpeed);
+  }
+
   /** Update the preview strip and label. */
   _updatePreview() {
     const { preview, label } = this._els;
@@ -385,9 +410,9 @@ class GradientSelector {
     if ( label ) label.textContent = this._labelForValue(this._value);
   }
 
-  /** Sync type toggle and angle controls to match current gradient state. */
+  /** Sync type toggle, angle, and speed controls to match current gradient state. */
   _syncControls() {
-    const { controls, typeBtns, angleRow } = this._els;
+    const { controls, typeBtns, angleRow, speedRow } = this._els;
     if ( ! controls ) return;
 
     if ( ! this._gradient ) {
@@ -404,6 +429,8 @@ class GradientSelector {
 
     if ( angleRow ) angleRow.style.display = isLinear ? '' : 'none';
     if ( this._angleRange ) this._angleRange.update(this._gradient.angle);
+    if ( speedRow ) speedRow.style.display = '';
+    if ( this._speedRange ) this._speedRange.update(this._animationSpeed);
   }
 
   /** Close the selector dropdown. */

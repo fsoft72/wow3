@@ -465,3 +465,37 @@ body.dark-mode .gradient-dialog-name {
 body.dark-mode .gradient-dialog-name:focus {
   border-color: #64b5f6;
 }
+
+/* ==================== SPEED ROW ==================== */
+
+.gradient-speed-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.gradient-speed-row label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 40px;
+}
+
+.gradient-speed-row .slider-row {
+  flex: 1;
+}
+
+body.dark-mode .gradient-speed-row label {
+  color: #ddd;
+}
+
+/* ==================== GRADIENT CYCLING ANIMATION ==================== */
+
+@keyframes wow3GradientCycle {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

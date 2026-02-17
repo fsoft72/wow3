@@ -358,8 +358,10 @@ export class RightSidebar {
       if ( window.GradientSelector ) {
         this._textColorSelector = new GradientSelector('text-color-gradient-selector', {
           value: element.properties.font.color,
-          onChange: (val) => {
+          animationSpeed: element.properties.font.colorAnimationSpeed ?? 0,
+          onChange: (val, animationSpeed) => {
             window.app.editor.elementController.updateElementProperty('properties.font.color', val);
+            window.app.editor.elementController.updateElementProperty('properties.font.colorAnimationSpeed', animationSpeed);
           }
         });
       }
@@ -564,8 +566,10 @@ export class RightSidebar {
       if ( window.GradientSelector ) {
         this._shapeFillSelector = new GradientSelector('shape-fill-gradient-selector', {
           value: element.properties.fillColor,
-          onChange: (val) => {
+          animationSpeed: element.properties.fillColorAnimationSpeed ?? 0,
+          onChange: (val, animationSpeed) => {
             window.app.editor.elementController.updateElementProperty('properties.fillColor', val);
+            window.app.editor.elementController.updateElementProperty('properties.fillColorAnimationSpeed', animationSpeed);
           }
         });
       }
@@ -588,8 +592,10 @@ export class RightSidebar {
       if ( window.GradientSelector ) {
         this._shapeStrokeSelector = new GradientSelector('shape-stroke-gradient-selector', {
           value: element.properties.strokeColor,
-          onChange: (val) => {
+          animationSpeed: element.properties.strokeColorAnimationSpeed ?? 0,
+          onChange: (val, animationSpeed) => {
             window.app.editor.elementController.updateElementProperty('properties.strokeColor', val);
+            window.app.editor.elementController.updateElementProperty('properties.strokeColorAnimationSpeed', animationSpeed);
           }
         });
       }

@@ -61,7 +61,8 @@ export class Element {
           enabled: properties.properties?.font?.stroke?.enabled || false,
           color: properties.properties?.font?.stroke?.color || '#000000',
           width: properties.properties?.font?.stroke?.width ?? 1
-        }
+        },
+        colorAnimationSpeed: properties.properties?.font?.colorAnimationSpeed ?? 0
       },
       ...restProps
     };

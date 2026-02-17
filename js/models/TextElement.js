@@ -53,8 +53,12 @@ export class TextElement extends Element {
     // Detect gradient vs solid color
     const fontColor = this.properties.font.color;
     const isGradient = fontColor && fontColor.includes('gradient(');
+    const fontColorSpeed = this.properties.font.colorAnimationSpeed ?? 0;
+    const gradientAnimCSS = isGradient && fontColorSpeed > 0
+      ? ` background-size: 200% 200%; animation: wow3GradientCycle ${11 - fontColorSpeed}s ease infinite;`
+      : '';
     const colorCSS = isGradient
-      ? `background: ${fontColor}; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;`
+      ? `background: ${fontColor}; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;${gradientAnimCSS}`
       : `color: ${fontColor};`;
 
     // Apply text styles — use CSS Grid so text-align still works

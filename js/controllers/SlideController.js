@@ -663,8 +663,18 @@ export class SlideController {
     // Show checkerboard for transparent backgrounds (e.g. shell editing)
     if (activeSlide.background === 'transparent') {
       canvas.style.background = 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 24px 24px';
+      canvas.style.backgroundSize = '';
+      canvas.style.animation = '';
     } else {
       canvas.style.background = activeSlide.background;
+      if ( activeSlide.backgroundAnimationSpeed > 0 ) {
+        const duration = 11 - activeSlide.backgroundAnimationSpeed;
+        canvas.style.backgroundSize = '200% 200%';
+        canvas.style.animation = `wow3GradientCycle ${duration}s ease infinite`;
+      } else {
+        canvas.style.backgroundSize = '';
+        canvas.style.animation = '';
+      }
     }
 
     // Render all elements with proper z-index

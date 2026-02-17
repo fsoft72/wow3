@@ -232,6 +232,10 @@ export class PlaybackController {
     const scaleY = viewportHeight / 720;
     const scale = Math.min(scaleX, scaleY);
 
+    const bgAnimCSS = slide.backgroundAnimationSpeed > 0
+      ? `background-size: 200% 200%; animation: wow3GradientCycle ${11 - slide.backgroundAnimationSpeed}s ease infinite;`
+      : '';
+
     slideContainer.style.cssText = `
       width: 1280px;
       height: 720px;
@@ -239,6 +243,7 @@ export class PlaybackController {
       position: relative;
       transform: scale(${scale});
       transform-origin: center;
+      ${bgAnimCSS}
     `;
 
     // Create shell and slide layers
