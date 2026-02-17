@@ -202,15 +202,18 @@ export class EditorController {
 
   /**
    * Create new presentation
+   * @param {boolean} [skipConfirm=false] - Skip confirmation dialog (used at startup)
    */
-  async createNewPresentation() {
-    // Show confirmation dialog
-    const message = this.unsavedChanges
-      ? 'You have unsaved changes. Creating a new presentation will discard all current work and clear the canvas. Continue?'
-      : 'This will clear the canvas and create a new presentation. Continue?';
+  async createNewPresentation(skipConfirm = false) {
+    if (!skipConfirm) {
+      // Show confirmation dialog
+      const message = this.unsavedChanges
+        ? 'You have unsaved changes. Creating a new presentation will discard all current work and clear the canvas. Continue?'
+        : 'This will clear the canvas and create a new presentation. Continue?';
 
-    const confirmed = await Dialog.confirm(message, 'New Presentation');
-    if (!confirmed) return;
+      const confirmed = await Dialog.confirm(message, 'New Presentation');
+      if (!confirmed) return;
+    }
 
     // Clear localStorage snapshots
     clearSnapshot();

@@ -159,12 +159,12 @@ class WOW3App {
         }
       }
 
-      // No saved data, create new presentation
-      await this.editor.createNewPresentation();
+      // No saved data, create new presentation (skip dialog at startup)
+      await this.editor.createNewPresentation(true);
       console.log('✨ Created new presentation');
     } catch (error) {
       console.error('Failed to load presentation:', error);
-      await this.editor.createNewPresentation();
+      await this.editor.createNewPresentation(true);
     }
   }
 

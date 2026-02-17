@@ -1,5 +1,15 @@
 # WOW3 Development Changelog
 
+## 2026-02-17
+
+### Fix: Skip "New Presentation" dialog at startup
+
+The confirmation dialog for creating a new presentation was appearing at startup when no saved presentation existed, forcing the user to click "OK" on an empty canvas. Added a `skipConfirm` parameter to `createNewPresentation()` so startup calls bypass the dialog.
+
+**Changes:**
+- `js/controllers/EditorController.js`: Added `skipConfirm` parameter (default `false`) to `createNewPresentation()`
+- `js/app.js`: Pass `true` to `createNewPresentation()` in both startup code paths (no saved data / error fallback)
+
 ## 2026-02-15
 
 ### Feature: Presentation End Slide
