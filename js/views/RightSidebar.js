@@ -3,7 +3,7 @@
  * Property panels for slides and elements
  */
 
-import { FONT_FAMILIES, TEXT_ALIGNMENTS } from '../utils/constants.js';
+import { TEXT_ALIGNMENTS } from '../utils/constants.js';
 import { TextPanel, ImagePanel, VideoPanel, AudioPanel, CountdownTimerPanel } from '../panels/index.js';
 import { toast } from '../utils/toasts.js';
 
@@ -324,16 +324,22 @@ export class RightSidebar {
   addTextProperties(element) {
     const section = this.createSection('Text');
 
-    section.appendChild(
-      this.createSelect(
-        'Font',
-        element.properties.font.family,
-        FONT_FAMILIES,
-        (val) => {
-          window.app.editor.elementController.updateElementProperty('properties.font.family', val);
-        }
-      )
-    );
+    // Font family picker with font previews
+    const fontPickerWrapper = document.createElement('div');
+    fontPickerWrapper.className = 'input-field';
+    const fontPickerLabel = document.createElement('label');
+    fontPickerLabel.textContent = 'Font';
+    fontPickerLabel.classList.add('active');
+    fontPickerWrapper.appendChild(fontPickerLabel);
+    const fontPickerId = 'sidebar-font-family';
+    fontPickerWrapper.insertAdjacentHTML('beforeend', PanelUtils.renderFontFamilyPicker(fontPickerId, element.properties.font.family));
+    section.appendChild(fontPickerWrapper);
+    // Defer binding so DOM is attached
+    setTimeout(() => {
+      PanelUtils.bindFontFamilyPicker(fontPickerId, (val) => {
+        window.app.editor.elementController.updateElementProperty('properties.font.family', val);
+      });
+    }, 0);
 
     section.appendChild(
       this.createNumberInput('Size', element.properties.font.size, (val) => {

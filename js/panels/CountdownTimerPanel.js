@@ -3,8 +3,6 @@
  * Provides Content (duration, sound, clear) and Style (font, background, border) tabs.
  */
 
-import { FONT_FAMILIES } from '../utils/constants.js';
-
 export class CountdownTimerPanel {
   /**
    * Render the panel HTML for the given countdown timer element
@@ -16,10 +14,6 @@ export class CountdownTimerPanel {
     const minutes = Math.floor(props.duration / 60);
     const seconds = props.duration % 60;
     const isClear = props.clear;
-
-    const fontFamilyOptions = FONT_FAMILIES
-      .map(f => `<option value="${f}" ${f === props.font.family ? 'selected' : ''}>${f}</option>`)
-      .join('');
 
     return `
       <div class="panel-tabs">
@@ -62,10 +56,8 @@ export class CountdownTimerPanel {
 
       <div class="panel-tab-content" data-tab-content="style">
         <div class="control-group">
-          <div class="input-field">
-            <select id="ct-font-family">${fontFamilyOptions}</select>
-            <label class="active">Font Family</label>
-          </div>
+          <label>Font Family</label>
+          ${PanelUtils.renderFontFamilyPicker('ct-font-family', props.font.family)}
         </div>
 
         <div class="control-group">
@@ -185,10 +177,9 @@ export class CountdownTimerPanel {
     }
 
     // --- Style: Font family (global) ---
-    const ctFontFamily = document.getElementById('ct-font-family');
-    if (ctFontFamily) {
-      ctFontFamily.addEventListener('change', (e) => updateStyleProperty('properties.font.family', e.target.value));
-    }
+    PanelUtils.bindFontFamilyPicker('ct-font-family', (value) => {
+      updateStyleProperty('properties.font.family', value);
+    });
 
     // --- Style: Font size slider (global) ---
     const ctFontSize = document.getElementById('ct-font-size');

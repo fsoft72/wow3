@@ -29,9 +29,7 @@ export class TextPanel {
       <div class="panel-tab-content" data-tab-content="style">
         <div class="control-group">
           <label>Font Family</label>
-          <select id="font-family" class="panel-select">
-            ${PanelUtils.fontFamilyOptions(font.family)}
-          </select>
+          ${PanelUtils.renderFontFamilyPicker('font-family', font.family)}
         </div>
 
         ${PanelUtils.renderSlider('Font Size', 'font-size', font.size, 8, 144, 1, 'px')}
@@ -166,12 +164,9 @@ export class TextPanel {
     });
 
     // Font family
-    const fontFamily = document.getElementById('font-family');
-    if (fontFamily) {
-      fontFamily.addEventListener('change', (e) => {
-        updateProperty('properties.font.family', e.target.value);
-      });
-    }
+    PanelUtils.bindFontFamilyPicker('font-family', (value) => {
+      updateProperty('properties.font.family', value);
+    });
 
     // Font size slider
     PanelUtils.bindSlider('font-size', (value) => {

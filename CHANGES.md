@@ -2,6 +2,20 @@
 
 ## 2026-02-18
 
+### Feature: Font family picker with font previews
+
+Replaced native `<select>` dropdowns for font family with a custom dropdown where each option is rendered in its actual font, giving a live preview of each typeface.
+
+Also loaded all web fonts (Open Sans, Lato, Montserrat) from Google Fonts — previously only Roboto was loaded.
+
+**Updated Files:**
+- `index.html`: Extended Google Fonts import to include Open Sans, Lato, Montserrat
+- `js/utils/panel_utils.js`: Added `FONT_LIST`, `renderFontFamilyPicker()`, `bindFontFamilyPicker()`
+- `js/panels/TextPanel.js`: Uses new font picker
+- `js/panels/CountdownTimerPanel.js`: Uses new font picker, removed unused `FONT_FAMILIES` import
+- `js/views/RightSidebar.js`: Uses new font picker, removed unused `FONT_FAMILIES` import
+- `css/panels.css`: Added `.font-picker-*` styles
+
 ### Fix: Load Roboto font from Google Fonts
 
 The default font family (Roboto) was referenced in CSS but never loaded — the browser was falling back to a system font. Added the Google Fonts import for Roboto with all weights/styles.

@@ -30,27 +30,115 @@ window.PanelUtils = {
   },
 
   /**
-   * Render font family options
+   * Font list used by font pickers
+   */
+  FONT_LIST: [
+    { label: 'Roboto', value: 'Roboto' },
+    { label: 'Arial', value: 'Arial' },
+    { label: 'Helvetica', value: 'Helvetica' },
+    { label: 'Times New Roman', value: '"Times New Roman"' },
+    { label: 'Georgia', value: 'Georgia' },
+    { label: 'Courier New', value: '"Courier New"' },
+    { label: 'Verdana', value: 'Verdana' },
+    { label: 'Open Sans', value: '"Open Sans"' },
+    { label: 'Lato', value: 'Lato' },
+    { label: 'Montserrat', value: 'Montserrat' }
+  ],
+
+  /**
+   * Render font family options (legacy <select> version)
    */
   fontFamilyOptions(current) {
-    const fonts = [
-      { label: 'Roboto', value: 'Roboto' },
-      { label: 'Arial', value: 'Arial' },
-      { label: 'Helvetica', value: 'Helvetica' },
-      { label: 'Times New Roman', value: '"Times New Roman"' },
-      { label: 'Georgia', value: 'Georgia' },
-      { label: 'Courier New', value: '"Courier New"' },
-      { label: 'Verdana', value: 'Verdana' },
-      { label: 'Open Sans', value: '"Open Sans"' },
-      { label: 'Lato', value: 'Lato' },
-      { label: 'Montserrat', value: 'Montserrat' }
-    ];
-
     const isSelected = (val) => current && current.replace(/['"]/g, '') === val.replace(/['"]/g, '');
 
-    return fonts
-      .map(f => `<option value="${f.value}" ${isSelected(f.value) ? 'selected' : ''}>${f.label}</option>`)
+    return this.FONT_LIST
+      .map(f => `<option value="${f.value}" style="font-family:${f.value}" ${isSelected(f.value) ? 'selected' : ''}>${f.label}</option>`)
       .join('');
+  },
+
+  /**
+   * Render a custom font family picker with font previews
+   * @param {string} id - Unique ID for the picker
+   * @param {string} current - Current font family value
+   * @returns {string} HTML string
+   */
+  renderFontFamilyPicker(id, current) {
+    const currentLabel = this.FONT_LIST.find(f =>
+      f.value.replace(/['"]/g, '') === (current || '').replace(/['"]/g, '')
+    )?.label || current || 'Roboto';
+
+    const cssFamily = this.FONT_LIST.find(f => f.label === currentLabel)?.value || currentLabel;
+
+    const options = this.FONT_LIST.map(f => {
+      const selected = f.label === currentLabel ? ' font-picker-option--selected' : '';
+      return `<div class="font-picker-option${selected}" data-value="${f.value}" data-label="${f.label}" style="font-family:${f.value}">${f.label}</div>`;
+    }).join('');
+
+    return `
+      <div class="font-picker" id="${id}">
+        <div class="font-picker-trigger" style="font-family:${cssFamily}">
+          <span class="font-picker-label">${currentLabel}</span>
+          <i class="material-icons font-picker-arrow">expand_more</i>
+        </div>
+        <div class="font-picker-dropdown">
+          ${options}
+        </div>
+      </div>
+    `;
+  },
+
+  /**
+   * Bind a font family picker's interactive behavior
+   * @param {string} id - Container element ID
+   * @param {Function} onChange - Callback with new font value
+   */
+  bindFontFamilyPicker(id, onChange) {
+    const picker = document.getElementById(id);
+    if (!picker) return;
+
+    const trigger = picker.querySelector('.font-picker-trigger');
+    const dropdown = picker.querySelector('.font-picker-dropdown');
+    const label = picker.querySelector('.font-picker-label');
+
+    /** Toggle dropdown open/closed */
+    const toggle = () => {
+      const isOpen = picker.classList.toggle('font-picker--open');
+      if (isOpen) {
+        // Scroll selected option into view
+        const selected = dropdown.querySelector('.font-picker-option--selected');
+        if (selected) selected.scrollIntoView({ block: 'nearest' });
+      }
+    };
+
+    trigger.addEventListener('click', toggle);
+
+    // Select an option
+    dropdown.addEventListener('click', (e) => {
+      const opt = e.target.closest('.font-picker-option');
+      if (!opt) return;
+
+      const value = opt.dataset.value;
+      const fontLabel = opt.dataset.label;
+
+      // Update trigger display
+      label.textContent = fontLabel;
+      trigger.style.fontFamily = value;
+
+      // Update selected state
+      dropdown.querySelectorAll('.font-picker-option').forEach(o => o.classList.remove('font-picker-option--selected'));
+      opt.classList.add('font-picker-option--selected');
+
+      picker.classList.remove('font-picker--open');
+
+      if (onChange) onChange(value);
+    });
+
+    // Close on click outside
+    document.addEventListener('click', (e) => {
+      if (!picker.contains(e.target)) {
+        picker.classList.remove('font-picker--open');
+      }
+    });
   },
 
   /**
