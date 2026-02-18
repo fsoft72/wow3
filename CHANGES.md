@@ -2,6 +2,16 @@
 
 ## 2026-02-18
 
+### Fix: Gradient border color for CountdownTimer
+
+CSS `border-color` doesn't accept gradient values. Now uses `border-image` when
+the border color is a gradient, falling back to `border-color` for solid colors.
+Fixed in both editor render and playback render.
+
+**Updated Files:**
+- `js/models/CountdownTimerElement.js`: Detect gradient in borderColor, use `border-image`
+- `js/controllers/PlaybackController.js`: Same fix in `_renderCountdownDOM()`
+
 ### Fix: Gradient rendering and animation for CountdownTimer element
 
 CountdownTimer now properly renders gradient colors and animations for both

@@ -81,13 +81,18 @@ export class CountdownTimerElement extends Element {
     const bgAnimType = this.properties.backgroundAnimationType || 'pingpong';
     const bgAnimCSS = bgIsGradient ? CountdownTimerElement._gradientAnimCSS(bgAnimSpeed, bgAnimType) : '';
 
+    // Build border CSS — use border-image for gradients, border-color for solids
+    const bc = this.properties.borderColor;
+    const bcIsGradient = bc && bc.includes('gradient(');
+    const borderCSS = bcIsGradient
+      ? `border-image: ${bc} 1; border-width: ${this.properties.borderWidth}px; border-style: solid;`
+      : `border-color: ${bc}; border-width: ${this.properties.borderWidth}px; border-style: solid;`;
+
     // Apply background, border, and layout styles
     el.style.cssText += `
       background: ${bg};
       ${bgAnimCSS}
-      border-color: ${this.properties.borderColor};
-      border-width: ${this.properties.borderWidth}px;
-      border-style: solid;
+      ${borderCSS}
       border-radius: ${this.properties.borderRadius}px;
       display: flex;
       align-items: center;
