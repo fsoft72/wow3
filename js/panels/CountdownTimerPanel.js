@@ -177,14 +177,18 @@ export class CountdownTimerPanel {
     }
 
     // --- Style: Font color gradient selector (global) ---
-    PanelUtils.bindGradientPicker('ct-font-color-gs', element.properties.font.color, (value) => {
+    PanelUtils.bindGradientPicker('ct-font-color-gs', element.properties.font.color, (value, animationSpeed, animationType) => {
       updateStyleProperty('properties.font.color', value);
-    });
+      updateStyleProperty('properties.font.colorAnimationSpeed', animationSpeed);
+      updateStyleProperty('properties.font.colorAnimationType', animationType);
+    }, element.properties.font.colorAnimationSpeed, element.properties.font.colorAnimationType);
 
     // --- Style: Background gradient selector (global) ---
-    PanelUtils.bindGradientPicker('ct-background-gs', element.properties.background, (value) => {
+    PanelUtils.bindGradientPicker('ct-background-gs', element.properties.background, (value, animationSpeed, animationType) => {
       updateStyleProperty('properties.background', value);
-    });
+      updateStyleProperty('properties.backgroundAnimationSpeed', animationSpeed);
+      updateStyleProperty('properties.backgroundAnimationType', animationType);
+    }, element.properties.backgroundAnimationSpeed, element.properties.backgroundAnimationType);
 
     // --- Style: Border color gradient selector (global) ---
     PanelUtils.bindGradientPicker('ct-border-color-gs', element.properties.borderColor, (value) => {

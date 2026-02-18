@@ -2,6 +2,21 @@
 
 ## 2026-02-18
 
+### Fix: Gradient rendering and animation for CountdownTimer element
+
+CountdownTimer now properly renders gradient colors and animations for both
+font color and background, matching the behavior of TextElement and Slide backgrounds.
+
+- **Font color**: Gradients use `background-clip: text` technique with animation support
+- **Background**: Gradients animate with configurable speed and type (ping pong / cycle)
+- **Playback**: Fixed `_renderCountdownDOM` in PlaybackController to match
+
+**Updated Files:**
+- `js/models/CountdownTimerElement.js`: Added `backgroundAnimationSpeed`/`backgroundAnimationType`
+  properties, rewrote `render()` with gradient detection and animation CSS
+- `js/controllers/PlaybackController.js`: Updated `_renderCountdownDOM()` with same gradient logic
+- `js/panels/CountdownTimerPanel.js`: Pass animation speed/type through gradient selector callbacks
+
 ### Feature: Gradient selectors for CountdownTimer color properties
 
 Replaced the 3 basic `<input type="color">` pickers (Font Color, Background, Border Color)

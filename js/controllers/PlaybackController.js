@@ -667,23 +667,60 @@ export class PlaybackController {
 
     const div = document.createElement('div');
     div.className = 'playback-countdown';
-    div.style.left = `${element.position.x}px`;
-    div.style.top = `${element.position.y}px`;
-    div.style.width = `${element.position.width}px`;
-    div.style.height = `${element.position.height}px`;
-    div.style.transform = `rotate(${element.position.rotation}deg)`;
-    div.style.background = element.properties.background;
-    div.style.borderColor = element.properties.borderColor;
-    div.style.borderWidth = `${element.properties.borderWidth}px`;
-    div.style.borderStyle = 'solid';
-    div.style.borderRadius = `${element.properties.borderRadius}px`;
+
+    // Build background CSS with optional gradient animation
+    const bg = element.properties.background;
+    const bgIsGradient = bg && bg.includes('gradient(');
+    const bgAnimSpeed = element.properties.backgroundAnimationSpeed ?? 0;
+    const bgAnimType = element.properties.backgroundAnimationType || 'pingpong';
+    let bgAnimCSS = '';
+    if (bgIsGradient && bgAnimSpeed > 0) {
+      const kf = bgAnimType === 'cycle' ? 'wow3GradientCycleForward' : 'wow3GradientCycle';
+      const ea = bgAnimType === 'cycle' ? 'linear' : 'ease';
+      bgAnimCSS = `background-size: 200% 200%; animation: ${kf} ${11 - bgAnimSpeed}s ${ea} infinite;`;
+    }
+
+    div.style.cssText = `
+      position: absolute;
+      left: ${element.position.x}px;
+      top: ${element.position.y}px;
+      width: ${element.position.width}px;
+      height: ${element.position.height}px;
+      transform: rotate(${element.position.rotation}deg);
+      background: ${bg};
+      ${bgAnimCSS}
+      border-color: ${element.properties.borderColor};
+      border-width: ${element.properties.borderWidth}px;
+      border-style: solid;
+      border-radius: ${element.properties.borderRadius}px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+
+    // Build font color CSS (gradient text or solid)
+    const fontColor = element.properties.font.color;
+    const fontIsGradient = fontColor && fontColor.includes('gradient(');
+    const fontAnimSpeed = element.properties.font.colorAnimationSpeed ?? 0;
+    const fontAnimType = element.properties.font.colorAnimationType || 'pingpong';
+    let fontAnimCSS = '';
+    if (fontIsGradient && fontAnimSpeed > 0) {
+      const kf = fontAnimType === 'cycle' ? 'wow3GradientCycleForward' : 'wow3GradientCycle';
+      const ea = fontAnimType === 'cycle' ? 'linear' : 'ease';
+      fontAnimCSS = `background-size: 200% 200%; animation: ${kf} ${11 - fontAnimSpeed}s ${ea} infinite;`;
+    }
+    const colorCSS = fontIsGradient
+      ? `background: ${fontColor}; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; ${fontAnimCSS}`
+      : `color: ${fontColor};`;
 
     const display = document.createElement('div');
     display.className = 'timer-display';
-    display.style.fontFamily = element.properties.font.family;
-    display.style.fontSize = `${element.properties.font.size}px`;
-    display.style.color = element.properties.font.color;
-    display.style.fontWeight = element.properties.font.weight || 'normal';
+    display.style.cssText = `
+      font-family: ${element.properties.font.family};
+      font-size: ${element.properties.font.size}px;
+      ${colorCSS}
+      font-weight: ${element.properties.font.weight || 'normal'};
+    `;
     display.textContent = CountdownTimerElement.formatTime(remaining);
 
     div.appendChild(display);
