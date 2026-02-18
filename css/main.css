@@ -355,3 +355,16 @@ body {
     padding: 0 10px;
   }
 }
+
+/* Auto play progress bar */
+.auto-play-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #42a5f5;
+  z-index: 9999;
+  transition-property: width;
+  transition-timing-function: linear;
+}
