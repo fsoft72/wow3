@@ -2,6 +2,14 @@
 
 ## 2026-02-18
 
+### Fix: Switch right sidebar to Slide tab when clicking outside elements
+
+Clicking on the canvas outside any element now switches the right sidebar back to the
+Slide tab instead of staying on the empty Element tab.
+
+**Updated Files:**
+- `js/views/RightSidebar.js`: Added `switchToSlideTab()`, called from `clearProperties()`
+
 ### Feature: Replace text style dropdowns with toggle buttons
 
 Replaced the Font Weight, Font Style, and Text Decoration `<select>` dropdowns with

@@ -170,6 +170,19 @@ export class RightSidebar {
     if (this.elementTab) {
       this.elementTab.innerHTML = '<p class="grey-text center-align" style="padding: 20px;">No element selected</p>';
     }
+    this.switchToSlideTab();
+  }
+
+  /**
+   * Switch to the Slide tab in the right sidebar
+   */
+  switchToSlideTab() {
+    const tabs = document.querySelector('.tabs');
+    if (!tabs) return;
+    const tabsInstance = M.Tabs.getInstance(tabs);
+    if (tabsInstance) {
+      tabsInstance.select('tab-slide');
+    }
   }
 
   /**
