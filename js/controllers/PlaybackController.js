@@ -24,6 +24,12 @@ export class PlaybackController {
 
     /** @type {{ element: Object, startedAt: number, duration: number, remaining: number, intervalId: number|null, audioElement: HTMLAudioElement|null }|null} */
     this._activeCountdown = null;
+
+    /** @type {number|null} Auto play timer ID */
+    this._autoPlayTimerId = null;
+
+    /** @type {HTMLElement|null} Auto play progress bar element */
+    this._autoPlayProgressBar = null;
   }
 
   /**
@@ -189,6 +195,9 @@ export class PlaybackController {
       this._animationManager.cleanup();
       this._animationManager = null;
     }
+
+    // Clean up any auto play timer from previous slide
+    this._clearAutoPlay();
 
     this.currentSlideIndex = index;
 
@@ -369,6 +378,15 @@ export class PlaybackController {
     }
 
     appEvents.emit(AppEvents.SLIDE_SELECTED, index);
+
+    // Start auto play timer if enabled for this slide
+    if (slide.autoPlay && slide.autoPlayDuration > 0) {
+      this._startAutoPlay(slide.autoPlayDuration, slideContainer);
+      // Listen for auto play completion
+      this.presentationView.addEventListener('wow3:autoPlayNext', () => {
+        this.nextSlide();
+      }, { once: true });
+    }
   }
 
   /**
@@ -525,6 +543,9 @@ export class PlaybackController {
       this._animationManager = null;
     }
 
+    // Clean up auto play
+    this._clearAutoPlay();
+
     // Exit fullscreen
     if (document.fullscreenElement) {
       document.exitFullscreen().catch((err) => {
@@ -556,6 +577,54 @@ export class PlaybackController {
     }
 
     appEvents.emit(AppEvents.UI_MODE_CHANGED, 'editor');
+  }
+
+  // ==================== AUTO PLAY ====================
+
+  /**
+   * Start the auto play timer and progress bar for the current slide
+   * @param {number} durationSeconds - Duration in seconds
+   * @param {HTMLElement} slideContainer - The slide container element
+   * @private
+   */
+  _startAutoPlay(durationSeconds, slideContainer) {
+    this._clearAutoPlay();
+
+    // Create progress bar
+    const bar = document.createElement('div');
+    bar.className = 'auto-play-progress';
+    bar.style.transitionDuration = `${durationSeconds}s`;
+    this.presentationView.appendChild(bar);
+    this._autoPlayProgressBar = bar;
+
+    // Force reflow so the transition triggers from width: 0
+    bar.offsetWidth;
+    bar.style.width = '100%';
+
+    // Set timer to advance slide
+    this._autoPlayTimerId = setTimeout(() => {
+      this._autoPlayTimerId = null;
+      this._clearAutoPlay();
+      // Dispatch the same event as the "Next Slide" build out effect
+      this.presentationView.dispatchEvent(
+        new CustomEvent('wow3:autoPlayNext', { bubbles: false })
+      );
+    }, durationSeconds * 1000);
+  }
+
+  /**
+   * Clear the auto play timer and remove progress bar
+   * @private
+   */
+  _clearAutoPlay() {
+    if (this._autoPlayTimerId !== null) {
+      clearTimeout(this._autoPlayTimerId);
+      this._autoPlayTimerId = null;
+    }
+    if (this._autoPlayProgressBar) {
+      this._autoPlayProgressBar.remove();
+      this._autoPlayProgressBar = null;
+    }
   }
 
   // ==================== COUNTDOWN TIMER ====================
