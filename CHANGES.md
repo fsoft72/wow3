@@ -1,5 +1,21 @@
 # WOW3 Development Changelog
 
+## 2026-02-18
+
+### Fix: Load Roboto font from Google Fonts
+
+The default font family (Roboto) was referenced in CSS but never loaded — the browser was falling back to a system font. Added the Google Fonts import for Roboto with all weights/styles.
+
+**Updated Files:**
+- `index.html`: Added `<link>` for Roboto from Google Fonts CDN
+
+### Change: Increase default text element font size from 16 to 48
+
+New text elements now start at 48px instead of 16px for better visibility on slides.
+
+**Updated Files:**
+- `js/utils/constants.js`: Changed `DEFAULTS.FONT_SIZE` from 16 to 48
+
 ## 2026-02-17
 
 ### Feature: Gradient animation type selector (Ping Pong / Cycle)
