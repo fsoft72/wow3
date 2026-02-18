@@ -69,7 +69,7 @@ export class CountdownTimerPanel {
 
         ${PanelUtils.renderGradientPicker('Background', 'ct-background-gs', props.background)}
 
-        ${PanelUtils.renderGradientPicker('Border Color', 'ct-border-color-gs', props.borderColor)}
+        ${PanelUtils.renderColorPicker('Border Color', 'ct-border-color', props.borderColor)}
 
         <div class="control-group">
           <label for="ct-border-width" class="active">Border Width: <span id="ct-border-width-val">${props.borderWidth}</span></label>
@@ -190,8 +190,8 @@ export class CountdownTimerPanel {
       updateStyleProperty('properties.backgroundAnimationType', animationType);
     }, element.properties.backgroundAnimationSpeed, element.properties.backgroundAnimationType);
 
-    // --- Style: Border color gradient selector (global) ---
-    PanelUtils.bindGradientPicker('ct-border-color-gs', element.properties.borderColor, (value) => {
+    // --- Style: Border color (global) ---
+    PanelUtils.bindColorPicker('ct-border-color', (value) => {
       updateStyleProperty('properties.borderColor', value);
     });
 

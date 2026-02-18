@@ -680,13 +680,6 @@ export class PlaybackController {
       bgAnimCSS = `background-size: 200% 200%; animation: ${kf} ${11 - bgAnimSpeed}s ${ea} infinite;`;
     }
 
-    // Build border CSS — use border-image for gradients, border-color for solids
-    const bc = element.properties.borderColor;
-    const bcIsGradient = bc && bc.includes('gradient(');
-    const borderCSS = bcIsGradient
-      ? `border-image: ${bc} 1; border-width: ${element.properties.borderWidth}px; border-style: solid;`
-      : `border-color: ${bc}; border-width: ${element.properties.borderWidth}px; border-style: solid;`;
-
     div.style.cssText = `
       position: absolute;
       left: ${element.position.x}px;
@@ -696,7 +689,9 @@ export class PlaybackController {
       transform: rotate(${element.position.rotation}deg);
       background: ${bg};
       ${bgAnimCSS}
-      ${borderCSS}
+      border-color: ${element.properties.borderColor};
+      border-width: ${element.properties.borderWidth}px;
+      border-style: solid;
       border-radius: ${element.properties.borderRadius}px;
       display: flex;
       align-items: center;
