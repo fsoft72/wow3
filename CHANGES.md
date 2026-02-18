@@ -2,6 +2,14 @@
 
 ## 2026-02-18
 
+### Fix: Auto-select first item when switching Slides/Shells tabs
+
+When switching between the "Slides" and "Shells" sidebar tabs, the first slide or
+first shell is now automatically selected.
+
+**Updated Files:**
+- `js/controllers/SlideController.js`: Added auto-selection logic in tab switch handler
+
 ### Feature: Text image background fill with movement animation
 
 Added ability for text elements to use an image as their fill (CSS `background-clip: text`

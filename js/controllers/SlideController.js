@@ -97,9 +97,15 @@ export class SlideController {
           targetContent.style.display = 'block';
         }
 
-        // Re-render shells when switching to shells tab
+        // Auto-select first item when switching tabs
         if (targetTab === 'shells') {
           this.renderShells();
+          const shells = this.editor.presentation.shells;
+          if (shells.length > 0) {
+            this.editor.editShell(shells[0].id);
+          }
+        } else if (targetTab === 'slides') {
+          this.selectSlide(0);
         }
       });
     });
