@@ -68,21 +68,19 @@ export class AnimationManager {
       const trigger = step.trigger || ANIMATION_TRIGGER.ON_LOAD;
 
       if (trigger === ANIMATION_TRIGGER.ON_CLICK) {
-        // Pause: wait for next() call
         this._waitingForClick = true;
         return;
       }
 
       if (trigger === ANIMATION_TRIGGER.WITH_PREVIOUS) {
-        // Fire and forget — don't await
+        // WITH_PREVIOUS at start of sequence with no preceding step — fire and forget
         this._runStep(step);
         this._cursor++;
         continue;
       }
 
-      // ON_LOAD or AFTER_PREVIOUS: run and wait
-      await this._runStep(step);
-      this._cursor++;
+      // ON_LOAD or AFTER_PREVIOUS: run this step + any chained WITH_PREVIOUS steps together
+      await this._runStepWithChained();
     }
 
     this._playing = false;
@@ -99,14 +97,13 @@ export class AnimationManager {
 
     this._waitingForClick = false;
 
-    // Play the onClick step
+    // Play the onClick step + any chained WITH_PREVIOUS steps together
     const step = this._sequence[this._cursor];
     if (step) {
-      await this._runStep(step);
-      this._cursor++;
+      await this._runStepWithChained();
     }
 
-    // Continue playing any chained steps
+    // Continue playing subsequent steps
     while (this._cursor < this._sequence.length && this._playing) {
       const nextStep = this._sequence[this._cursor];
       const trigger = nextStep.trigger || ANIMATION_TRIGGER.ON_LOAD;
@@ -117,14 +114,14 @@ export class AnimationManager {
       }
 
       if (trigger === ANIMATION_TRIGGER.WITH_PREVIOUS) {
+        // WITH_PREVIOUS without preceding step in this loop — fire and forget
         this._runStep(nextStep);
         this._cursor++;
         continue;
       }
 
-      // AFTER_PREVIOUS
-      await this._runStep(nextStep);
-      this._cursor++;
+      // AFTER_PREVIOUS: run this step + any chained WITH_PREVIOUS steps together
+      await this._runStepWithChained();
     }
 
     this._playing = false;
@@ -176,6 +173,32 @@ export class AnimationManager {
   }
 
   // ==================== PRIVATE ====================
+
+  /**
+   * Run the step at the current cursor position along with any
+   * following WITH_PREVIOUS steps, all in parallel.
+   * Advances the cursor past all consumed steps.
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _runStepWithChained() {
+    const step = this._sequence[this._cursor];
+    if (!step) return;
+
+    const promises = [this._runStep(step)];
+    this._cursor++;
+
+    // Collect and fire any chained (WITH_PREVIOUS) steps in parallel
+    while (this._cursor < this._sequence.length) {
+      const nextStep = this._sequence[this._cursor];
+      const nextTrigger = nextStep.trigger || ANIMATION_TRIGGER.ON_LOAD;
+      if (nextTrigger !== ANIMATION_TRIGGER.WITH_PREVIOUS) break;
+      promises.push(this._runStep(nextStep));
+      this._cursor++;
+    }
+
+    await Promise.all(promises);
+  }
 
   /**
    * Run a single animation step using WAAPI

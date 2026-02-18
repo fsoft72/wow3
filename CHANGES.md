@@ -2,6 +2,21 @@
 
 ## 2026-02-18
 
+### Fix: WITH_PREVIOUS (Chain) animations starting sequentially instead of in parallel
+
+**Bug:** When Element B was chained (`WITH_PREVIOUS`) to Element A, Element B's animation
+started only after Element A's animation finished — effectively behaving as `AFTER_PREVIOUS`.
+
+**Root cause:** In `AnimationManager.play()` and `next()`, the current step was `await`-ed
+before the loop examined the next step. By the time a `WITH_PREVIOUS` step was reached,
+the preceding step had already completed.
+
+**Fix** (`js/animations/AnimationManager.js`):
+- Added `_runStepWithChained()` helper that fires a step and any following `WITH_PREVIOUS`
+  steps simultaneously using `Promise.all`, then awaits them as a group
+- Updated `play()` and `next()` to use the helper for `ON_LOAD`/`AFTER_PREVIOUS`/`ON_CLICK`
+  steps, so chained animations start at the same moment as their preceding step
+
 ### Feature: Auto Play
 
 Per-slide auto play feature that automatically advances slides during presentation
