@@ -6,3 +6,4 @@
 node_modules/
 TODO.md
 .worktrees/
+.playwright-mcp
