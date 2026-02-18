@@ -154,6 +154,20 @@
             <label for="slide-shell-mode" class="active">Shell Mode</label>
           </div>
         </div>
+        <!-- Auto Play settings -->
+        <div class="property-section">
+          <h6>Auto Play</h6>
+          <div class="input-field" style="display: flex; align-items: center; gap: 8px;">
+            <label style="position: static; transform: none; pointer-events: auto; cursor: pointer;">
+              <input type="checkbox" id="slide-auto-play" />
+              <span>Enable</span>
+            </label>
+          </div>
+          <div class="input-field" id="slide-auto-play-duration-field" style="display: none;">
+            <input type="number" id="slide-auto-play-duration" min="1" max="300" step="1" value="5">
+            <label for="slide-auto-play-duration" class="active">Duration (seconds)</label>
+          </div>
+        </div>
       </div>
 
       <div id="tab-element" class="tab-content">
