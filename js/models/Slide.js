@@ -40,6 +40,11 @@ export class Slide {
 
     // Per-slide shell rendering mode ('above' | 'below')
     this.shellMode = properties.shellMode || 'above';
+
+    // Auto play: automatically advance to next slide after duration
+    this.autoPlay = properties.autoPlay === true;
+    this.autoPlayDuration = properties.autoPlayDuration ?? 5;
+
     this.elements = [];
 
     // Load elements if provided
@@ -315,6 +320,8 @@ export class Slide {
       visible: this.visible,
       shellId: this.shellId,
       shellMode: this.shellMode,
+      autoPlay: this.autoPlay,
+      autoPlayDuration: this.autoPlayDuration,
       thumbnailId: this.thumbnailId,
       elements: this.elements.map(el => el.toJSON()),
       animationSequence: this.animationSequence.map((a) => ({ ...a }))
