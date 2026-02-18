@@ -490,7 +490,7 @@ export class AnimationEditorController {
       list: 'list',
       link: 'link',
       countdown_timer: 'timer',
-      empty: 'check_box_outline_blank'
+      empty: 'crop_free'
     };
 
     const selectedId = this._currentElement ? this._currentElement.id : null;
