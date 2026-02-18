@@ -19,7 +19,10 @@
       "Bash(git reset:*)",
       "Bash(git merge:*)",
       "Bash(git branch:*)",
-      "Bash(git worktree remove:*)"
+      "Bash(git worktree remove:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash({ git checkout --theirs CHANGES.md)",
+      "Bash(})"
     ]
   }
 }
