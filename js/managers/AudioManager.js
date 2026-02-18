@@ -23,6 +23,10 @@ class AudioManager {
 
 		// Event handlers: Map<event, callback[]>
 		this._eventHandlers = new Map();
+
+		// Flag to suppress pause-handler clearing _continuingAudioId during slide transitions.
+		// DOM detach/reattach can fire spurious 'pause' events on <audio> elements.
+		this._isTransitioning = false;
 	}
 
 	/**
@@ -65,8 +69,9 @@ class AudioManager {
 		});
 
 		audioElement.addEventListener('pause', () => {
-			// If this was the continuing audio, clear it
-			if ( this._continuingAudioId === elementId ) {
+			// If this was the continuing audio, clear it — but NOT during a slide
+			// transition, where DOM detach/reattach can fire spurious pause events.
+			if ( this._continuingAudioId === elementId && ! this._isTransitioning ) {
 				this._continuingAudioId = null;
 			}
 			this.emit('playStateChanged', { elementId, playing: false });
@@ -306,6 +311,33 @@ class AudioManager {
 	 */
 	getContinuingAudio() {
 		return this._continuingAudioId;
+	}
+
+	/**
+	 * Signal the start of a slide transition.
+	 * Suppresses spurious pause events from DOM detach/reattach.
+	 */
+	beginTransition() {
+		this._isTransitioning = true;
+	}
+
+	/**
+	 * Signal the end of a slide transition and restore continuing audio state.
+	 * @param {string|null} continuingId - Element ID to restore as continuing (if still playing)
+	 */
+	endTransition(continuingId) {
+		this._isTransitioning = false;
+
+		if ( ! continuingId ) return;
+
+		const audio = this._audioRegistry.get(continuingId);
+		if ( ! audio ) return;
+
+		// Only restore if the audio is actually still playing
+		if ( ! audio.element.paused ) {
+			console.log('[AudioManager] Restoring continuing audio ID after transition:', continuingId);
+			this._continuingAudioId = continuingId;
+		}
 	}
 
 	// ========================================

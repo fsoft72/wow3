@@ -196,6 +196,11 @@ export class PlaybackController {
     const continuingAudioId = window.AudioManager?.getContinuingAudio();
     console.log('[PlaybackController] Continuing audio ID:', continuingAudioId);
 
+    // Suppress spurious 'pause' events during DOM detach/reattach
+    if (continuingAudioId && window.AudioManager) {
+      window.AudioManager.beginTransition();
+    }
+
     // Clear presentation view, but preserve continuing audio element
     // First, detach the continuing audio element if it exists
     // IMPORTANT: Search within presentation view only, not entire document
@@ -364,10 +369,7 @@ export class PlaybackController {
       if (!continuingAudioOnThisSlide && !hasCompetingAutoplayAudio) {
         // Re-attach to the new slide container
         console.log('[PlaybackController] Re-attaching continuing audio to new slide');
-        console.log('[PlaybackController] Before re-attach - is audio playing?', continuingAudioElement?.querySelector('audio')?.paused === false);
         slideContainer.appendChild(continuingAudioElement);
-        console.log('[PlaybackController] After re-attach - is audio playing?', continuingAudioElement?.querySelector('audio')?.paused === false);
-        console.log('[PlaybackController] Audio element parent after re-attach:', continuingAudioElement?.parentElement?.className);
       } else if (hasCompetingAutoplayAudio) {
         console.log('[PlaybackController] Not re-attaching - competing audio will fade it out');
         // Don't re-attach - AudioManager will fade it out
@@ -377,8 +379,9 @@ export class PlaybackController {
       }
     }
 
-    // Notify AudioManager of slide change
+    // End transition and restore continuing audio state
     if (window.AudioManager) {
+      window.AudioManager.endTransition(continuingAudioId);
       window.AudioManager.onSlideChange(slide);
     }
 
