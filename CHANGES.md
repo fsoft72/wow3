@@ -2,6 +2,32 @@
 
 ## 2026-02-18
 
+### Feature: Text image background fill with movement animation
+
+Added ability for text elements to use an image as their fill (CSS `background-clip: text`
+effect). The image is visible through the letter shapes. Includes directional movement
+animation with 8 directions and speed controls.
+
+Also extracted the duplicated Image Source + Upload pattern into a reusable `ImageSelector`
+component, and refactored ImagePanel, VideoPanel, and AudioPanel to use it.
+
+**New Files:**
+- `js/components/image_selector.js`: Reusable media source selector component
+
+**Updated Files:**
+- `js/models/TextElement.js`: Added `backgroundImage` properties (url, direction, speed) and
+  render logic with `background-clip: text` and movement animation
+- `js/panels/TextPanel.js`: Added image selector, 3x3 direction grid, and speed slider to
+  Content tab
+- `js/panels/ImagePanel.js`: Refactored to use ImageSelector component
+- `js/panels/VideoPanel.js`: Refactored to use ImageSelector component
+- `js/panels/AudioPanel.js`: Refactored to use ImageSelector component
+- `js/utils/storage.js`: Updated `collectMediaIds` and `rewriteMediaUrls` to handle
+  `backgroundImage.url` for export/import
+- `css/editor.css`: Added 8 `@keyframes` for background movement directions
+- `css/panels.css`: Added `.direction-grid` styles
+- `index.html`: Registered `image_selector.js` script
+
 ### Fix: Gradient rendering and animation for CountdownTimer element
 
 CountdownTimer now properly renders gradient colors and animations for both

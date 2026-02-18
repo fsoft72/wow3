@@ -24,6 +24,44 @@ export class TextPanel {
             <code class="placeholder-tag" data-placeholder="#NEXT_SLIDE#">#NEXT_SLIDE#</code>
           </div>
         </div>
+
+        <div class="section-title">Image Fill</div>
+        <div id="text-bg-image-selector"></div>
+
+        <div class="control-group" id="bg-direction-group" style="display:${props.backgroundImage?.url ? 'block' : 'none'}">
+          <label>Movement Direction</label>
+          <div class="direction-grid" id="bg-direction-grid">
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'up-left' ? 'active' : ''}" data-direction="up-left" title="Up-Left">
+              <i class="material-icons">north_west</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'up' ? 'active' : ''}" data-direction="up" title="Up">
+              <i class="material-icons">north</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'up-right' ? 'active' : ''}" data-direction="up-right" title="Up-Right">
+              <i class="material-icons">north_east</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'left' ? 'active' : ''}" data-direction="left" title="Left">
+              <i class="material-icons">west</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'none' ? 'active' : ''}" data-direction="none" title="None">
+              <i class="material-icons">fiber_manual_record</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'right' ? 'active' : ''}" data-direction="right" title="Right">
+              <i class="material-icons">east</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'down-left' ? 'active' : ''}" data-direction="down-left" title="Down-Left">
+              <i class="material-icons">south_west</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'down' ? 'active' : ''}" data-direction="down" title="Down">
+              <i class="material-icons">south</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'down-right' ? 'active' : ''}" data-direction="down-right" title="Down-Right">
+              <i class="material-icons">south_east</i>
+            </button>
+          </div>
+        </div>
+
+        <div id="bg-speed-range" style="display:${props.backgroundImage?.url ? 'block' : 'none'}"></div>
       </div>
 
       <div class="panel-tab-content" data-tab-content="style">
@@ -167,6 +205,58 @@ export class TextPanel {
         textContent.setSelectionRange(cursor, cursor);
         textContent.dispatchEvent(new Event('change'));
       });
+    });
+
+    // ── Image Fill controls ──
+
+    /** Show/hide direction and speed controls based on image URL presence. */
+    const toggleBgControls = (hasUrl) => {
+      const dirGroup = document.getElementById('bg-direction-group');
+      const speedRange = document.getElementById('bg-speed-range');
+      if (dirGroup) dirGroup.style.display = hasUrl ? 'block' : 'none';
+      if (speedRange) speedRange.style.display = hasUrl ? 'block' : 'none';
+    };
+
+    // Image selector for background fill
+    new ImageSelector('text-bg-image-selector', {
+      label: 'Background Image',
+      accept: 'image/*',
+      mediaType: 'image',
+      placeholder: 'Enter URL or media ID',
+      value: element.properties.backgroundImage?.url || '',
+      onMediaChange: async (value) => {
+        if (value instanceof File) {
+          const item = await window.MediaDB.addMedia(value);
+          updateProperty('properties.backgroundImage.url', item.id);
+        } else {
+          updateProperty('properties.backgroundImage.url', value);
+        }
+        toggleBgControls(!!value);
+      }
+    });
+
+    // Direction grid (radio-style: one active at a time)
+    const dirGrid = document.getElementById('bg-direction-grid');
+    if (dirGrid) {
+      dirGrid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.icon-toggle-btn');
+        if (!btn) return;
+        dirGrid.querySelectorAll('.icon-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateProperty('properties.backgroundImage.direction', btn.dataset.direction);
+      });
+    }
+
+    // Speed slider
+    new RangeInput('bg-speed-range', {
+      label: 'Movement Speed',
+      value: element.properties.backgroundImage?.speed ?? 0,
+      min: 0,
+      max: 10,
+      step: 1,
+      onChange: (val) => {
+        updateProperty('properties.backgroundImage.speed', val);
+      }
     });
 
     // Font family

@@ -1,7 +1,6 @@
 /**
  * Audio Element Property Panel
  */
-import { toast } from '../utils/toasts.js';
 
 export class AudioPanel {
   static render(element) {
@@ -14,26 +13,7 @@ export class AudioPanel {
       </div>
 
       <div class="panel-tab-content active" data-tab-content="content">
-        <div class="control-group">
-          <label>Audio Source</label>
-          <div class="media-input-group">
-            <input type="text" id="audio-url" class="panel-input" value="${props.url || ''}" placeholder="Enter URL or media ID">
-            <button id="btn-select-from-library" class="btn-icon" title="Select from Media Library">
-              <i class="material-icons">photo_library</i>
-            </button>
-          </div>
-        </div>
-
-        <div class="control-group">
-          <label>Upload Audio</label>
-          <div class="upload-area" id="upload-area">
-            <input type="file" id="file-input" accept="audio/*" style="display: none;">
-            <button id="btn-upload" class="btn-upload">
-              <i class="material-icons">cloud_upload</i>
-              <span>Choose File or Drag & Drop</span>
-            </button>
-          </div>
-        </div>
+        <div id="audio-media-selector"></div>
       </div>
 
       <div class="panel-tab-content" data-tab-content="settings">
@@ -95,82 +75,20 @@ export class AudioPanel {
       });
     });
 
+    // Audio source selector
+    new ImageSelector('audio-media-selector', {
+      label: 'Audio Source',
+      accept: 'audio/*',
+      mediaType: 'audio',
+      placeholder: 'Enter URL or media ID',
+      value: element.properties.url || '',
+      onMediaChange: (value) => updateMediaUrl(value)
+    });
+
     // Initialize Materialize checkboxes
     setTimeout(() => {
       M.updateTextFields();
     }, 0);
-
-    // Audio URL
-    const audioUrl = document.getElementById('audio-url');
-    if (audioUrl) {
-      audioUrl.addEventListener('change', (e) => updateMediaUrl(e.target.value));
-    }
-
-    // Select from library
-    const btnLibrary = document.getElementById('btn-select-from-library');
-    if (btnLibrary) {
-      btnLibrary.addEventListener('click', () => {
-        MediaManager.open(async (data) => {
-          const mediaId = data.localUrl ? data.localUrl.replace('local://', '') : data.originalItem?.id;
-          if (mediaId) {
-            await updateMediaUrl(mediaId);
-            if (audioUrl) audioUrl.value = mediaId;
-          }
-        });
-      });
-    }
-
-    // File upload
-    const btnUpload = document.getElementById('btn-upload');
-    const fileInput = document.getElementById('file-input');
-    const uploadArea = document.getElementById('upload-area');
-
-    if (btnUpload && fileInput) {
-      btnUpload.addEventListener('click', () => fileInput.click());
-
-      fileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          toast.info('Uploading audio...');
-          try {
-            await updateMediaUrl(file);
-            toast.success('Audio uploaded successfully!');
-          } catch (error) {
-            console.error('Upload failed:', error);
-            toast.error('Failed to upload audio');
-          }
-        }
-      });
-    }
-
-    // Drag & drop
-    if (uploadArea) {
-      uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('drag-over');
-      });
-
-      uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('drag-over');
-      });
-
-      uploadArea.addEventListener('drop', async (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('drag-over');
-
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('audio/')) {
-          toast.info('Uploading audio...');
-          try {
-            await updateMediaUrl(file);
-            toast.success('Audio uploaded successfully!');
-          } catch (error) {
-            console.error('Upload failed:', error);
-            toast.error('Failed to upload audio');
-          }
-        }
-      });
-    }
 
     // Audio settings
     const checkboxes = [

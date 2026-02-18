@@ -364,6 +364,9 @@ const collectMediaIds = (jsonData) => {
     if (el.properties && el.properties.url) {
       extractId(el.properties.url);
     }
+    if (el.properties && el.properties.backgroundImage && el.properties.backgroundImage.url) {
+      extractId(el.properties.backgroundImage.url);
+    }
     if (Array.isArray(el.children)) {
       el.children.forEach(scanElement);
     }
@@ -405,19 +408,23 @@ const rewriteMediaUrls = (jsonData, urlMap) => {
    * Rewrite URL in an element's properties
    * @param {Object} el - Serialized element
    */
+  const rewriteUrl = (url) => {
+    if (!url) return url;
+    if (urlMap.has(url)) return urlMap.get(url);
+    if (url.startsWith('local://')) {
+      const bare = url.replace('local://', '');
+      if (urlMap.has(bare)) return urlMap.get(bare);
+    }
+    return url;
+  };
+
   const rewriteElement = (el) => {
     if (!el) return;
     if (el.properties && el.properties.url) {
-      const url = el.properties.url;
-      // Try direct match first, then strip local:// prefix
-      if (urlMap.has(url)) {
-        el.properties.url = urlMap.get(url);
-      } else if (url.startsWith('local://')) {
-        const bare = url.replace('local://', '');
-        if (urlMap.has(bare)) {
-          el.properties.url = urlMap.get(bare);
-        }
-      }
+      el.properties.url = rewriteUrl(el.properties.url);
+    }
+    if (el.properties && el.properties.backgroundImage && el.properties.backgroundImage.url) {
+      el.properties.backgroundImage.url = rewriteUrl(el.properties.backgroundImage.url);
     }
     if (Array.isArray(el.children)) {
       el.children.forEach(rewriteElement);

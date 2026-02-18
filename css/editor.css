@@ -594,3 +594,45 @@
   height: 100%;
   transform-origin: center center;
 }
+
+/* ==================== TEXT BACKGROUND-IMAGE MOVEMENT KEYFRAMES ==================== */
+
+@keyframes wow3BgMoveUp {
+  from { background-position: 50% 100%; }
+  to   { background-position: 50% 0%; }
+}
+
+@keyframes wow3BgMoveDown {
+  from { background-position: 50% 0%; }
+  to   { background-position: 50% 100%; }
+}
+
+@keyframes wow3BgMoveLeft {
+  from { background-position: 100% 50%; }
+  to   { background-position: 0% 50%; }
+}
+
+@keyframes wow3BgMoveRight {
+  from { background-position: 0% 50%; }
+  to   { background-position: 100% 50%; }
+}
+
+@keyframes wow3BgMoveUpLeft {
+  from { background-position: 100% 100%; }
+  to   { background-position: 0% 0%; }
+}
+
+@keyframes wow3BgMoveUpRight {
+  from { background-position: 0% 100%; }
+  to   { background-position: 100% 0%; }
+}
+
+@keyframes wow3BgMoveDownLeft {
+  from { background-position: 100% 0%; }
+  to   { background-position: 0% 100%; }
+}
+
+@keyframes wow3BgMoveDownRight {
+  from { background-position: 0% 0%; }
+  to   { background-position: 100% 100%; }
+}

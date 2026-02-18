@@ -1,7 +1,6 @@
 /**
  * Image Element Property Panel
  */
-import { toast } from '../utils/toasts.js';
 
 export class ImagePanel {
   static render(element) {
@@ -14,26 +13,7 @@ export class ImagePanel {
       </div>
 
       <div class="panel-tab-content active" data-tab-content="content">
-        <div class="control-group">
-          <label>Image Source</label>
-          <div class="media-input-group">
-            <input type="text" id="image-url" class="panel-input" value="${props.url || ''}" placeholder="Enter URL or media ID">
-            <button id="btn-select-from-library" class="btn-icon" title="Select from Media Library">
-              <i class="material-icons">photo_library</i>
-            </button>
-          </div>
-        </div>
-
-        <div class="control-group">
-          <label>Upload Image</label>
-          <div class="upload-area" id="upload-area">
-            <input type="file" id="file-input" accept="image/*" style="display: none;">
-            <button id="btn-upload" class="btn-upload">
-              <i class="material-icons">cloud_upload</i>
-              <span>Choose File or Drag & Drop</span>
-            </button>
-          </div>
-        </div>
+        <div id="image-media-selector"></div>
 
         <div class="control-group">
           <label>Alt Text</label>
@@ -103,77 +83,15 @@ export class ImagePanel {
       });
     });
 
-    // Image URL
-    const imageUrl = document.getElementById('image-url');
-    if (imageUrl) {
-      imageUrl.addEventListener('change', (e) => updateMediaUrl(e.target.value));
-    }
-
-    // Select from library button
-    const btnLibrary = document.getElementById('btn-select-from-library');
-    if (btnLibrary) {
-      btnLibrary.addEventListener('click', () => {
-        MediaManager.open(async (data) => {
-          const mediaId = data.localUrl ? data.localUrl.replace('local://', '') : data.originalItem?.id;
-          if (mediaId) {
-            await updateMediaUrl(mediaId);
-            if (imageUrl) imageUrl.value = mediaId;
-          }
-        });
-      });
-    }
-
-    // File upload
-    const btnUpload = document.getElementById('btn-upload');
-    const fileInput = document.getElementById('file-input');
-    const uploadArea = document.getElementById('upload-area');
-
-    if (btnUpload && fileInput) {
-      btnUpload.addEventListener('click', () => fileInput.click());
-
-      fileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          toast.info('Uploading image...');
-          try {
-            await updateMediaUrl(file);
-            toast.success('Image uploaded successfully!');
-          } catch (error) {
-            console.error('Upload failed:', error);
-            toast.error('Failed to upload image');
-          }
-        }
-      });
-    }
-
-    // Drag & drop
-    if (uploadArea) {
-      uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('drag-over');
-      });
-
-      uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('drag-over');
-      });
-
-      uploadArea.addEventListener('drop', async (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('drag-over');
-
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('image/')) {
-          toast.info('Uploading image...');
-          try {
-            await updateMediaUrl(file);
-            toast.success('Image uploaded successfully!');
-          } catch (error) {
-            console.error('Upload failed:', error);
-            toast.error('Failed to upload image');
-          }
-        }
-      });
-    }
+    // Image source selector
+    new ImageSelector('image-media-selector', {
+      label: 'Image Source',
+      accept: 'image/*',
+      mediaType: 'image',
+      placeholder: 'Enter URL or media ID',
+      value: element.properties.url || '',
+      onMediaChange: (value) => updateMediaUrl(value)
+    });
 
     // Reset crop
     const btnResetCrop = document.getElementById('btn-reset-crop');
