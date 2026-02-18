@@ -859,10 +859,7 @@ export class AnimationEditorController {
    * @private
    */
   _updateTreeBadges() {
-    if (this.editor.uiManager && this.editor.uiManager.elementsTree) {
-      const activeSlide = this.editor.getActiveSlide();
-      this.editor.uiManager.elementsTree.render(activeSlide.elements);
-    }
+    // No-op: elements tree panel has been removed
   }
 
   /**

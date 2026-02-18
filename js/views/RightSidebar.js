@@ -237,12 +237,6 @@ export class RightSidebar {
         domEl.title = element.name || '';
       }
 
-      // Refresh the elements tree to show the new name
-      if (window.app?.editor?.uiManager?.elementsTree) {
-        const slide = window.app.editor.getActiveSlide();
-        window.app.editor.uiManager.elementsTree.render(slide.elements);
-      }
-
       window.app.editor.recordHistory();
     });
 

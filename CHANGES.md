@@ -2,6 +2,16 @@
 
 ## 2026-02-18
 
+### Removed: Page Elements & Animations section from Slide tab
+
+Removed the "Page Elements & Animations" section from the right panel's Slide tab, as it is no longer used.
+
+- Removed HTML section from `index.html`
+- Deleted `js/views/ElementsTree.js` and all references
+- Cleaned up `UIManager.js`, `RightSidebar.js`, `SlideController.js`, `AnimationEditorController.js`
+- Removed elements tree CSS from `css/sidebar.css`
+- Removed export from `js/views/index.js`
+
 ### Feature: Empty element type
 
 Added a new "Empty" element (dashed box icon in toolbar). It is a fixed 64x64

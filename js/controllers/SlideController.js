@@ -723,11 +723,6 @@ export class SlideController {
       this._renderCountdownGhost(canvas, activeSlide);
     }
 
-    // Update elements tree in right sidebar
-    if (this.editor.uiManager && this.editor.uiManager.elementsTree) {
-      this.editor.uiManager.elementsTree.render(activeSlide.elements);
-    }
-
     appEvents.emit(AppEvents.SLIDE_CHANGED, activeSlide);
 
     // Capture thumbnail shortly after render (allow images to load)

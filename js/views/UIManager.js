@@ -5,14 +5,12 @@
 
 import { RightSidebar } from "./RightSidebar.js";
 import { StatusBar } from "./StatusBar.js";
-import { ElementsTree } from "./ElementsTree.js";
 import { toast } from "../utils/toasts.js";
 
 export class UIManager {
 	constructor() {
 		this.rightSidebar = null;
 		this.statusBar = null;
-		this.elementsTree = null;
 		this.currentMode = "editor"; // 'editor' or 'presentation'
 	}
 
@@ -25,11 +23,8 @@ export class UIManager {
 		// Initialize components
 		this.rightSidebar = new RightSidebar();
 		this.statusBar = new StatusBar();
-		this.elementsTree = new ElementsTree();
-
 		await this.rightSidebar.init();
 		await this.statusBar.init();
-		await this.elementsTree.init();
 
 		// Initialize MaterializeCSS tabs
 		this.initTabs();
@@ -137,14 +132,6 @@ export class UIManager {
 	 */
 	updateStatusBar(currentSlide, totalSlides) {
 		this.statusBar.update(currentSlide, totalSlides);
-	}
-
-	/**
-	 * Update elements tree
-	 * @param {Array} elements - Array of elements
-	 */
-	updateElementsTree(elements) {
-		this.elementsTree.render(elements);
 	}
 
 	/**
