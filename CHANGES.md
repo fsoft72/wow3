@@ -2,22 +2,28 @@
 
 ## 2026-02-18
 
-### Feature: Auto play timer and progress bar in PlaybackController
+### Feature: Auto Play
 
-Implemented the auto play logic in the PlaybackController so that slides with
-`autoPlay` enabled and `autoPlayDuration > 0` automatically advance after the
-specified duration. A CSS-animated progress bar is shown at the bottom of the
-presentation view during the countdown.
+Per-slide auto play feature that automatically advances slides during presentation
+with a 2px progress bar at the top of the screen.
 
-- Added `_autoPlayTimerId` and `_autoPlayProgressBar` state to constructor
-- Added `_startAutoPlay()` method that creates the progress bar element, triggers
-  a CSS width transition, and sets a `setTimeout` to dispatch `wow3:autoPlayNext`
-- Added `_clearAutoPlay()` method that cancels the timer and removes the bar
-- `showSlide()` now calls `_clearAutoPlay()` at the start (previous slide cleanup)
-  and starts auto play at the end if the slide has it enabled
-- `stop()` now calls `_clearAutoPlay()` to clean up on presentation exit
-- Manual advance (click/keyboard) still works because `advance()` triggers
-  `showSlide()` which calls `_clearAutoPlay()`
+**Slide Model** (`js/models/Slide.js`):
+- Added `autoPlay` (boolean, default `false`) and `autoPlayDuration` (number in
+  seconds, default `5`) properties, serialized in `toJSON()`
+
+**UI** (`index.html`, `js/controllers/EditorController.js`):
+- Added "Auto Play" section in right sidebar Slide tab with enable checkbox and
+  duration input (1-300 seconds)
+- EditorController wires up change listeners and syncs UI state in `updateUI()`
+
+**Playback** (`js/controllers/PlaybackController.js`):
+- `_startAutoPlay()` creates a CSS-animated progress bar and sets a timer that
+  dispatches `wow3:autoPlayNext` event to advance to the next slide
+- `_clearAutoPlay()` cancels timer and removes progress bar
+- Timer starts when slide is shown, cleans up on manual advance or presentation end
+
+**CSS** (`css/main.css`):
+- `.auto-play-progress` class: fixed position, 2px height, linear CSS transition
 
 ### Removed: Page Elements & Animations section from Slide tab
 
