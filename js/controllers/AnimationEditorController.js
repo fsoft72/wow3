@@ -489,7 +489,8 @@ export class AnimationEditorController {
       shape: 'crop_square',
       list: 'list',
       link: 'link',
-      countdown_timer: 'timer'
+      countdown_timer: 'timer',
+      empty: 'check_box_outline_blank'
     };
 
     const selectedId = this._currentElement ? this._currentElement.id : null;
@@ -604,8 +605,9 @@ export class AnimationEditorController {
     const defs = getDefinitionsForCategory(this._currentCategory);
     const effectsHtml = defs.map((def) => {
       const isApplied = elementAnims.some((a) => a.type === def.key);
-      return `<div class="effect-card ${isApplied ? 'applied' : ''}" data-type="${def.key}">
-        <span class="effect-label">${def.label}</span>
+      const isSpecial = def.special;
+      return `<div class="effect-card ${isApplied ? 'applied' : ''} ${isSpecial ? 'special' : ''}" data-type="${def.key}">
+        <span class="effect-label">${isSpecial ? '<i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px;">skip_next</i>' : ''}${def.label}</span>
         <div class="effect-actions">
           <button class="effect-preview-btn" data-type="${def.key}" title="Preview">
             <i class="material-icons">play_circle</i>
@@ -663,16 +665,17 @@ export class AnimationEditorController {
       const def = ANIMATION_DEFINITIONS[anim.type];
       const label = def ? def.label : anim.type;
       const isWithPrev = anim.trigger === ANIMATION_TRIGGER.WITH_PREVIOUS;
+      const isSpecial = def && def.special;
 
       // Find element name
       const targetEl = slide.getElement(anim.targetElementId);
       const elName = targetEl ? this._getElementLabel(targetEl) : '(deleted)';
 
-      return `<div class="build-order-card ${isWithPrev ? 'indented' : ''}"
+      return `<div class="build-order-card ${isWithPrev ? 'indented' : ''} ${isSpecial ? 'special' : ''}"
                    data-index="${idx}" data-anim-id="${anim.id}" draggable="true">
         <span class="build-order-num">${idx + 1}</span>
         <div class="build-order-info">
-          <span class="build-order-label">${label}</span>
+          <span class="build-order-label">${isSpecial ? '<i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px;">skip_next</i>' : ''}${label}</span>
           <span class="build-order-target">${elName}</span>
         </div>
         <div class="build-order-controls">
@@ -879,6 +882,7 @@ export class AnimationEditorController {
       case 'shape': return `Shape (${element.properties.shapeType})`;
       case 'list': return 'List';
       case 'link': return element.properties.text || 'Link';
+      case 'empty': return 'Empty';
       default: return element.type;
     }
   }

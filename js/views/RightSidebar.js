@@ -99,6 +99,10 @@ export class RightSidebar {
       case 'list':
         this.addListProperties(element);
         return;
+
+      case 'empty':
+        // Empty elements have no type-specific properties
+        return;
     }
 
     if (panelHTML) {
@@ -262,6 +266,7 @@ export class RightSidebar {
       case 'shape': return `Shape (${element.properties.shapeType})`;
       case 'list': return `List (${element.properties.listType})`;
       case 'link': return element.properties.text || 'Link';
+      case 'empty': return 'Empty';
       default: return element.type;
     }
   }

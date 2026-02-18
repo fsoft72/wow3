@@ -333,6 +333,12 @@ export class PlaybackController {
       this._animationManager = new AnimationManager(slideContainer);
       this._animationManager.loadSequence(slide.animationSequence);
       this._animationManager.prepareInitialState();
+
+      // Listen for the special "Next Slide" build out effect
+      slideContainer.addEventListener('wow3:nextSlide', () => {
+        this.nextSlide();
+      }, { once: true });
+
       await this._animationManager.play();
     }
 

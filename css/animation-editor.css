@@ -85,6 +85,17 @@
   background: #e8f5e9;
 }
 
+.effect-card.special {
+  border-color: #ff6f00;
+  background: linear-gradient(135deg, #fff8e1, #fff3e0);
+  border-style: dashed;
+}
+
+.effect-card.special:hover {
+  border-color: #e65100;
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+}
+
 .effect-label {
   font-weight: 500;
   margin-bottom: 4px;
@@ -454,6 +465,16 @@
 .build-order-card.drag-over {
   border-color: #1565c0;
   background: #e3f2fd;
+}
+
+.build-order-card.special {
+  border-color: #ff6f00;
+  border-left: 3px solid #ff6f00;
+  background: linear-gradient(90deg, #fff8e1, #fff);
+}
+
+.build-order-card.special .build-order-num {
+  background: #ff6f00;
 }
 
 .build-order-num {

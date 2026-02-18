@@ -51,6 +51,7 @@
         <li><a href="#" id="add-shape-btn" title="Add Shape"><i class="material-icons">crop_square</i></a></li>
         <li><a href="#" id="add-audio-btn" title="Add Audio"><i class="material-icons">audiotrack</i></a></li>
         <li><a href="#" id="add-countdown-btn" title="Add Countdown Timer"><i class="material-icons">timer</i></a></li>
+        <li><a href="#" id="add-empty-btn" title="Add Empty (sync marker)"><i class="material-icons">check_box_outline_blank</i></a></li>
       </ul>
       <!-- Right group: import/export/play -->
       <ul id="toolbar-right" class="toolbar-group toolbar-right">
@@ -197,11 +198,11 @@
         <button class="animations-panel-tab active" data-panel-tab="elements">
           <i class="material-icons">layers</i> Elements
         </button>
-        <button class="animations-panel-tab" data-panel-tab="sequence">
-          <i class="material-icons">reorder</i> Sequence
-        </button>
         <button class="animations-panel-tab" data-panel-tab="anim" disabled>
           <i class="material-icons">animation</i> Anim
+        </button>
+        <button class="animations-panel-tab" data-panel-tab="sequence">
+          <i class="material-icons">reorder</i> Sequence
         </button>
       </div>
       <button class="animations-panel-close" title="Close">
@@ -215,14 +216,14 @@
           <p class="grey-text center-align" style="padding: 12px; font-size: 12px;">No elements on this slide</p>
         </div>
       </div>
-      <div id="animations-panel-sequence" class="animations-panel-content">
-        <div id="build-order-list">
-          <p class="grey-text center-align" style="padding: 12px; font-size: 12px;">No animations on this slide</p>
-        </div>
-      </div>
       <div id="animations-panel-anim" class="animations-panel-content">
         <div id="animation-inspector">
           <p class="grey-text center-align" style="padding: 20px;">Select an element to add animations</p>
+        </div>
+      </div>
+      <div id="animations-panel-sequence" class="animations-panel-content">
+        <div id="build-order-list">
+          <p class="grey-text center-align" style="padding: 12px; font-size: 12px;">No animations on this slide</p>
         </div>
       </div>
     </div>

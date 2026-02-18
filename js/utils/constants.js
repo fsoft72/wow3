@@ -36,7 +36,8 @@ export const ElementType = {
   LIST: 'list',
   LINK: 'link',
   SHAPE: 'shape',
-  COUNTDOWN_TIMER: 'countdown_timer'
+  COUNTDOWN_TIMER: 'countdown_timer',
+  EMPTY: 'empty'
 };
 
 // Slide directions
@@ -63,7 +64,8 @@ export const DEFAULT_SIZE = {
   SHAPE: { width: 200, height: 200 },
   LIST: { width: 300, height: 200 },
   LINK: { width: 200, height: 50 },
-  COUNTDOWN_TIMER: { width: 200, height: 100 }
+  COUNTDOWN_TIMER: { width: 200, height: 100 },
+  EMPTY: { width: 64, height: 64 }
 };
 
 // Default values

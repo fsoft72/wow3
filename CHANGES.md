@@ -2,6 +2,41 @@
 
 ## 2026-02-18
 
+### Feature: Empty element type
+
+Added a new "Empty" element (dashed box icon in toolbar). It is a fixed 64x64
+semi-transparent box that cannot be resized — only moved and rotated. Used as a
+synchronization marker in animation sequences.
+
+- New model: `js/models/EmptyElement.js`
+- Added to `ElementType` enum, `DEFAULT_SIZE`, toolbar, and all controllers
+- Resize handles are suppressed; only the rotation handle is shown
+
+### Feature: "Next Slide" special build out effect
+
+Added a new special build out animation called "Next Slide". When this effect
+runs during presentation playback, it automatically advances to the next slide.
+
+- Defined in `js/animations/definitions.js` with `special: true` flag
+- `AnimationManager._runStep` dispatches a `wow3:nextSlide` custom DOM event
+- `PlaybackController` listens for the event and calls `nextSlide()`
+- Visually distinct in the UI: orange dashed border, gradient background, and
+  skip_next icon in both the effect grid and build order cards
+
+### UI: Reordered Elements Control Center tabs
+
+Moved the "Anim" tab before the "Sequence" tab in the Elements Control Center
+floating panel, so the tab order is now: Elements | Anim | Sequence.
+
+### UI: Content/Style tabs visual enhancement
+
+Made the Content | Style panel tabs in the right sidebar more visually prominent
+with a blue header bar background (matching the app's primary color), white text,
+and a full-width tab layout that clearly separates them from standard element
+attributes.
+
+## 2026-02-18
+
 ### Fix: Audio "Continue on Slides" stops on next slide transition
 
 Fixed a bug where audio with "Continue on Slides" enabled would stop playing

@@ -12,7 +12,8 @@ import {
   ShapeElement,
   ListElement,
   LinkElement,
-  CountdownTimerElement
+  CountdownTimerElement,
+  EmptyElement
 } from '../models/index.js';
 import { generateId } from '../utils/dom.js';
 import { appEvents, AppEvents } from '../utils/events.js';
@@ -138,7 +139,8 @@ export class ElementController {
       shape: ShapeElement,
       list: ListElement,
       link: LinkElement,
-      countdown_timer: CountdownTimerElement
+      countdown_timer: CountdownTimerElement,
+      empty: EmptyElement
     };
 
     return classes[type] || TextElement;
@@ -555,6 +557,17 @@ export class ElementController {
   addHandles(elementDOM) {
     // Skip if crop mode is active (crop handles managed by CropHandler)
     if (this._cropMode) return;
+
+    // Empty elements cannot be resized — only add rotation handle
+    if (this.selectedElement && this.selectedElement.type === 'empty') {
+      const rotateHandle = document.createElement('div');
+      rotateHandle.className = 'rotate-handle';
+      elementDOM.appendChild(rotateHandle);
+      if (this.rotateHandler) {
+        this.rotateHandler.attach(rotateHandle, this.selectedElement);
+      }
+      return;
+    }
 
     // Add resize handles
     const handles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];

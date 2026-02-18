@@ -261,6 +261,19 @@ export const ANIMATION_DEFINITIONS = {
       { transform: 'perspective(400px) rotateX(90deg)', opacity: 0, offset: 1 }
     ],
     options: { duration: 600, easing: 'ease-in' }
+  },
+
+  // ==================== SPECIAL ====================
+
+  nextSlide: {
+    label: 'Next Slide',
+    category: [ANIMATION_CATEGORY.BUILD_OUT],
+    special: true,
+    keyframes: [
+      { opacity: 1 },
+      { opacity: 1 }
+    ],
+    options: { duration: 10, easing: 'linear' }
   }
 };
 

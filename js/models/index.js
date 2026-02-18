@@ -12,5 +12,6 @@ export { ShapeElement } from './ShapeElement.js';
 export { ListElement } from './ListElement.js';
 export { LinkElement } from './LinkElement.js';
 export { CountdownTimerElement } from './CountdownTimerElement.js';
+export { EmptyElement } from './EmptyElement.js';
 export { Slide } from './Slide.js';
 export { Presentation } from './Presentation.js';

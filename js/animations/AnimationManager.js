@@ -184,6 +184,13 @@ export class AnimationManager {
    * @private
    */
   async _runStep(step) {
+    // Special "nextSlide" effect — dispatch event and stop sequence
+    if (step.type === 'nextSlide') {
+      this._container.dispatchEvent(new CustomEvent('wow3:nextSlide', { bubbles: true }));
+      this._playing = false;
+      return;
+    }
+
     const el = this._findElement(step.targetElementId);
     if (!el) return;
 

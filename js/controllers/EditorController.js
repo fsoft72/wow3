@@ -134,6 +134,11 @@ export class EditorController {
       addCountdownBtn.addEventListener('click', () => this.addElement('countdown_timer'));
     }
 
+    const addEmptyBtn = document.getElementById('add-empty-btn');
+    if (addEmptyBtn) {
+      addEmptyBtn.addEventListener('click', () => this.addElement('empty'));
+    }
+
     // Slide background gradient selector
     if ( window.GradientManager && window.GradientSelector ) {
       GradientManager.init();
