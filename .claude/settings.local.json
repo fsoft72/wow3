@@ -13,7 +13,16 @@
       "Bash(find:*)",
       "Bash(git status:*)",
       "Bash(wc:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:cdnjs.cloudflare.com)",
+      "Bash(curl:*)",
+      "Bash(git reset:*)",
+      "Bash(git merge:*)",
+      "Bash(git branch:*)",
+      "Bash(git worktree remove:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash({ git checkout --theirs CHANGES.md)",
+      "Bash(})"
     ]
   }
 }

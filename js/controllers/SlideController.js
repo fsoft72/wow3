@@ -97,9 +97,15 @@ export class SlideController {
           targetContent.style.display = 'block';
         }
 
-        // Re-render shells when switching to shells tab
+        // Auto-select first item when switching tabs
         if (targetTab === 'shells') {
           this.renderShells();
+          const shells = this.editor.presentation.shells;
+          if (shells.length > 0) {
+            this.editor.editShell(shells[0].id);
+          }
+        } else if (targetTab === 'slides') {
+          this.selectSlide(0);
         }
       });
     });
@@ -122,16 +128,25 @@ export class SlideController {
 
     // Drag and drop for reordering
     slideList.addEventListener('dragstart', (e) => {
-      if (e.target.classList.contains('slide-thumbnail')) {
-        this.draggedSlide = e.target;
+      console.log('🔵 dragstart event fired on:', e.target.className);
+
+      // Find the closest slide-thumbnail (event delegation)
+      const thumbnail = e.target.closest('.slide-thumbnail');
+
+      if (thumbnail) {
+        console.log('✅ Valid slide thumbnail drag started');
+        this.draggedSlide = thumbnail;
         e.dataTransfer.effectAllowed = 'move';
-        e.target.classList.add('dragging');
+        thumbnail.classList.add('dragging');
+      } else {
+        console.log('❌ dragstart target has no slide-thumbnail parent');
       }
     });
 
     slideList.addEventListener('dragend', (e) => {
-      if (e.target.classList.contains('slide-thumbnail')) {
-        e.target.classList.remove('dragging');
+      const thumbnail = e.target.closest('.slide-thumbnail');
+      if (thumbnail) {
+        thumbnail.classList.remove('dragging');
         this.draggedSlide = null;
       }
     });
@@ -260,6 +275,10 @@ export class SlideController {
       this.editor.recordHistory();
       this.renderSlides();
     });
+    eyeBtn.addEventListener('dragstart', (e) => {
+      // Prevent drag on button, let parent handle it
+      e.preventDefault();
+    });
     div.appendChild(eyeBtn);
 
     // Thumbnail preview
@@ -300,6 +319,10 @@ export class SlideController {
     nameLabel.addEventListener('click', (e) => {
       e.stopPropagation();
       this._startInlineRename(div, slide, nameLabel);
+    });
+    nameLabel.addEventListener('dragstart', (e) => {
+      // Prevent drag on label, let parent handle it
+      e.preventDefault();
     });
     div.appendChild(nameLabel);
 
@@ -646,13 +669,32 @@ export class SlideController {
     // Show checkerboard for transparent backgrounds (e.g. shell editing)
     if (activeSlide.background === 'transparent') {
       canvas.style.background = 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 24px 24px';
+      canvas.style.backgroundSize = '';
+      canvas.style.animation = '';
     } else {
       canvas.style.background = activeSlide.background;
+      if ( activeSlide.backgroundAnimationSpeed > 0 ) {
+        const duration = 11 - activeSlide.backgroundAnimationSpeed;
+        const animType = activeSlide.backgroundAnimationType || 'pingpong';
+        const keyframes = animType === 'cycle' ? 'wow3GradientCycleForward' : 'wow3GradientCycle';
+        const easing = animType === 'cycle' ? 'linear' : 'ease';
+        canvas.style.backgroundSize = '200% 200%';
+        canvas.style.animation = `${keyframes} ${duration}s ${easing} infinite`;
+      } else {
+        canvas.style.backgroundSize = '';
+        canvas.style.animation = '';
+      }
     }
 
     // Render all elements with proper z-index
     activeSlide.elements.forEach((element, index) => {
       const elementDOM = element.render(index);
+
+      // Apply editor-hidden class if needed
+      if (element.hiddenInEditor) {
+        elementDOM.classList.add('editor-hidden');
+      }
+
       canvas.appendChild(elementDOM);
 
       // Attach interaction handlers
@@ -700,30 +742,9 @@ export class SlideController {
    * @param {number} index - Slide index
    */
   showSlideContextMenu(e, index) {
-    // Remove existing context menu
-    const existingMenu = document.querySelector('.context-menu');
-    if (existingMenu) {
-      existingMenu.remove();
-    }
-
-    // Create context menu
-    const menu = document.createElement('div');
-    menu.className = 'context-menu';
-    menu.style.cssText = `
-      position: fixed;
-      left: ${e.clientX}px;
-      top: ${e.clientY}px;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      z-index: 10000;
-      min-width: 150px;
-    `;
-
-    // Menu options
     const slide = this.editor.presentation.slides[index];
-    const options = [
+
+    ContextMenu.show(e, [
       {
         label: slide.visible ? 'Hide Slide' : 'Show Slide',
         icon: slide.visible ? 'visibility_off' : 'visibility',
@@ -751,53 +772,7 @@ export class SlideController {
         action: () => this.deleteSlide(index),
         disabled: this.editor.presentation.slides.length <= 1
       }
-    ];
-
-    options.forEach((opt) => {
-      const item = document.createElement('div');
-      item.className = 'context-menu-item';
-      item.innerHTML = `
-        <i class="material-icons" style="font-size:18px;margin-right:8px;">${opt.icon}</i>
-        <span>${opt.label}</span>
-      `;
-      item.style.cssText = `
-        padding: 8px 16px;
-        cursor: ${opt.disabled ? 'not-allowed' : 'pointer'};
-        display: flex;
-        align-items: center;
-        opacity: ${opt.disabled ? '0.5' : '1'};
-      `;
-
-      if (!opt.disabled) {
-        item.addEventListener('mouseenter', () => {
-          item.style.background = '#f5f5f5';
-        });
-
-        item.addEventListener('mouseleave', () => {
-          item.style.background = 'white';
-        });
-
-        item.addEventListener('click', () => {
-          opt.action();
-          menu.remove();
-        });
-      }
-
-      menu.appendChild(item);
-    });
-
-    document.body.appendChild(menu);
-
-    // Remove menu on click outside
-    setTimeout(() => {
-      const closeMenu = (e) => {
-        if (!menu.contains(e.target)) {
-          menu.remove();
-          document.removeEventListener('click', closeMenu);
-        }
-      };
-      document.addEventListener('click', closeMenu);
-    }, 0);
+    ], { theme: 'light' });
   }
 
   /**

@@ -106,7 +106,7 @@ export class UIManager {
             <p style="margin: 0 0 10px 0;">written by <a href="https://github.com/fsoft72" target="_blank" rel="noopener">Fabio "fsoft" Rotondo</a></p>
             <p style="margin: 0 0 10px 0;">This software is Open Source under the MIT license</p>
             <p style="margin: 0 0 15px 0;">Please, star us on <a href="https://github.com/fsoft72/wow3" target="_blank" rel="noopener">Github</a>!</p>
-            <p style="margin: 0; font-size: 0.9em; color: #888;">v. 0.2.0</p>
+            <p style="margin: 0; font-size: 0.9em; color: #888;">v. 0.5.0</p>
           </div>
         `,
 				buttons: [{ text: "OK", type: "primary", value: true }],

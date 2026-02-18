@@ -24,6 +24,10 @@ export class CountdownTimerElement extends Element {
     this.properties.borderWidth = properties.properties?.borderWidth ?? 2;
     this.properties.borderRadius = properties.properties?.borderRadius ?? 8;
 
+    // Background gradient animation properties
+    this.properties.backgroundAnimationSpeed = properties.properties?.backgroundAnimationSpeed ?? 0;
+    this.properties.backgroundAnimationType = properties.properties?.backgroundAnimationType || 'pingpong';
+
     // Font defaults for countdown timer (larger white text)
     if (!properties.properties?.font?.size) {
       this.properties.font.size = 48;
@@ -53,20 +57,43 @@ export class CountdownTimerElement extends Element {
    * @param {number} zIndex - Z-index for stacking (optional)
    * @returns {HTMLElement} DOM element
    */
+  /**
+   * Build gradient animation CSS string
+   * @param {number} speed - Animation speed (0-10, 0 = off)
+   * @param {string} animationType - 'pingpong' or 'cycle'
+   * @returns {string} CSS animation properties or empty string
+   */
+  static _gradientAnimCSS(speed, animationType) {
+    if (!speed || speed <= 0) return '';
+    const kf = animationType === 'cycle' ? 'wow3GradientCycleForward' : 'wow3GradientCycle';
+    const ea = animationType === 'cycle' ? 'linear' : 'ease';
+    return `background-size: 200% 200%; animation: ${kf} ${11 - speed}s ${ea} infinite;`;
+  }
+
   render(zIndex = null) {
     const el = super.render(zIndex);
     el.classList.add('countdown-timer-element');
 
-    // Apply background and border styles
-    el.style.background = this.properties.background;
-    el.style.borderColor = this.properties.borderColor;
-    el.style.borderWidth = `${this.properties.borderWidth}px`;
-    el.style.borderStyle = 'solid';
-    el.style.borderRadius = `${this.properties.borderRadius}px`;
-    el.style.display = 'flex';
-    el.style.alignItems = 'center';
-    el.style.justifyContent = 'center';
-    el.style.overflow = 'hidden';
+    // Build background CSS with optional gradient animation
+    const bg = this.properties.background;
+    const bgIsGradient = bg && bg.includes('gradient(');
+    const bgAnimSpeed = this.properties.backgroundAnimationSpeed ?? 0;
+    const bgAnimType = this.properties.backgroundAnimationType || 'pingpong';
+    const bgAnimCSS = bgIsGradient ? CountdownTimerElement._gradientAnimCSS(bgAnimSpeed, bgAnimType) : '';
+
+    // Apply background, border, and layout styles
+    el.style.cssText += `
+      background: ${bg};
+      ${bgAnimCSS}
+      border-color: ${this.properties.borderColor};
+      border-width: ${this.properties.borderWidth}px;
+      border-style: solid;
+      border-radius: ${this.properties.borderRadius}px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    `;
 
     if (this.properties.clear) {
       el.classList.add('clear-timer');
@@ -77,16 +104,28 @@ export class CountdownTimerElement extends Element {
       el.appendChild(cross);
     }
 
+    // Build font color CSS (gradient text or solid)
+    const fontColor = this.properties.font.color;
+    const fontIsGradient = fontColor && fontColor.includes('gradient(');
+    const fontAnimSpeed = this.properties.font.colorAnimationSpeed ?? 0;
+    const fontAnimType = this.properties.font.colorAnimationType || 'pingpong';
+    const fontAnimCSS = fontIsGradient ? CountdownTimerElement._gradientAnimCSS(fontAnimSpeed, fontAnimType) : '';
+    const colorCSS = fontIsGradient
+      ? `background: ${fontColor}; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; ${fontAnimCSS}`
+      : `color: ${fontColor};`;
+
     // Timer display text
     const display = document.createElement('div');
     display.className = 'timer-display';
-    display.style.fontFamily = this.properties.font.family;
-    display.style.fontSize = `${this.properties.font.size}px`;
-    display.style.color = this.properties.font.color;
-    display.style.fontWeight = this.properties.font.weight;
-    display.style.fontStyle = this.properties.font.style;
-    display.style.textDecoration = this.properties.font.decoration;
-    display.style.userSelect = 'none';
+    display.style.cssText = `
+      font-family: ${this.properties.font.family};
+      font-size: ${this.properties.font.size}px;
+      ${colorCSS}
+      font-weight: ${this.properties.font.weight};
+      font-style: ${this.properties.font.style};
+      text-decoration: ${this.properties.font.decoration};
+      user-select: none;
+    `;
     display.textContent = CountdownTimerElement.formatTime(this.properties.duration);
 
     el.appendChild(display);

@@ -41,6 +41,12 @@
   cursor: grabbing;
 }
 
+/* Hidden elements in editor (still visible during playback) */
+.editor-hidden {
+  opacity: 0.1 !important;
+  pointer-events: none !important;
+}
+
 /* ==================== TEXT ELEMENT ==================== */
 
 .text-element {
@@ -383,30 +389,79 @@
 
 /* ==================== CONTEXT MENU ==================== */
 
-.context-menu {
+#ctx-menu {
   position: fixed;
-  background: white;
-  border: 1px solid #ccc;
+  background: #222;
+  border: 1px solid #444;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: 10000;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  z-index: 100000;
   min-width: 150px;
+  display: none;
 }
 
-.context-menu-item {
-  padding: 8px 16px;
+#ctx-menu.ctx-menu--light {
+  background: white;
+  border-color: #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ctx-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
   cursor: pointer;
-  transition: background 0.2s;
+  font-size: 13px;
+  color: #eee;
+  transition: background 0.15s;
 }
 
-.context-menu-item:hover {
+.ctx-menu-item i {
+  font-size: 16px;
+}
+
+.ctx-menu-item:hover {
+  background: #007bff;
+  color: white;
+}
+
+.ctx-menu-item--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ctx-menu-item--disabled:hover {
+  background: transparent;
+  color: #eee;
+}
+
+/* Light theme overrides */
+#ctx-menu.ctx-menu--light .ctx-menu-item {
+  color: #333;
+}
+
+#ctx-menu.ctx-menu--light .ctx-menu-item i {
+  color: #757575;
+}
+
+#ctx-menu.ctx-menu--light .ctx-menu-item:hover {
   background: #f5f5f5;
+  color: #333;
 }
 
-.context-menu-divider {
-  height: 1px;
-  background: #e0e0e0;
-  margin: 4px 0;
+#ctx-menu.ctx-menu--light .ctx-menu-item--disabled:hover {
+  background: transparent;
+  color: #333;
+}
+
+.ctx-menu-divider {
+  border-top: 1px solid #444;
+  margin: 2px 0;
+}
+
+#ctx-menu.ctx-menu--light .ctx-menu-divider {
+  border-top-color: #e0e0e0;
 }
 
 /* ==================== PLACEHOLDER TEXT ==================== */
@@ -538,4 +593,46 @@
   width: 100%;
   height: 100%;
   transform-origin: center center;
+}
+
+/* ==================== TEXT BACKGROUND-IMAGE MOVEMENT KEYFRAMES ==================== */
+
+@keyframes wow3BgMoveUp {
+  from { background-position: 50% 100%; }
+  to   { background-position: 50% 0%; }
+}
+
+@keyframes wow3BgMoveDown {
+  from { background-position: 50% 0%; }
+  to   { background-position: 50% 100%; }
+}
+
+@keyframes wow3BgMoveLeft {
+  from { background-position: 100% 50%; }
+  to   { background-position: 0% 50%; }
+}
+
+@keyframes wow3BgMoveRight {
+  from { background-position: 0% 50%; }
+  to   { background-position: 100% 50%; }
+}
+
+@keyframes wow3BgMoveUpLeft {
+  from { background-position: 100% 100%; }
+  to   { background-position: 0% 0%; }
+}
+
+@keyframes wow3BgMoveUpRight {
+  from { background-position: 0% 100%; }
+  to   { background-position: 100% 0%; }
+}
+
+@keyframes wow3BgMoveDownLeft {
+  from { background-position: 100% 0%; }
+  to   { background-position: 0% 100%; }
+}
+
+@keyframes wow3BgMoveDownRight {
+  from { background-position: 0% 0%; }
+  to   { background-position: 100% 100%; }
 }

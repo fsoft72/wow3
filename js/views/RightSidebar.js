@@ -3,7 +3,7 @@
  * Property panels for slides and elements
  */
 
-import { FONT_FAMILIES, TEXT_ALIGNMENTS } from '../utils/constants.js';
+import { TEXT_ALIGNMENTS } from '../utils/constants.js';
 import { TextPanel, ImagePanel, VideoPanel, AudioPanel, CountdownTimerPanel } from '../panels/index.js';
 import { toast } from '../utils/toasts.js';
 
@@ -170,6 +170,19 @@ export class RightSidebar {
     if (this.elementTab) {
       this.elementTab.innerHTML = '<p class="grey-text center-align" style="padding: 20px;">No element selected</p>';
     }
+    this.switchToSlideTab();
+  }
+
+  /**
+   * Switch to the Slide tab in the right sidebar
+   */
+  switchToSlideTab() {
+    const tabs = document.querySelector('.tabs');
+    if (!tabs) return;
+    const tabsInstance = M.Tabs.getInstance(tabs);
+    if (tabsInstance) {
+      tabsInstance.select('tab-slide');
+    }
   }
 
   /**
@@ -184,13 +197,11 @@ export class RightSidebar {
     const yInput = document.getElementById('prop-y');
     const widthInput = document.getElementById('prop-width');
     const heightInput = document.getElementById('prop-height');
-    const rotationInput = document.getElementById('prop-rotation');
-
     if (xInput) xInput.value = Math.round(element.position.x);
     if (yInput) yInput.value = Math.round(element.position.y);
     if (widthInput) widthInput.value = Math.round(element.position.width);
     if (heightInput) heightInput.value = Math.round(element.position.height);
-    if (rotationInput) rotationInput.value = Math.round(element.position.rotation);
+    if (this._rotationRange) this._rotationRange.update(Math.round(element.position.rotation));
   }
 
   /**
@@ -296,11 +307,25 @@ export class RightSidebar {
 
     section.appendChild(grid2);
 
-    section.appendChild(
-      this.createNumberInput('Rotation', element.position.rotation, (val) => {
-        window.app.editor.elementController.updateElementProperty('position.rotation', parseFloat(val));
-      }, { min: 0, max: 360, step: 1 })
-    );
+    // Rotation — RangeInput slider (-360 to 360)
+    const rotationWrapper = document.createElement('div');
+    rotationWrapper.className = 'range-field';
+    rotationWrapper.id = 'prop-rotation-range';
+    section.appendChild(rotationWrapper);
+
+    requestAnimationFrame(() => {
+      this._rotationRange = new RangeInput('prop-rotation-range', {
+        label: 'Rotation',
+        value: element.position.rotation,
+        min: -360,
+        max: 360,
+        step: 1,
+        unit: '°',
+        onChange: (val) => {
+          window.app.editor.elementController.updateElementProperty('position.rotation', val);
+        }
+      });
+    });
 
     this.elementTab.appendChild(section);
   }
@@ -312,16 +337,22 @@ export class RightSidebar {
   addTextProperties(element) {
     const section = this.createSection('Text');
 
-    section.appendChild(
-      this.createSelect(
-        'Font',
-        element.properties.font.family,
-        FONT_FAMILIES,
-        (val) => {
-          window.app.editor.elementController.updateElementProperty('properties.font.family', val);
-        }
-      )
-    );
+    // Font family picker with font previews
+    const fontPickerWrapper = document.createElement('div');
+    fontPickerWrapper.className = 'input-field';
+    const fontPickerLabel = document.createElement('label');
+    fontPickerLabel.textContent = 'Font';
+    fontPickerLabel.classList.add('active');
+    fontPickerWrapper.appendChild(fontPickerLabel);
+    const fontPickerId = 'sidebar-font-family';
+    fontPickerWrapper.insertAdjacentHTML('beforeend', PanelUtils.renderFontFamilyPicker(fontPickerId, element.properties.font.family));
+    section.appendChild(fontPickerWrapper);
+    // Defer binding so DOM is attached
+    setTimeout(() => {
+      PanelUtils.bindFontFamilyPicker(fontPickerId, (val) => {
+        window.app.editor.elementController.updateElementProperty('properties.font.family', val);
+      });
+    }, 0);
 
     section.appendChild(
       this.createNumberInput('Size', element.properties.font.size, (val) => {
@@ -329,11 +360,29 @@ export class RightSidebar {
       }, { min: 8, max: 144 })
     );
 
-    section.appendChild(
-      this.createColorInput('Color', element.properties.font.color, (val) => {
-        window.app.editor.elementController.updateElementProperty('properties.font.color', val);
-      })
-    );
+    // Text color — gradient selector (full width)
+    const colorWrapper = document.createElement('div');
+    colorWrapper.className = 'input-field';
+    const colorLabel = document.createElement('label');
+    colorLabel.textContent = 'Color';
+    colorLabel.classList.add('active');
+    const colorContainer = document.createElement('div');
+    colorContainer.id = 'text-color-gradient-selector';
+    colorWrapper.appendChild(colorLabel);
+    colorWrapper.appendChild(colorContainer);
+    section.appendChild(colorWrapper);
+
+    // Instantiate GradientSelector after DOM insertion
+    requestAnimationFrame(() => {
+      if ( window.GradientSelector ) {
+        this._textColorSelector = new GradientSelector('text-color-gradient-selector', {
+          value: element.properties.font.color,
+          onChange: (val) => {
+            window.app.editor.elementController.updateElementProperty('properties.font.color', val);
+          }
+        });
+      }
+    });
 
     section.appendChild(
       this.createSelect(
@@ -517,29 +566,79 @@ export class RightSidebar {
       )
     );
 
-    // Fill + Stroke + Stroke Width on one row
-    const row = document.createElement('div');
-    row.className = 'property-row three-col';
+    // Fill — gradient selector (full width)
+    const fillWrapper = document.createElement('div');
+    fillWrapper.className = 'input-field';
+    const fillLabel = document.createElement('label');
+    fillLabel.textContent = 'Fill';
+    fillLabel.classList.add('active');
+    const fillContainer = document.createElement('div');
+    fillContainer.id = 'shape-fill-gradient-selector';
+    fillWrapper.appendChild(fillLabel);
+    fillWrapper.appendChild(fillContainer);
+    section.appendChild(fillWrapper);
 
-    row.appendChild(
-      this.createColorInput('Fill', element.properties.fillColor, (val) => {
-        window.app.editor.elementController.updateElementProperty('properties.fillColor', val);
-      })
-    );
+    // Instantiate GradientSelector after DOM insertion
+    requestAnimationFrame(() => {
+      if ( window.GradientSelector ) {
+        this._shapeFillSelector = new GradientSelector('shape-fill-gradient-selector', {
+          value: element.properties.fillColor,
+          animationSpeed: element.properties.fillColorAnimationSpeed ?? 0,
+          onChange: (val, animationSpeed) => {
+            window.app.editor.elementController.updateElementProperty('properties.fillColor', val);
+            window.app.editor.elementController.updateElementProperty('properties.fillColorAnimationSpeed', animationSpeed);
+          }
+        });
+      }
+    });
 
-    row.appendChild(
-      this.createColorInput('Stroke', element.properties.strokeColor, (val) => {
-        window.app.editor.elementController.updateElementProperty('properties.strokeColor', val);
-      })
-    );
+    // Stroke — gradient selector (full width)
+    const strokeWrapper = document.createElement('div');
+    strokeWrapper.className = 'input-field';
+    const strokeLabel = document.createElement('label');
+    strokeLabel.textContent = 'Stroke';
+    strokeLabel.classList.add('active');
+    const strokeContainer = document.createElement('div');
+    strokeContainer.id = 'shape-stroke-gradient-selector';
+    strokeWrapper.appendChild(strokeLabel);
+    strokeWrapper.appendChild(strokeContainer);
+    section.appendChild(strokeWrapper);
 
-    row.appendChild(
-      this.createNumberInput('Stroke Width', element.properties.strokeWidth, (val) => {
-        window.app.editor.elementController.updateElementProperty('properties.strokeWidth', parseFloat(val));
-      }, { min: 0, max: 20 })
-    );
+    // Instantiate stroke GradientSelector after DOM insertion
+    requestAnimationFrame(() => {
+      if ( window.GradientSelector ) {
+        this._shapeStrokeSelector = new GradientSelector('shape-stroke-gradient-selector', {
+          value: element.properties.strokeColor,
+          animationSpeed: element.properties.strokeColorAnimationSpeed ?? 0,
+          onChange: (val, animationSpeed) => {
+            window.app.editor.elementController.updateElementProperty('properties.strokeColor', val);
+            window.app.editor.elementController.updateElementProperty('properties.strokeColorAnimationSpeed', animationSpeed);
+          }
+        });
+      }
+    });
 
-    section.appendChild(row);
+    // Stroke Width
+    const widthWrapper = document.createElement('div');
+    widthWrapper.className = 'range-field';
+    widthWrapper.id = 'shape-stroke-width-range';
+    section.appendChild(widthWrapper);
+
+    // Instantiate RangeInput after DOM insertion
+    requestAnimationFrame(() => {
+      new RangeInput('shape-stroke-width-range', {
+        label: 'Stroke Width',
+        value: element.properties.strokeWidth,
+        min: 0,
+        max: 20,
+        step: 0.5,
+        unit: 'px',
+        onChange: (val) => {
+          window.app.editor.elementController.updateElementProperty('properties.strokeWidth', val);
+        }
+      });
+    });
+
     this.elementTab.appendChild(section);
   }
 

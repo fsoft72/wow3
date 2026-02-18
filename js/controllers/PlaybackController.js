@@ -69,6 +69,12 @@ export class PlaybackController {
     if (!this.presentationView) return;
 
     this.isPlaying = true;
+
+    // Stop any playing audio from editor with smooth fade-out
+    if (window.AudioManager) {
+      window.AudioManager.stopAll(true);
+    }
+
     this.currentSlideIndex = 0;
 
     // Show presentation view
@@ -186,17 +192,64 @@ export class PlaybackController {
 
     this.currentSlideIndex = index;
 
-    // Clear presentation view
-    this.presentationView.innerHTML = '';
+    // Get continuing audio ID before clearing
+    const continuingAudioId = window.AudioManager?.getContinuingAudio();
+    console.log('[PlaybackController] Continuing audio ID:', continuingAudioId);
 
-    // Create slide container
+    // Clear presentation view, but preserve continuing audio element
+    // First, detach the continuing audio element if it exists
+    // IMPORTANT: Search within presentation view only, not entire document
+    // (there may be another element with same ID in the editor)
+    let continuingAudioElement = null;
+    if (continuingAudioId) {
+      continuingAudioElement = this.presentationView.querySelector(`#${continuingAudioId}`);
+      console.log('[PlaybackController] Found continuing audio element:', continuingAudioElement);
+      console.log('[PlaybackController] Continuing audio element parent:', continuingAudioElement?.parentElement?.className);
+      console.log('[PlaybackController] Is audio playing?', continuingAudioElement?.querySelector('audio')?.paused === false);
+
+      if (continuingAudioElement) {
+        console.log('[PlaybackController] Detaching continuing audio element:', continuingAudioId);
+        continuingAudioElement.remove(); // Detach but keep reference
+        console.log('[PlaybackController] After detach - is audio still playing?', continuingAudioElement?.querySelector('audio')?.paused === false);
+      }
+    }
+
+    // Remove all children (slide containers, indicators, etc.)
+    console.log('[PlaybackController] Presentation view children before clearing:', this.presentationView.children.length);
+    Array.from(this.presentationView.children).forEach(child => {
+      console.log('[PlaybackController] Removing child:', child.id || child.className);
+      child.remove();
+    });
+    console.log('[PlaybackController] Presentation view children after clearing:', this.presentationView.children.length);
+
+    // Create slide container at design dimensions
     const slideContainer = document.createElement('div');
+
+    // Calculate scale to fit screen while maintaining aspect ratio
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const scaleX = viewportWidth / 1280;
+    const scaleY = viewportHeight / 720;
+    const scale = Math.min(scaleX, scaleY);
+
+    const bgAnimCSS = slide.backgroundAnimationSpeed > 0
+      ? (() => {
+          const dur = 11 - slide.backgroundAnimationSpeed;
+          const animType = slide.backgroundAnimationType || 'pingpong';
+          const kf = animType === 'cycle' ? 'wow3GradientCycleForward' : 'wow3GradientCycle';
+          const ea = animType === 'cycle' ? 'linear' : 'ease';
+          return `background-size: 200% 200%; animation: ${kf} ${dur}s ${ea} infinite;`;
+        })()
+      : '';
+
     slideContainer.style.cssText = `
       width: 1280px;
       height: 720px;
       background: ${slide.background};
       position: relative;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      transform: scale(${scale});
+      transform-origin: center;
+      ${bgAnimCSS}
     `;
 
     // Create shell and slide layers
@@ -289,6 +342,44 @@ export class PlaybackController {
       this._animationManager.loadSequence(slide.animationSequence);
       this._animationManager.prepareInitialState();
       await this._animationManager.play();
+    }
+
+    // Re-attach continuing audio element if it should continue
+    if (continuingAudioElement) {
+      // Check if the continuing audio is on this slide
+      const continuingAudioOnThisSlide = slide.elements &&
+        slide.elements.some(el => el.id === continuingAudioId);
+
+      // Check if slide has competing autoplay audio
+      const hasCompetingAutoplayAudio = slide.elements && slide.elements.some(
+        el => el.type === 'audio' &&
+             el.properties &&
+             el.properties.autoplay &&
+             el.id !== continuingAudioId
+      );
+
+      console.log('[PlaybackController] Continuing audio on this slide:', continuingAudioOnThisSlide);
+      console.log('[PlaybackController] Has competing autoplay audio:', hasCompetingAutoplayAudio);
+
+      if (!continuingAudioOnThisSlide && !hasCompetingAutoplayAudio) {
+        // Re-attach to the new slide container
+        console.log('[PlaybackController] Re-attaching continuing audio to new slide');
+        console.log('[PlaybackController] Before re-attach - is audio playing?', continuingAudioElement?.querySelector('audio')?.paused === false);
+        slideContainer.appendChild(continuingAudioElement);
+        console.log('[PlaybackController] After re-attach - is audio playing?', continuingAudioElement?.querySelector('audio')?.paused === false);
+        console.log('[PlaybackController] Audio element parent after re-attach:', continuingAudioElement?.parentElement?.className);
+      } else if (hasCompetingAutoplayAudio) {
+        console.log('[PlaybackController] Not re-attaching - competing audio will fade it out');
+        // Don't re-attach - AudioManager will fade it out
+      } else {
+        console.log('[PlaybackController] Not re-attaching - audio is on this slide (will be rendered)');
+        // Don't re-attach - the audio will be rendered as part of this slide
+      }
+    }
+
+    // Notify AudioManager of slide change
+    if (window.AudioManager) {
+      window.AudioManager.onSlideChange(slide);
     }
 
     appEvents.emit(AppEvents.SLIDE_SELECTED, index);
@@ -392,6 +483,13 @@ export class PlaybackController {
     // Clear and create end slide
     this.presentationView.innerHTML = '';
 
+    // Calculate scale to fit screen while maintaining aspect ratio
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const scaleX = viewportWidth / 1280;
+    const scaleY = viewportHeight / 720;
+    const scale = Math.min(scaleX, scaleY);
+
     const endSlide = document.createElement('div');
     endSlide.style.cssText = `
       width: 1280px;
@@ -400,7 +498,8 @@ export class PlaybackController {
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      transform: scale(${scale});
+      transform-origin: center;
     `;
 
     const text = document.createElement('div');
@@ -420,6 +519,11 @@ export class PlaybackController {
    */
   stop() {
     this.isPlaying = false;
+
+    // Stop all audio with smooth fade-out
+    if (window.AudioManager) {
+      window.AudioManager.stopAll(true);
+    }
 
     // Clean up active countdown timer
     this._stopCountdown();
@@ -563,23 +667,60 @@ export class PlaybackController {
 
     const div = document.createElement('div');
     div.className = 'playback-countdown';
-    div.style.left = `${element.position.x}px`;
-    div.style.top = `${element.position.y}px`;
-    div.style.width = `${element.position.width}px`;
-    div.style.height = `${element.position.height}px`;
-    div.style.transform = `rotate(${element.position.rotation}deg)`;
-    div.style.background = element.properties.background;
-    div.style.borderColor = element.properties.borderColor;
-    div.style.borderWidth = `${element.properties.borderWidth}px`;
-    div.style.borderStyle = 'solid';
-    div.style.borderRadius = `${element.properties.borderRadius}px`;
+
+    // Build background CSS with optional gradient animation
+    const bg = element.properties.background;
+    const bgIsGradient = bg && bg.includes('gradient(');
+    const bgAnimSpeed = element.properties.backgroundAnimationSpeed ?? 0;
+    const bgAnimType = element.properties.backgroundAnimationType || 'pingpong';
+    let bgAnimCSS = '';
+    if (bgIsGradient && bgAnimSpeed > 0) {
+      const kf = bgAnimType === 'cycle' ? 'wow3GradientCycleForward' : 'wow3GradientCycle';
+      const ea = bgAnimType === 'cycle' ? 'linear' : 'ease';
+      bgAnimCSS = `background-size: 200% 200%; animation: ${kf} ${11 - bgAnimSpeed}s ${ea} infinite;`;
+    }
+
+    div.style.cssText = `
+      position: absolute;
+      left: ${element.position.x}px;
+      top: ${element.position.y}px;
+      width: ${element.position.width}px;
+      height: ${element.position.height}px;
+      transform: rotate(${element.position.rotation}deg);
+      background: ${bg};
+      ${bgAnimCSS}
+      border-color: ${element.properties.borderColor};
+      border-width: ${element.properties.borderWidth}px;
+      border-style: solid;
+      border-radius: ${element.properties.borderRadius}px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+
+    // Build font color CSS (gradient text or solid)
+    const fontColor = element.properties.font.color;
+    const fontIsGradient = fontColor && fontColor.includes('gradient(');
+    const fontAnimSpeed = element.properties.font.colorAnimationSpeed ?? 0;
+    const fontAnimType = element.properties.font.colorAnimationType || 'pingpong';
+    let fontAnimCSS = '';
+    if (fontIsGradient && fontAnimSpeed > 0) {
+      const kf = fontAnimType === 'cycle' ? 'wow3GradientCycleForward' : 'wow3GradientCycle';
+      const ea = fontAnimType === 'cycle' ? 'linear' : 'ease';
+      fontAnimCSS = `background-size: 200% 200%; animation: ${kf} ${11 - fontAnimSpeed}s ${ea} infinite;`;
+    }
+    const colorCSS = fontIsGradient
+      ? `background: ${fontColor}; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; ${fontAnimCSS}`
+      : `color: ${fontColor};`;
 
     const display = document.createElement('div');
     display.className = 'timer-display';
-    display.style.fontFamily = element.properties.font.family;
-    display.style.fontSize = `${element.properties.font.size}px`;
-    display.style.color = element.properties.font.color;
-    display.style.fontWeight = element.properties.font.weight || 'normal';
+    display.style.cssText = `
+      font-family: ${element.properties.font.family};
+      font-size: ${element.properties.font.size}px;
+      ${colorCSS}
+      font-weight: ${element.properties.font.weight || 'normal'};
+    `;
     display.textContent = CountdownTimerElement.formatTime(remaining);
 
     div.appendChild(display);

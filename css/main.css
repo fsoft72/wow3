@@ -140,19 +140,23 @@ body {
 /* ==================== SIDEBARS ==================== */
 
 .sidebar {
+  position: fixed;
+  top: var(--toolbar-height);
+  bottom: var(--statusbar-height);
   width: var(--sidebar-width);
   background: var(--sidebar-bg);
   overflow-y: auto;
   overflow-x: hidden;
-  flex-shrink: 0;
-  min-height: 0; /* Allow flex child to shrink and scroll */
+  z-index: 100;
 }
 
 #left-sidebar {
+  left: 0;
   border-right: 1px solid var(--border-color);
 }
 
 #right-sidebar {
+  right: 0;
   border-left: 1px solid var(--border-color);
 }
 
@@ -199,7 +203,7 @@ body {
   display: none;
 }
 
-.tab-content:first-of-type {
+.tab-content.active {
   display: block;
 }
 
@@ -207,6 +211,8 @@ body {
 
 .canvas-area {
   flex: 1;
+  margin-left: var(--sidebar-width);
+  margin-right: var(--sidebar-width);
   background: var(--canvas-bg);
   position: relative;
   overflow: hidden;

@@ -24,45 +24,87 @@ export class TextPanel {
             <code class="placeholder-tag" data-placeholder="#NEXT_SLIDE#">#NEXT_SLIDE#</code>
           </div>
         </div>
+
+        <div class="section-title">Image Fill</div>
+        <div id="text-bg-image-selector"></div>
+
+        <div class="control-group" id="bg-direction-group" style="display:${props.backgroundImage?.url ? 'block' : 'none'}">
+          <label>Movement Direction</label>
+          <div class="direction-grid" id="bg-direction-grid">
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'up-left' ? 'active' : ''}" data-direction="up-left" title="Up-Left">
+              <i class="material-icons">north_west</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'up' ? 'active' : ''}" data-direction="up" title="Up">
+              <i class="material-icons">north</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'up-right' ? 'active' : ''}" data-direction="up-right" title="Up-Right">
+              <i class="material-icons">north_east</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'left' ? 'active' : ''}" data-direction="left" title="Left">
+              <i class="material-icons">west</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'none' ? 'active' : ''}" data-direction="none" title="None">
+              <i class="material-icons">fiber_manual_record</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'right' ? 'active' : ''}" data-direction="right" title="Right">
+              <i class="material-icons">east</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'down-left' ? 'active' : ''}" data-direction="down-left" title="Down-Left">
+              <i class="material-icons">south_west</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'down' ? 'active' : ''}" data-direction="down" title="Down">
+              <i class="material-icons">south</i>
+            </button>
+            <button class="icon-toggle-btn ${(props.backgroundImage?.direction || 'none') === 'down-right' ? 'active' : ''}" data-direction="down-right" title="Down-Right">
+              <i class="material-icons">south_east</i>
+            </button>
+          </div>
+        </div>
+
+        <div id="bg-speed-range" style="display:${props.backgroundImage?.url ? 'block' : 'none'}"></div>
       </div>
 
       <div class="panel-tab-content" data-tab-content="style">
         <div class="control-group">
           <label>Font Family</label>
-          <select id="font-family" class="panel-select">
-            ${PanelUtils.fontFamilyOptions(font.family)}
-          </select>
+          ${PanelUtils.renderFontFamilyPicker('font-family', font.family)}
         </div>
 
         ${PanelUtils.renderSlider('Font Size', 'font-size', font.size, 8, 144, 1, 'px')}
 
-        ${PanelUtils.renderColorPicker('Text Color', 'font-color', font.color)}
+        ${PanelUtils.renderGradientPicker('Text Color', 'font-color-gradient-selector', font.color)}
 
         <div class="control-group">
-          <label>Font Weight</label>
-          <select id="font-weight" class="panel-select">
-            <option value="300" ${font.weight === '300' ? 'selected' : ''}>Light</option>
-            <option value="normal" ${font.weight === 'normal' || font.weight === '400' ? 'selected' : ''}>Normal</option>
-            <option value="bold" ${font.weight === 'bold' || font.weight === '700' ? 'selected' : ''}>Bold</option>
-            <option value="900" ${font.weight === '900' ? 'selected' : ''}>Black</option>
-          </select>
-        </div>
-
-        <div class="control-group">
-          <label>Font Style</label>
-          <select id="font-style" class="panel-select">
-            <option value="normal" ${font.style === 'normal' ? 'selected' : ''}>Normal</option>
-            <option value="italic" ${font.style === 'italic' ? 'selected' : ''}>Italic</option>
-          </select>
-        </div>
-
-        <div class="control-group">
-          <label>Text Decoration</label>
-          <select id="font-decoration" class="panel-select">
-            <option value="none" ${font.decoration === 'none' ? 'selected' : ''}>None</option>
-            <option value="underline" ${font.decoration === 'underline' ? 'selected' : ''}>Underline</option>
-            <option value="line-through" ${font.decoration === 'line-through' ? 'selected' : ''}>Line Through</option>
-          </select>
+          <label>Text Style</label>
+          <div class="icon-toggle-row">
+            <div class="icon-toggle-group" id="font-weight">
+              <button class="icon-toggle-btn ${font.weight === '300' ? 'active' : ''}" data-value="300" title="Light">
+                <span class="weight-preview" style="font-weight:300">A</span>
+              </button>
+              <button class="icon-toggle-btn ${font.weight === 'normal' || font.weight === '400' || (!font.weight || font.weight === '') ? 'active' : ''}" data-value="normal" title="Normal">
+                <span class="weight-preview" style="font-weight:400">A</span>
+              </button>
+              <button class="icon-toggle-btn ${font.weight === 'bold' || font.weight === '700' ? 'active' : ''}" data-value="bold" title="Bold">
+                <span class="weight-preview" style="font-weight:700">A</span>
+              </button>
+              <button class="icon-toggle-btn ${font.weight === '900' ? 'active' : ''}" data-value="900" title="Black">
+                <span class="weight-preview" style="font-weight:900">A</span>
+              </button>
+            </div>
+            <div class="icon-toggle-group" id="font-style">
+              <button class="icon-toggle-btn ${font.style === 'italic' ? 'active' : ''}" data-value="italic" title="Italic">
+                <i class="material-icons">format_italic</i>
+              </button>
+            </div>
+            <div class="icon-toggle-group" id="font-decoration">
+              <button class="icon-toggle-btn ${font.decoration === 'underline' ? 'active' : ''}" data-value="underline" title="Underline">
+                <i class="material-icons">format_underlined</i>
+              </button>
+              <button class="icon-toggle-btn ${font.decoration === 'line-through' ? 'active' : ''}" data-value="line-through" title="Strikethrough">
+                <i class="material-icons">strikethrough_s</i>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="control-group">
@@ -165,45 +207,108 @@ export class TextPanel {
       });
     });
 
-    // Font family
-    const fontFamily = document.getElementById('font-family');
-    if (fontFamily) {
-      fontFamily.addEventListener('change', (e) => {
-        updateProperty('properties.font.family', e.target.value);
+    // ── Image Fill controls ──
+
+    /** Show/hide direction and speed controls based on image URL presence. */
+    const toggleBgControls = (hasUrl) => {
+      const dirGroup = document.getElementById('bg-direction-group');
+      const speedRange = document.getElementById('bg-speed-range');
+      if (dirGroup) dirGroup.style.display = hasUrl ? 'block' : 'none';
+      if (speedRange) speedRange.style.display = hasUrl ? 'block' : 'none';
+    };
+
+    // Image selector for background fill
+    new ImageSelector('text-bg-image-selector', {
+      label: 'Background Image',
+      accept: 'image/*',
+      mediaType: 'image',
+      placeholder: 'Enter URL or media ID',
+      value: element.properties.backgroundImage?.url || '',
+      onMediaChange: async (value) => {
+        if (value instanceof File) {
+          const item = await window.MediaDB.addMedia(value);
+          updateProperty('properties.backgroundImage.url', item.id);
+        } else {
+          updateProperty('properties.backgroundImage.url', value);
+        }
+        toggleBgControls(!!value);
+      }
+    });
+
+    // Direction grid (radio-style: one active at a time)
+    const dirGrid = document.getElementById('bg-direction-grid');
+    if (dirGrid) {
+      dirGrid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.icon-toggle-btn');
+        if (!btn) return;
+        dirGrid.querySelectorAll('.icon-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateProperty('properties.backgroundImage.direction', btn.dataset.direction);
       });
     }
+
+    // Speed slider
+    new RangeInput('bg-speed-range', {
+      label: 'Movement Speed',
+      value: element.properties.backgroundImage?.speed ?? 0,
+      min: 0,
+      max: 10,
+      step: 1,
+      onChange: (val) => {
+        updateProperty('properties.backgroundImage.speed', val);
+      }
+    });
+
+    // Font family
+    PanelUtils.bindFontFamilyPicker('font-family', (value) => {
+      updateProperty('properties.font.family', value);
+    });
 
     // Font size slider
     PanelUtils.bindSlider('font-size', (value) => {
       updateProperty('properties.font.size', parseInt(value));
     });
 
-    // Font color
-    PanelUtils.bindColorPicker('font-color', (value) => {
+    // Font color (gradient selector)
+    PanelUtils.bindGradientPicker('font-color-gradient-selector', element.properties.font.color, (value, animationSpeed, animationType) => {
       updateProperty('properties.font.color', value);
-    });
+      updateProperty('properties.font.colorAnimationSpeed', animationSpeed);
+      updateProperty('properties.font.colorAnimationType', animationType);
+    }, element.properties.font.colorAnimationSpeed, element.properties.font.colorAnimationType);
 
-    // Font weight
+    // Font weight (radio-style: one active at a time)
     const fontWeight = document.getElementById('font-weight');
     if (fontWeight) {
-      fontWeight.addEventListener('change', (e) => {
-        updateProperty('properties.font.weight', e.target.value);
+      fontWeight.addEventListener('click', (e) => {
+        const btn = e.target.closest('.icon-toggle-btn');
+        if (!btn) return;
+        fontWeight.querySelectorAll('.icon-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateProperty('properties.font.weight', btn.dataset.value);
       });
     }
 
-    // Font style
+    // Font style (toggle: click toggles italic on/off)
     const fontStyle = document.getElementById('font-style');
     if (fontStyle) {
-      fontStyle.addEventListener('change', (e) => {
-        updateProperty('properties.font.style', e.target.value);
+      fontStyle.addEventListener('click', (e) => {
+        const btn = e.target.closest('.icon-toggle-btn');
+        if (!btn) return;
+        const isActive = btn.classList.toggle('active');
+        updateProperty('properties.font.style', isActive ? btn.dataset.value : 'normal');
       });
     }
 
-    // Font decoration
+    // Font decoration (toggle: click toggles on/off, only one active)
     const fontDecoration = document.getElementById('font-decoration');
     if (fontDecoration) {
-      fontDecoration.addEventListener('change', (e) => {
-        updateProperty('properties.font.decoration', e.target.value);
+      fontDecoration.addEventListener('click', (e) => {
+        const btn = e.target.closest('.icon-toggle-btn');
+        if (!btn) return;
+        const wasActive = btn.classList.contains('active');
+        fontDecoration.querySelectorAll('.icon-toggle-btn').forEach(b => b.classList.remove('active'));
+        if (!wasActive) btn.classList.add('active');
+        updateProperty('properties.font.decoration', wasActive ? 'none' : btn.dataset.value);
       });
     }
 

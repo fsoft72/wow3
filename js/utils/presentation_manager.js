@@ -47,7 +47,6 @@ const PresentationManager = {
                     </div>
                 </div>
             </div>
-            <div id="pm-context-menu"></div>
         `;
         document.body.insertAdjacentHTML('beforeend', html);
     },
@@ -61,12 +60,6 @@ const PresentationManager = {
             this.refresh();
         };
 
-        // Context Menu handling
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('#pm-context-menu')) {
-                document.getElementById('pm-context-menu').style.display = 'none';
-            }
-        });
     },
 
     open: async function() {
@@ -209,24 +202,12 @@ const PresentationManager = {
     },
 
     showContextMenu: function(e, id) {
-        e.preventDefault();
-        const menu = document.getElementById('pm-context-menu');
-        menu.style.top = e.clientY + 'px';
-        menu.style.left = e.clientX + 'px';
-        menu.style.display = 'block';
-
-        menu.innerHTML = `
-            <div class="pm-context-item" onclick="PresentationManager.openPresentation('${id}')">
-                <i class="material-icons">play_arrow</i> Open
-            </div>
-            <div class="pm-context-item" onclick="PresentationManager.renamePresentation('${id}')">
-                <i class="material-icons">edit</i> Rename
-            </div>
-            <div class="pm-context-separator"></div>
-            <div class="pm-context-item" onclick="PresentationManager.deletePresentation('${id}')">
-                <i class="material-icons">delete</i> ${__('delete')}
-            </div>
-        `;
+        ContextMenu.show(e, [
+            { label: 'Open', icon: 'play_arrow', action: () => PresentationManager.openPresentation(id) },
+            { label: 'Rename', icon: 'edit', action: () => PresentationManager.renamePresentation(id) },
+            { divider: true },
+            { label: __('delete'), icon: 'delete', action: () => PresentationManager.deletePresentation(id) }
+        ]);
     },
 
     renamePresentation: async function(id) {

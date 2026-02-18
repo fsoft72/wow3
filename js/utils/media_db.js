@@ -141,13 +141,24 @@ const MediaDB = {
   /**
    * Compute SHA-256 hash of a File or Blob
    * @param {File|Blob} file - File or Blob to hash
-   * @returns {Promise<string>} Hex-encoded SHA-256 hash
+   * @returns {Promise<string>} Hex-encoded SHA-256 hash (or null if crypto.subtle unavailable)
    */
   async _computeHash(file) {
-    const buffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    // Check if crypto.subtle is available (requires HTTPS or localhost)
+    if (!crypto || !crypto.subtle) {
+      console.warn('⚠️ crypto.subtle not available (requires HTTPS or localhost). File deduplication disabled.');
+      return null;
+    }
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (error) {
+      console.error('Failed to compute file hash:', error);
+      return null;
+    }
   },
 
   /**
@@ -190,12 +201,14 @@ const MediaDB = {
   async addMedia(file, folderId = null, metadata = {}) {
     const db = await this.init();
 
-    // Compute content hash and check for duplicates
+    // Compute content hash and check for duplicates (if crypto.subtle is available)
     const hash = await this._computeHash(file);
-    const existing = await this.findByHash(hash);
-    if (existing) {
-      console.log('♻️ Media already exists, reusing:', existing.id);
-      return existing;
+    if (hash) {
+      const existing = await this.findByHash(hash);
+      if (existing) {
+        console.log('♻️ Media already exists, reusing:', existing.id);
+        return existing;
+      }
     }
 
     const id = 'media_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);

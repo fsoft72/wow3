@@ -69,7 +69,7 @@ export const DEFAULT_SIZE = {
 // Default values
 export const DEFAULTS = {
   FONT_FAMILY: 'Roboto',
-  FONT_SIZE: 16,
+  FONT_SIZE: 48,
   FONT_COLOR: '#000000',
   ANIMATION_DURATION: 600,
   BACKGROUND_COLOR: '#ffffff',
@@ -101,7 +101,8 @@ export const STORAGE_KEYS = {
   CURRENT_PRESENTATION: 'wow3_current_presentation',
   SNAPSHOT: 'wow3_snapshot',
   AUTO_SAVE: 'wow3_autosave',
-  PREFERENCES: 'wow3_preferences'
+  PREFERENCES: 'wow3_preferences',
+  GRADIENTS: 'wow3_gradients'
 };
 
 // Auto-save interval (milliseconds)

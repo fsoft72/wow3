@@ -1,0 +1,545 @@
+/**
+ * WOW3 Gradient Manager Styles
+ * Editor, selector dropdown, stop handles, and dialog overrides
+ */
+
+/* ==================== GRADIENT EDITOR ==================== */
+
+.gradient-editor {
+  padding: 8px 0;
+}
+
+/* ==================== GRADIENT CONTROLS (below selector) ==================== */
+
+.gradient-controls {
+  margin-top: 10px;
+}
+
+/* ==================== TYPE TOGGLE ==================== */
+
+.gradient-type-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.gradient-type-row label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 40px;
+}
+
+.gradient-type-toggle {
+  display: flex;
+  gap: 4px;
+  background: #f5f5f5;
+  padding: 3px;
+  border-radius: 4px;
+}
+
+.gradient-type-btn {
+  background: transparent;
+  border: none;
+  padding: 4px 14px;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.gradient-type-btn:hover {
+  color: #333;
+  background: #e0e0e0;
+}
+
+.gradient-type-btn.active {
+  background: #2196F3;
+  color: white;
+}
+
+/* ==================== ANGLE ROW ==================== */
+
+.gradient-angle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.gradient-angle-row label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 40px;
+}
+
+.gradient-angle-row .slider-row {
+  flex: 1;
+}
+
+/* ==================== GRADIENT BAR ==================== */
+
+.gradient-bar-wrapper {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.gradient-bar {
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  cursor: crosshair;
+}
+
+.gradient-stops {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+/* ==================== STOP HANDLES ==================== */
+
+.gradient-stop-handle {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ffffff;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  cursor: grab;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  transition: box-shadow 0.15s, transform 0.15s;
+  z-index: 1;
+}
+
+.gradient-stop-handle:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+.gradient-stop-handle.dragging {
+  cursor: grabbing;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%) scale(1.2);
+  z-index: 10;
+}
+
+.gradient-stop-handle.removing {
+  opacity: 0.4;
+  border-color: #ff4444;
+  box-shadow: 0 2px 6px rgba(255, 0, 0, 0.4);
+}
+
+.gradient-stop-color-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  pointer-events: none;
+}
+
+/* ==================== EDITOR HINT ==================== */
+
+.gradient-editor-hint {
+  font-size: 11px;
+  color: #999;
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* ==================== GRADIENT SELECTOR ==================== */
+
+.gradient-selector {
+  position: relative;
+}
+
+.gradient-selector-current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.gradient-selector-current:hover {
+  border-color: #2196F3;
+}
+
+.gradient-selector.open .gradient-selector-current {
+  border-color: #2196F3;
+}
+
+.gradient-selector-preview {
+  width: 32px;
+  height: 20px;
+  border-radius: 3px;
+  border: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.gradient-selector-label {
+  flex: 1;
+  font-size: 13px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gradient-selector-chevron {
+  font-size: 10px;
+  color: #999;
+  flex-shrink: 0;
+}
+
+/* ==================== SELECTOR DROPDOWN ==================== */
+
+.gradient-selector-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.gradient-selector.open .gradient-selector-dropdown {
+  display: block;
+}
+
+.gradient-selector-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.gradient-selector-item:hover {
+  background: #f5f5f5;
+}
+
+.gradient-selector-item-preview {
+  width: 40px;
+  height: 20px;
+  border-radius: 3px;
+  border: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.gradient-selector-item-label {
+  flex: 1;
+  font-size: 13px;
+  color: #333;
+}
+
+.gradient-selector-item-dup,
+.gradient-selector-item-edit,
+.gradient-selector-item-delete {
+  display: none;
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.gradient-selector-item-delete {
+  font-size: 16px;
+}
+
+.gradient-selector-item:hover .gradient-selector-item-dup,
+.gradient-selector-item:hover .gradient-selector-item-edit,
+.gradient-selector-item:hover .gradient-selector-item-delete {
+  display: block;
+}
+
+.gradient-selector-item-dup:hover,
+.gradient-selector-item-edit:hover {
+  color: #2196F3;
+}
+
+.gradient-selector-item-delete:hover {
+  color: #f44336;
+}
+
+/* Custom gradient option */
+.gradient-selector-custom {
+  border-top: 1px solid #f0f0f0;
+}
+
+.gradient-selector-custom .gradient-selector-item-label {
+  color: #2196F3;
+  font-weight: 500;
+}
+
+/* ==================== DIALOG OVERRIDE ==================== */
+
+.dialog-gradient-editor {
+  min-width: 480px;
+  max-width: 560px;
+}
+
+.gradient-dialog-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.gradient-dialog-name-row label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 40px;
+}
+
+.gradient-dialog-name {
+  flex: 1;
+}
+
+/* ==================== DARK MODE ==================== */
+
+/* Editor — type toggle */
+body.dark-mode .gradient-type-row label {
+  color: #ddd;
+}
+
+body.dark-mode .gradient-type-toggle {
+  background: #333;
+}
+
+body.dark-mode .gradient-type-btn {
+  color: #aaa;
+}
+
+body.dark-mode .gradient-type-btn:hover {
+  color: #ddd;
+  background: #444;
+}
+
+body.dark-mode .gradient-type-btn.active {
+  background: #1565c0;
+  color: #fff;
+}
+
+/* Editor — angle row */
+body.dark-mode .gradient-angle-row label {
+  color: #ddd;
+}
+
+body.dark-mode .gradient-bar {
+  border-color: #555;
+}
+
+body.dark-mode .gradient-stop-handle {
+  border-color: #1e1e1e;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+body.dark-mode .gradient-stop-handle:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+body.dark-mode .gradient-stop-handle.dragging {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.8);
+}
+
+body.dark-mode .gradient-editor-hint {
+  color: #777;
+}
+
+/* Selector */
+body.dark-mode .gradient-selector-current {
+  background: #333;
+  border-color: #555;
+}
+
+body.dark-mode .gradient-selector-current:hover {
+  border-color: #64b5f6;
+}
+
+body.dark-mode .gradient-selector.open .gradient-selector-current {
+  border-color: #64b5f6;
+}
+
+body.dark-mode .gradient-selector-preview {
+  border-color: #555;
+}
+
+body.dark-mode .gradient-selector-label {
+  color: #eee;
+}
+
+body.dark-mode .gradient-selector-chevron {
+  color: #aaa;
+}
+
+/* Dropdown */
+body.dark-mode .gradient-selector-dropdown {
+  background: #2a2a2a;
+  border-color: #444;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .gradient-selector-item:hover {
+  background: #3a3a3a;
+}
+
+body.dark-mode .gradient-selector-item-preview {
+  border-color: #555;
+}
+
+body.dark-mode .gradient-selector-item-label {
+  color: #ddd;
+}
+
+body.dark-mode .gradient-selector-item-dup,
+body.dark-mode .gradient-selector-item-edit,
+body.dark-mode .gradient-selector-item-delete {
+  color: #777;
+}
+
+body.dark-mode .gradient-selector-item-dup:hover,
+body.dark-mode .gradient-selector-item-edit:hover {
+  color: #64b5f6;
+}
+
+body.dark-mode .gradient-selector-item-delete:hover {
+  color: #ef5350;
+}
+
+body.dark-mode .gradient-selector-custom {
+  border-top-color: #444;
+}
+
+body.dark-mode .gradient-selector-custom .gradient-selector-item-label {
+  color: #64b5f6;
+}
+
+/* Dialog */
+body.dark-mode .gradient-dialog-name-row label {
+  color: #ddd;
+}
+
+body.dark-mode .gradient-dialog-name {
+  background: #333;
+  color: #eee;
+  border-color: #555;
+}
+
+body.dark-mode .gradient-dialog-name:focus {
+  border-color: #64b5f6;
+}
+
+/* ==================== SPEED ROW ==================== */
+
+.gradient-speed-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.gradient-speed-row label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 40px;
+}
+
+.gradient-speed-row .slider-row {
+  flex: 1;
+}
+
+body.dark-mode .gradient-speed-row label {
+  color: #ddd;
+}
+
+/* ==================== ANIMATION TYPE ROW ==================== */
+
+.gradient-animation-type-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.gradient-animation-type-row label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 40px;
+}
+
+.gradient-animation-type-row select {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+}
+
+body.dark-mode .gradient-animation-type-row label {
+  color: #ddd;
+}
+
+body.dark-mode .gradient-animation-type-row select {
+  background: #333;
+  color: #eee;
+  border-color: #555;
+}
+
+/* ==================== GRADIENT CYCLING ANIMATION ==================== */
+
+@keyframes wow3GradientCycle {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes wow3GradientCycleForward {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}

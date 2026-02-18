@@ -256,29 +256,6 @@
 }
 .tm-search-bar i { color: #666; }
 
-/* Context Menu */
-#tm-context-menu {
-    position: fixed;
-    background: #222;
-    border: 1px solid #444;
-    border-radius: 4px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-    z-index: 100000;
-    display: none;
-    min-width: 150px;
-}
-.tm-context-item {
-    padding: 10px 15px;
-    color: #eee;
-    cursor: pointer;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.tm-context-item:hover { background: #4CAF50; color: white; }
-.tm-context-item i { font-size: 16px; }
-.tm-context-separator { border-top: 1px solid #444; margin: 2px 0; }
 
 /* Slide preview container inside cards */
 .tm-slide-preview {

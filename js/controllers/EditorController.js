@@ -134,14 +134,19 @@ export class EditorController {
       addCountdownBtn.addEventListener('click', () => this.addElement('countdown_timer'));
     }
 
-    // Slide background color
-    const slideBackground = document.getElementById('slide-background');
-    if (slideBackground) {
-      slideBackground.addEventListener('change', (e) => {
-        const activeSlide = this.getActiveSlide();
-        activeSlide.setBackground(e.target.value);
-        this.recordHistory();
-        this.render();
+    // Slide background gradient selector
+    if ( window.GradientManager && window.GradientSelector ) {
+      GradientManager.init();
+      this._bgSelector = new GradientSelector('slide-background-gradient-selector', {
+        value: '#ffffff',
+        animationSpeed: 0,
+        animationType: 'pingpong',
+        onChange: (cssValue, animationSpeed, animationType) => {
+          const activeSlide = this.getActiveSlide();
+          activeSlide.setBackground(cssValue, animationSpeed, animationType);
+          this.recordHistory();
+          this.render();
+        }
       });
     }
 
@@ -456,9 +461,8 @@ export class EditorController {
       slideTitle.value = activeSlide.title;
     }
 
-    const slideBackground = document.getElementById('slide-background');
-    if (slideBackground) {
-      slideBackground.value = activeSlide.background;
+    if ( this._bgSelector ) {
+      this._bgSelector.update(activeSlide.background, activeSlide.backgroundAnimationSpeed, activeSlide.backgroundAnimationType);
     }
 
     // Shell dropdown — populate with available shells

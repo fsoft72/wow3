@@ -61,7 +61,9 @@ export class Element {
           enabled: properties.properties?.font?.stroke?.enabled || false,
           color: properties.properties?.font?.stroke?.color || '#000000',
           width: properties.properties?.font?.stroke?.width ?? 1
-        }
+        },
+        colorAnimationSpeed: properties.properties?.font?.colorAnimationSpeed ?? 0,
+        colorAnimationType: properties.properties?.font?.colorAnimationType || 'pingpong'
       },
       ...restProps
     };
@@ -69,6 +71,9 @@ export class Element {
     // Animation effects
     this.inEffect = properties.inEffect || null;
     this.outEffect = properties.outEffect || null;
+
+    // Editor visibility
+    this.hiddenInEditor = properties.hiddenInEditor || false;
 
     // Children elements (max 1 level deep)
     this.children = [];
@@ -98,6 +103,7 @@ export class Element {
       properties: JSON.parse(JSON.stringify(this.properties)),
       inEffect: this.inEffect ? { ...this.inEffect } : null,
       outEffect: this.outEffect ? { ...this.outEffect } : null,
+      hiddenInEditor: this.hiddenInEditor,
       children: this.children.map(child => child.toJSON())
     };
   }

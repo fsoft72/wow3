@@ -525,6 +525,19 @@ body.dark-mode .panel-element-item:hover {
   border-color: #2196f3;
 }
 
+body.dark-mode .element-drag-handle {
+  color: #666 !important;
+}
+
+body.dark-mode .element-drag-handle:hover {
+  color: #aaa !important;
+}
+
+body.dark-mode .element-drag-ghost {
+  background: #1a3a5c !important;
+  border-color: #2196f3 !important;
+}
+
 body.dark-mode .build-order-card {
   background: #333;
   border-color: #555;

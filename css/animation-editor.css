@@ -347,6 +347,80 @@
   flex-shrink: 0;
 }
 
+/* Eye icon visibility toggle button */
+.element-visibility-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.element-visibility-toggle:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.element-visibility-toggle i {
+  font-size: 18px;
+  color: #757575;
+}
+
+.element-visibility-toggle:hover i {
+  color: #1565c0;
+}
+
+/* Update panel-element-item to accommodate eye icon */
+.panel-element-item {
+  padding-right: 4px; /* Make room for eye icon */
+}
+
+/* Drag handle for reordering elements */
+.element-drag-handle {
+  cursor: grab;
+  color: #bdbdbd !important;
+  font-size: 16px !important;
+  flex-shrink: 0;
+  margin-right: -4px;
+  transition: color 0.15s;
+}
+
+.element-drag-handle:hover {
+  color: #757575 !important;
+}
+
+.element-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Drag states for element reorder */
+.panel-element-item.dragging {
+  opacity: 0.3;
+}
+
+.panel-element-item.drag-over-above {
+  border-top: 2px solid #1565c0;
+  margin-top: -1px;
+}
+
+.panel-element-item.drag-over-below {
+  border-bottom: 2px solid #1565c0;
+  margin-bottom: -1px;
+}
+
+/* Ghost element that follows cursor during drag */
+.element-drag-ghost {
+  opacity: 0.85;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-color: #1565c0 !important;
+  background: #e3f2fd !important;
+}
+
 /* ==================== BUILD ORDER LIST ==================== */
 
 #build-order-list {

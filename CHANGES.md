@@ -1,6 +1,174 @@
 # WOW3 Development Changelog
 
+## 2026-02-18
+
+### Fix: Audio "Continue on Slides" stops on next slide transition
+
+Fixed a bug where audio with "Continue on Slides" enabled would stop playing
+when navigating to the next slide. The root cause was that DOM detach/reattach
+during slide transitions could fire spurious browser `pause` events on the
+`<audio>` element, which cleared `_continuingAudioId` in AudioManager. On the
+next slide transition, the audio was no longer recognized as "continuing" and
+got destroyed with the old slide DOM.
+
+Added a transition guard (`beginTransition`/`endTransition`) to AudioManager
+that suppresses the pause handler during slide changes, and restores the
+continuing audio ID after re-attachment.
+
+**Updated Files:**
+- `js/managers/AudioManager.js`: Added `_isTransitioning` flag, `beginTransition()`,
+  `endTransition()` methods; pause handler now skips clearing during transitions
+- `js/controllers/PlaybackController.js`: Calls `beginTransition()` before DOM
+  detach and `endTransition()` after re-attachment in `showSlide()`
+
+## 2026-02-18 (earlier)
+
+### Fix: Auto-select first item when switching Slides/Shells tabs
+
+When switching between the "Slides" and "Shells" sidebar tabs, the first slide or
+first shell is now automatically selected.
+
+**Updated Files:**
+- `js/controllers/SlideController.js`: Added auto-selection logic in tab switch handler
+
+### Feature: Text image background fill with movement animation
+
+Added ability for text elements to use an image as their fill (CSS `background-clip: text`
+effect). The image is visible through the letter shapes. Includes directional movement
+animation with 8 directions and speed controls.
+
+Also extracted the duplicated Image Source + Upload pattern into a reusable `ImageSelector`
+component, and refactored ImagePanel, VideoPanel, and AudioPanel to use it.
+
+**New Files:**
+- `js/components/image_selector.js`: Reusable media source selector component
+
+**Updated Files:**
+- `js/models/TextElement.js`: Added `backgroundImage` properties (url, direction, speed) and
+  render logic with `background-clip: text` and movement animation
+- `js/panels/TextPanel.js`: Added image selector, 3x3 direction grid, and speed slider to
+  Content tab
+- `js/panels/ImagePanel.js`: Refactored to use ImageSelector component
+- `js/panels/VideoPanel.js`: Refactored to use ImageSelector component
+- `js/panels/AudioPanel.js`: Refactored to use ImageSelector component
+- `js/utils/storage.js`: Updated `collectMediaIds` and `rewriteMediaUrls` to handle
+  `backgroundImage.url` for export/import
+- `css/editor.css`: Added 8 `@keyframes` for background movement directions
+- `css/panels.css`: Added `.direction-grid` styles
+- `index.html`: Registered `image_selector.js` script
+
+### Fix: Gradient rendering and animation for CountdownTimer element
+
+CountdownTimer now properly renders gradient colors and animations for both
+font color and background, matching the behavior of TextElement and Slide backgrounds.
+
+- **Font color**: Gradients use `background-clip: text` technique with animation support
+- **Background**: Gradients animate with configurable speed and type (ping pong / cycle)
+- **Playback**: Fixed `_renderCountdownDOM` in PlaybackController to match
+
+**Updated Files:**
+- `js/models/CountdownTimerElement.js`: Added `backgroundAnimationSpeed`/`backgroundAnimationType`
+  properties, rewrote `render()` with gradient detection and animation CSS
+- `js/controllers/PlaybackController.js`: Updated `_renderCountdownDOM()` with same gradient logic
+- `js/panels/CountdownTimerPanel.js`: Pass animation speed/type through gradient selector callbacks
+
+### Feature: Gradient selectors for CountdownTimer color properties
+
+Replaced the 3 basic `<input type="color">` pickers (Font Color, Background, Border Color)
+in the Countdown Timer panel with full gradient selectors, matching the rest of the app.
+
+**Updated Files:**
+- `js/panels/CountdownTimerPanel.js`: Replaced color inputs with `PanelUtils.renderGradientPicker` / `bindGradientPicker`
+
+### Fix: Switch right sidebar to Slide tab when clicking outside elements
+
+Clicking on the canvas outside any element now switches the right sidebar back to the
+Slide tab instead of staying on the empty Element tab.
+
+**Updated Files:**
+- `js/views/RightSidebar.js`: Added `switchToSlideTab()`, called from `clearProperties()`
+
+### Feature: Replace text style dropdowns with toggle buttons
+
+Replaced the Font Weight, Font Style, and Text Decoration `<select>` dropdowns with
+compact icon toggle buttons grouped in a single "Text Style" row:
+- **Weight**: 4 buttons showing "A" at each weight (Light/Normal/Bold/Black)
+- **Style**: Italic toggle (on/off)
+- **Decoration**: Underline and Strikethrough toggles (mutually exclusive, click again to clear)
+
+**Updated Files:**
+- `js/panels/TextPanel.js`: Replaced dropdowns with `icon-toggle-group` buttons, updated event bindings
+- `css/panels.css`: Added `.icon-toggle-row` and `.weight-preview` styles
+
+### Feature: Font family picker with font previews
+
+Replaced native `<select>` dropdowns for font family with a custom dropdown where each option is rendered in its actual font, giving a live preview of each typeface.
+
+Also loaded all web fonts (Open Sans, Lato, Montserrat) from Google Fonts — previously only Roboto was loaded.
+
+**Updated Files:**
+- `index.html`: Extended Google Fonts import to include Open Sans, Lato, Montserrat
+- `js/utils/panel_utils.js`: Added `FONT_LIST`, `renderFontFamilyPicker()`, `bindFontFamilyPicker()`
+- `js/panels/TextPanel.js`: Uses new font picker
+- `js/panels/CountdownTimerPanel.js`: Uses new font picker, removed unused `FONT_FAMILIES` import
+- `js/views/RightSidebar.js`: Uses new font picker, removed unused `FONT_FAMILIES` import
+- `css/panels.css`: Added `.font-picker-*` styles
+
+### Fix: Load Roboto font from Google Fonts
+
+The default font family (Roboto) was referenced in CSS but never loaded — the browser was falling back to a system font. Added the Google Fonts import for Roboto with all weights/styles.
+
+**Updated Files:**
+- `index.html`: Added `<link>` for Roboto from Google Fonts CDN
+
+### Change: Increase default text element font size from 16 to 48
+
+New text elements now start at 48px instead of 16px for better visibility on slides.
+
+**Updated Files:**
+- `js/utils/constants.js`: Changed `DEFAULTS.FONT_SIZE` from 16 to 48
+
 ## 2026-02-17
+
+### Feature: Gradient animation type selector (Ping Pong / Cycle)
+
+Added a select control in the Gradient Selector to choose between two animation modes:
+- **Ping Pong** (default): Gradient oscillates back and forth (`ease` timing)
+- **Cycle**: Gradient moves continuously in one direction (`linear` timing)
+
+The selector appears below the Speed slider when animation speed > 0.
+
+**Updated Files:**
+- `css/gradient-manager.css`: Added `.gradient-animation-type-row` styles (light + dark mode), added `@keyframes wow3GradientCycleForward` for cycle mode
+- `js/models/Slide.js`: Added `backgroundAnimationType` property, updated `setBackground()` and `toJSON()`
+- `js/models/Element.js`: Added `colorAnimationType` to font properties
+- `js/models/TextElement.js`: Uses correct keyframe and easing based on `colorAnimationType`
+- `js/utils/gradient_manager.js`: `buildAnimationCSS()` now accepts `animationType` parameter
+- `js/components/gradient_selector.js`: Added animation type `<select>`, propagated via `onChange(value, speed, type)` and `update(value, speed, type)`
+- `js/controllers/EditorController.js`: Passes `animationType` to/from `GradientSelector` and `setBackground()`
+- `js/controllers/SlideController.js`: Uses `backgroundAnimationType` for canvas animation
+- `js/controllers/PlaybackController.js`: Uses `backgroundAnimationType` for playback animation
+- `js/panels/TextPanel.js`: Passes `colorAnimationType` through gradient picker
+- `js/utils/panel_utils.js`: `bindGradientPicker()` accepts `animationType` parameter
+
+### Refactor: Unified ContextMenu component
+
+Extracted a single reusable `ContextMenu` component to replace 6 separate context menu implementations across the codebase. All menus now use the same positioning, dismiss, and rendering logic with dark (default) and light theme variants.
+
+**New Files:**
+- `js/components/context_menu.js`: `ContextMenu` class with static `show(event, items, options)` and `hide()` methods; singleton DOM element, viewport clamping, click-outside and Escape dismiss
+
+**Updated Files:**
+- `css/editor.css`: Replaced `.context-menu` / `.context-menu-item` / `.context-menu-divider` styles with `#ctx-menu` / `.ctx-menu-item` / `.ctx-menu-divider` (dark default + `.ctx-menu--light` modifier)
+- `css/media-manager.css`: Removed `#mm-context-menu`, `.mm-context-item`, `.mm-context-separator` rules
+- `css/presentation-manager.css`: Removed `#pm-context-menu`, `.pm-context-item`, `.pm-context-separator` rules
+- `css/template-manager.css`: Removed `#tm-context-menu`, `.tm-context-item`, `.tm-context-separator` rules
+- `js/controllers/SlideController.js`: Replaced `showSlideContextMenu()` body with `ContextMenu.show(e, items, { theme: 'light' })`
+- `js/controllers/ElementController.js`: Replaced `showElementContextMenu()` body with `ContextMenu.show(e, items, { theme: 'light' })`
+- `js/utils/media_manager.js`: Replaced `showItemContextMenu()` / `showFolderContextMenu()` with `ContextMenu.show()`; removed static `#mm-context-menu` div and global click listener
+- `js/utils/presentation_manager.js`: Replaced `showContextMenu()` with `ContextMenu.show()`; removed `#pm-context-menu` div and global click listener
+- `js/utils/template_manager.js`: Replaced `showContextMenu()` with `ContextMenu.show()`; removed `#tm-context-menu` div and global click listener
+- `index.html`: Added `<script src="js/components/context_menu.js">` before consumer scripts
 
 ### Feature: Auto-create album on .wow3 import
 

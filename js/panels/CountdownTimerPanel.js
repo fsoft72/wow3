@@ -3,8 +3,6 @@
  * Provides Content (duration, sound, clear) and Style (font, background, border) tabs.
  */
 
-import { FONT_FAMILIES } from '../utils/constants.js';
-
 export class CountdownTimerPanel {
   /**
    * Render the panel HTML for the given countdown timer element
@@ -16,10 +14,6 @@ export class CountdownTimerPanel {
     const minutes = Math.floor(props.duration / 60);
     const seconds = props.duration % 60;
     const isClear = props.clear;
-
-    const fontFamilyOptions = FONT_FAMILIES
-      .map(f => `<option value="${f}" ${f === props.font.family ? 'selected' : ''}>${f}</option>`)
-      .join('');
 
     return `
       <div class="panel-tabs">
@@ -62,10 +56,8 @@ export class CountdownTimerPanel {
 
       <div class="panel-tab-content" data-tab-content="style">
         <div class="control-group">
-          <div class="input-field">
-            <select id="ct-font-family">${fontFamilyOptions}</select>
-            <label class="active">Font Family</label>
-          </div>
+          <label>Font Family</label>
+          ${PanelUtils.renderFontFamilyPicker('ct-font-family', props.font.family)}
         </div>
 
         <div class="control-group">
@@ -73,26 +65,11 @@ export class CountdownTimerPanel {
           <input type="range" id="ct-font-size" min="8" max="200" value="${props.font.size}">
         </div>
 
-        <div class="control-group">
-          <div class="input-field">
-            <input type="color" id="ct-font-color" value="${props.font.color}">
-            <label for="ct-font-color" class="active">Font Color</label>
-          </div>
-        </div>
+        ${PanelUtils.renderGradientPicker('Font Color', 'ct-font-color-gs', props.font.color)}
 
-        <div class="control-group">
-          <div class="input-field">
-            <input type="color" id="ct-background" value="${props.background}">
-            <label for="ct-background" class="active">Background Color</label>
-          </div>
-        </div>
+        ${PanelUtils.renderGradientPicker('Background', 'ct-background-gs', props.background)}
 
-        <div class="control-group">
-          <div class="input-field">
-            <input type="color" id="ct-border-color" value="${props.borderColor}">
-            <label for="ct-border-color" class="active">Border Color</label>
-          </div>
-        </div>
+        ${PanelUtils.renderColorPicker('Border Color', 'ct-border-color', props.borderColor)}
 
         <div class="control-group">
           <label for="ct-border-width" class="active">Border Width: <span id="ct-border-width-val">${props.borderWidth}</span></label>
@@ -185,10 +162,9 @@ export class CountdownTimerPanel {
     }
 
     // --- Style: Font family (global) ---
-    const ctFontFamily = document.getElementById('ct-font-family');
-    if (ctFontFamily) {
-      ctFontFamily.addEventListener('change', (e) => updateStyleProperty('properties.font.family', e.target.value));
-    }
+    PanelUtils.bindFontFamilyPicker('ct-font-family', (value) => {
+      updateStyleProperty('properties.font.family', value);
+    });
 
     // --- Style: Font size slider (global) ---
     const ctFontSize = document.getElementById('ct-font-size');
@@ -200,23 +176,24 @@ export class CountdownTimerPanel {
       });
     }
 
-    // --- Style: Font color (global) ---
-    const ctFontColor = document.getElementById('ct-font-color');
-    if (ctFontColor) {
-      ctFontColor.addEventListener('change', (e) => updateStyleProperty('properties.font.color', e.target.value));
-    }
+    // --- Style: Font color gradient selector (global) ---
+    PanelUtils.bindGradientPicker('ct-font-color-gs', element.properties.font.color, (value, animationSpeed, animationType) => {
+      updateStyleProperty('properties.font.color', value);
+      updateStyleProperty('properties.font.colorAnimationSpeed', animationSpeed);
+      updateStyleProperty('properties.font.colorAnimationType', animationType);
+    }, element.properties.font.colorAnimationSpeed, element.properties.font.colorAnimationType);
 
-    // --- Style: Background (global) ---
-    const ctBackground = document.getElementById('ct-background');
-    if (ctBackground) {
-      ctBackground.addEventListener('change', (e) => updateStyleProperty('properties.background', e.target.value));
-    }
+    // --- Style: Background gradient selector (global) ---
+    PanelUtils.bindGradientPicker('ct-background-gs', element.properties.background, (value, animationSpeed, animationType) => {
+      updateStyleProperty('properties.background', value);
+      updateStyleProperty('properties.backgroundAnimationSpeed', animationSpeed);
+      updateStyleProperty('properties.backgroundAnimationType', animationType);
+    }, element.properties.backgroundAnimationSpeed, element.properties.backgroundAnimationType);
 
     // --- Style: Border color (global) ---
-    const ctBorderColor = document.getElementById('ct-border-color');
-    if (ctBorderColor) {
-      ctBorderColor.addEventListener('change', (e) => updateStyleProperty('properties.borderColor', e.target.value));
-    }
+    PanelUtils.bindColorPicker('ct-border-color', (value) => {
+      updateStyleProperty('properties.borderColor', value);
+    });
 
     // --- Style: Border width slider (global) ---
     const ctBorderWidth = document.getElementById('ct-border-width');

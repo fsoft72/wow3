@@ -150,6 +150,12 @@ export class ElementController {
    */
   deleteElement(elementId) {
     const currentSlide = this.editor.getActiveSlide();
+
+    // Unregister from AudioManager if it's an audio element
+    if (window.AudioManager) {
+      window.AudioManager.unregister(elementId);
+    }
+
     const success = currentSlide.removeElement(elementId);
 
     if (success) {
@@ -178,6 +184,11 @@ export class ElementController {
     const ids = this.selectedElements.map((el) => el.id);
 
     ids.forEach((id) => {
+      // Unregister from AudioManager if it's an audio element
+      if (window.AudioManager) {
+        window.AudioManager.unregister(id);
+      }
+
       currentSlide.removeElement(id);
       appEvents.emit(AppEvents.ELEMENT_REMOVED, id);
     });
@@ -302,6 +313,39 @@ export class ElementController {
   }
 
   /**
+   * Toggle element visibility in editor (does not affect playback)
+   * @param {string} elementId - Element ID to toggle
+   */
+  toggleElementVisibility(elementId) {
+    const slide = this.editor.getActiveSlide();
+    if (!slide) return;
+
+    const element = slide.getElement(elementId);
+    if (!element) return;
+
+    // Toggle visibility
+    element.hiddenInEditor = !element.hiddenInEditor;
+
+    // If element is currently selected and being hidden, deselect it
+    if (element.hiddenInEditor && this._selectedElements.has(element)) {
+      this.deselectElement(element);
+    }
+
+    // Record history for undo/redo
+    this.editor.recordHistory();
+
+    // Re-render canvas to show/hide element
+    this.editor.slideController.renderCurrentSlide();
+
+    // Re-render elements list to update eye icon
+    if (this.editor.animationEditorController) {
+      this.editor.animationEditorController._renderElementsList();
+    }
+
+    toast.info(element.hiddenInEditor ? 'Element hidden in editor' : 'Element visible in editor');
+  }
+
+  /**
    * Enter crop mode for the given element
    * @param {Element} element - Element to crop
    */
@@ -331,6 +375,40 @@ export class ElementController {
     if (this.cropHandler) {
       this.cropHandler.exitCropMode();
     }
+  }
+
+  /**
+   * Show context menu for an element
+   * @param {MouseEvent} e - Mouse event
+   * @param {Element} element - Element to show menu for
+   */
+  showElementContextMenu(e, element) {
+    ContextMenu.show(e, [
+      {
+        label: 'Duplicate',
+        icon: 'content_copy',
+        action: () => {
+          this.selectElement(element);
+          this.duplicateSelectedElements();
+        }
+      },
+      {
+        label: element.hiddenInEditor ? 'Show' : 'Hide',
+        icon: element.hiddenInEditor ? 'visibility' : 'visibility_off',
+        action: () => {
+          this.toggleElementVisibility(element.id);
+        }
+      },
+      { divider: true },
+      {
+        label: 'Delete',
+        icon: 'delete',
+        action: () => {
+          this.selectElement(element);
+          this.deleteSelectedElements();
+        }
+      }
+    ], { theme: 'light' });
   }
 
   /**
@@ -399,6 +477,9 @@ export class ElementController {
     elementDOM.addEventListener('click', (e) => {
       e.stopPropagation();
 
+      // Skip hidden elements
+      if (element.hiddenInEditor) return;
+
       // Don't re-select while in crop mode (would exit crop via deselectAll)
       if (this._cropMode) return;
 
@@ -413,6 +494,14 @@ export class ElementController {
       } else {
         this.selectElement(element);
       }
+    });
+
+    // Right-click to show context menu
+    elementDOM.addEventListener('contextmenu', (e) => {
+      // Skip hidden elements
+      if (element.hiddenInEditor) return;
+
+      this.showElementContextMenu(e, element);
     });
 
     // Double-click to edit text

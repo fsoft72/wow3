@@ -54,6 +54,15 @@ export class AnimationEditorController {
       }
     });
 
+    // Listen for audio playback state changes to update UI
+    if (window.AudioManager) {
+      window.AudioManager.on('playStateChanged', () => {
+        if (this._activeTab === 'elements') {
+          this._renderElementsList();
+        }
+      });
+    }
+
     console.log('AnimationEditorController initialized');
   }
 
@@ -215,6 +224,37 @@ export class AnimationEditorController {
     slide.reorderAnimation(fromIndex, toIndex);
     this.editor.recordHistory();
     this._renderBuildOrder();
+  }
+
+  /**
+   * Handle reorder of element z-index via drag-and-drop
+   * @param {number} fromIndex - Source index in slide.elements
+   * @param {number} toIndex - Destination index in slide.elements
+   */
+  handleElementReorder(fromIndex, toIndex) {
+    const slide = this.editor.getActiveSlide();
+    if (!slide) return;
+
+    const element = slide.elements[fromIndex];
+    if (!element) return;
+
+    slide.reorderElement(element.id, toIndex);
+    this.editor.recordHistory();
+
+    // Re-render canvas with new z-order
+    if (this.editor.slideController) {
+      this.editor.slideController.renderCurrentSlide();
+    }
+
+    // Re-render elements list
+    this._renderElementsList();
+
+    // Re-select the element if it was selected
+    if (this._currentElement && this._currentElement.id === element.id) {
+      if (this.editor.elementController) {
+        this.editor.elementController.selectElement(element);
+      }
+    }
   }
 
   // ==================== PRIVATE ====================
@@ -454,15 +494,32 @@ export class AnimationEditorController {
 
     const selectedId = this._currentElement ? this._currentElement.id : null;
 
-    container.innerHTML = slide.elements.map((el) => {
+    // Check if we're in presentation mode
+    const isPresentation = document.getElementById('presentation-view')?.classList.contains('active');
+
+    container.innerHTML = slide.elements.map((el, idx) => {
       const icon = ELEMENT_ICONS[el.type] || 'widgets';
       const name = this._getElementLabel(el);
       const isSelected = el.id === selectedId;
 
-      return `<div class="panel-element-item ${isSelected ? 'selected' : ''}" data-element-id="${el.id}">
+      // Add audio control button if element is audio and has a URL
+      const hasAudioControl = el.type === 'audio' && el.properties?.url && !isPresentation;
+      const isPlaying = hasAudioControl && window.AudioManager && window.AudioManager.isPlaying(el.id);
+      const audioControlBtn = hasAudioControl
+        ? `<button class="audio-control-btn" data-element-id="${el.id}" title="${isPlaying ? 'Pause' : 'Play'} audio">
+             <i class="material-icons">${isPlaying ? 'pause' : 'play_arrow'}</i>
+           </button>`
+        : '';
+
+      return `<div class="panel-element-item ${isSelected ? 'selected' : ''}" data-element-id="${el.id}" data-element-index="${idx}">
+        <i class="material-icons element-drag-handle" title="Drag to reorder">drag_indicator</i>
         <i class="material-icons">${icon}</i>
         <span class="panel-element-name">${name}</span>
         <span class="panel-element-type">${el.type}</span>
+        ${audioControlBtn}
+        <button class="element-visibility-toggle" data-element-id="${el.id}" title="${el.hiddenInEditor ? 'Show' : 'Hide'} in editor">
+          <i class="material-icons">${el.hiddenInEditor ? 'visibility_off' : 'visibility'}</i>
+        </button>
       </div>`;
     }).join('');
 
@@ -478,6 +535,44 @@ export class AnimationEditorController {
         }
       });
     });
+
+    // Bind audio controls
+    container.querySelectorAll('.audio-control-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Don't trigger element selection
+        const elementId = btn.dataset.elementId;
+        if (window.AudioManager) {
+          window.AudioManager.toggle(elementId);
+          // Refresh UI to update button icon
+          this._renderElementsList();
+        }
+      });
+    });
+
+    // Bind visibility toggle
+    container.querySelectorAll('.element-visibility-toggle').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Don't trigger element selection
+        const elementId = btn.dataset.elementId;
+        if (this.editor.elementController) {
+          this.editor.elementController.toggleElementVisibility(elementId);
+        }
+      });
+    });
+
+    // Bind context menu
+    container.querySelectorAll('.panel-element-item').forEach((item) => {
+      item.addEventListener('contextmenu', (e) => {
+        const elementId = item.dataset.elementId;
+        const element = slide.elements.find((el) => el.id === elementId);
+        if (element && this.editor.elementController) {
+          this.editor.elementController.showElementContextMenu(e, element);
+        }
+      });
+    });
+
+    // Setup drag-to-reorder on element items
+    this._setupElementDragReorder(container);
   }
 
   /**
@@ -582,8 +677,9 @@ export class AnimationEditorController {
         </div>
         <div class="build-order-controls">
           <select class="build-order-trigger browser-default" data-anim-id="${anim.id}">
-            <option value="${ANIMATION_TRIGGER.AFTER_PREVIOUS}" ${anim.trigger !== ANIMATION_TRIGGER.ON_CLICK ? 'selected' : ''}>Auto</option>
+            <option value="${ANIMATION_TRIGGER.AFTER_PREVIOUS}" ${anim.trigger === ANIMATION_TRIGGER.AFTER_PREVIOUS ? 'selected' : ''}>Auto</option>
             <option value="${ANIMATION_TRIGGER.ON_CLICK}" ${anim.trigger === ANIMATION_TRIGGER.ON_CLICK ? 'selected' : ''}>On Click</option>
+            <option value="${ANIMATION_TRIGGER.WITH_PREVIOUS}" ${anim.trigger === ANIMATION_TRIGGER.WITH_PREVIOUS ? 'selected' : ''}>Chain</option>
           </select>
           <input type="number" class="build-order-duration browser-default"
                  data-anim-id="${anim.id}" value="${anim.duration}"
@@ -656,6 +752,101 @@ export class AnimationEditorController {
       card.addEventListener('dragend', () => {
         card.classList.remove('dragging');
         list.querySelectorAll('.drag-over').forEach((c) => c.classList.remove('drag-over'));
+      });
+    });
+  }
+
+  /**
+   * Setup pointer-based vertical-only drag reorder on element items.
+   * Drag is initiated by the .element-drag-handle grip icon.
+   * @param {HTMLElement} container - The #panel-elements-list container
+   * @private
+   */
+  _setupElementDragReorder(container) {
+    const items = container.querySelectorAll('.panel-element-item');
+    if (items.length < 2) return;
+
+    items.forEach((item) => {
+      const handle = item.querySelector('.element-drag-handle');
+      if (!handle) return;
+
+      handle.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const srcIndex = parseInt(item.dataset.elementIndex);
+        const itemRect = item.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const startY = e.clientY;
+        const itemHeight = itemRect.height + 4; // include margin-bottom
+
+        // Create a visual clone that follows the cursor vertically
+        const ghost = item.cloneNode(true);
+        ghost.classList.add('element-drag-ghost');
+        ghost.style.position = 'fixed';
+        ghost.style.left = `${itemRect.left}px`;
+        ghost.style.top = `${itemRect.top}px`;
+        ghost.style.width = `${itemRect.width}px`;
+        ghost.style.zIndex = '100000';
+        ghost.style.pointerEvents = 'none';
+        document.body.appendChild(ghost);
+
+        // Mark source item as being dragged
+        item.classList.add('dragging');
+
+        // Build a list of midpoints for drop position calculation
+        const allItems = [...container.querySelectorAll('.panel-element-item')];
+        const midpoints = allItems.map((el) => {
+          const r = el.getBoundingClientRect();
+          return r.top + r.height / 2;
+        });
+
+        let currentDropIndex = srcIndex;
+
+        const onPointerMove = (ev) => {
+          const dy = ev.clientY - startY;
+          ghost.style.top = `${itemRect.top + dy}px`;
+
+          // Determine drop target based on cursor Y
+          let newIndex = allItems.length - 1;
+          for (let i = 0; i < midpoints.length; i++) {
+            if (ev.clientY < midpoints[i]) {
+              newIndex = i;
+              break;
+            }
+          }
+
+          // Update visual indicators
+          if (newIndex !== currentDropIndex) {
+            allItems.forEach((el) => el.classList.remove('drag-over-above', 'drag-over-below'));
+            if (newIndex !== srcIndex) {
+              if (newIndex < srcIndex) {
+                allItems[newIndex]?.classList.add('drag-over-above');
+              } else {
+                allItems[newIndex]?.classList.add('drag-over-below');
+              }
+            }
+            currentDropIndex = newIndex;
+          }
+        };
+
+        const onPointerUp = () => {
+          document.removeEventListener('pointermove', onPointerMove);
+          document.removeEventListener('pointerup', onPointerUp);
+
+          // Cleanup
+          ghost.remove();
+          item.classList.remove('dragging');
+          allItems.forEach((el) => el.classList.remove('drag-over-above', 'drag-over-below'));
+
+          // Commit reorder if position changed
+          if (currentDropIndex !== srcIndex) {
+            this.handleElementReorder(srcIndex, currentDropIndex);
+          }
+        };
+
+        document.addEventListener('pointermove', onPointerMove);
+        document.addEventListener('pointerup', onPointerUp);
       });
     });
   }
