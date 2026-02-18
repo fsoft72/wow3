@@ -2,6 +2,14 @@
 
 ## 2026-02-18
 
+### Feature: Gradient selectors for CountdownTimer color properties
+
+Replaced the 3 basic `<input type="color">` pickers (Font Color, Background, Border Color)
+in the Countdown Timer panel with full gradient selectors, matching the rest of the app.
+
+**Updated Files:**
+- `js/panels/CountdownTimerPanel.js`: Replaced color inputs with `PanelUtils.renderGradientPicker` / `bindGradientPicker`
+
 ### Fix: Switch right sidebar to Slide tab when clicking outside elements
 
 Clicking on the canvas outside any element now switches the right sidebar back to the

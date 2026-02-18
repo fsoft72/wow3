@@ -65,26 +65,11 @@ export class CountdownTimerPanel {
           <input type="range" id="ct-font-size" min="8" max="200" value="${props.font.size}">
         </div>
 
-        <div class="control-group">
-          <div class="input-field">
-            <input type="color" id="ct-font-color" value="${props.font.color}">
-            <label for="ct-font-color" class="active">Font Color</label>
-          </div>
-        </div>
+        ${PanelUtils.renderGradientPicker('Font Color', 'ct-font-color-gs', props.font.color)}
 
-        <div class="control-group">
-          <div class="input-field">
-            <input type="color" id="ct-background" value="${props.background}">
-            <label for="ct-background" class="active">Background Color</label>
-          </div>
-        </div>
+        ${PanelUtils.renderGradientPicker('Background', 'ct-background-gs', props.background)}
 
-        <div class="control-group">
-          <div class="input-field">
-            <input type="color" id="ct-border-color" value="${props.borderColor}">
-            <label for="ct-border-color" class="active">Border Color</label>
-          </div>
-        </div>
+        ${PanelUtils.renderGradientPicker('Border Color', 'ct-border-color-gs', props.borderColor)}
 
         <div class="control-group">
           <label for="ct-border-width" class="active">Border Width: <span id="ct-border-width-val">${props.borderWidth}</span></label>
@@ -191,23 +176,20 @@ export class CountdownTimerPanel {
       });
     }
 
-    // --- Style: Font color (global) ---
-    const ctFontColor = document.getElementById('ct-font-color');
-    if (ctFontColor) {
-      ctFontColor.addEventListener('change', (e) => updateStyleProperty('properties.font.color', e.target.value));
-    }
+    // --- Style: Font color gradient selector (global) ---
+    PanelUtils.bindGradientPicker('ct-font-color-gs', element.properties.font.color, (value) => {
+      updateStyleProperty('properties.font.color', value);
+    });
 
-    // --- Style: Background (global) ---
-    const ctBackground = document.getElementById('ct-background');
-    if (ctBackground) {
-      ctBackground.addEventListener('change', (e) => updateStyleProperty('properties.background', e.target.value));
-    }
+    // --- Style: Background gradient selector (global) ---
+    PanelUtils.bindGradientPicker('ct-background-gs', element.properties.background, (value) => {
+      updateStyleProperty('properties.background', value);
+    });
 
-    // --- Style: Border color (global) ---
-    const ctBorderColor = document.getElementById('ct-border-color');
-    if (ctBorderColor) {
-      ctBorderColor.addEventListener('change', (e) => updateStyleProperty('properties.borderColor', e.target.value));
-    }
+    // --- Style: Border color gradient selector (global) ---
+    PanelUtils.bindGradientPicker('ct-border-color-gs', element.properties.borderColor, (value) => {
+      updateStyleProperty('properties.borderColor', value);
+    });
 
     // --- Style: Border width slider (global) ---
     const ctBorderWidth = document.getElementById('ct-border-width');
