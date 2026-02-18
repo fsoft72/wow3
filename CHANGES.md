@@ -5,21 +5,24 @@
 ### Fix: Audio "Continue on Slides" stops on next slide transition
 
 Fixed a bug where audio with "Continue on Slides" enabled would stop playing
-when navigating to the next slide. The root cause was that DOM detach/reattach
-during slide transitions could fire spurious browser `pause` events on the
-`<audio>` element, which cleared `_continuingAudioId` in AudioManager. On the
-next slide transition, the audio was no longer recognized as "continuing" and
-got destroyed with the old slide DOM.
+when navigating to the next slide. The old approach detached the audio element
+from the DOM and re-attached it, which could fire browser `pause` events and
+lose the `_continuingAudioId` state.
 
-Added a transition guard (`beginTransition`/`endTransition`) to AudioManager
-that suppresses the pause handler during slide changes, and restores the
-continuing audio ID after re-attachment.
+New approach: the continuing audio element is **never removed from the DOM**.
+During slide transitions it is atomically reparented to `presentationView`
+level (via `appendChild` on an already-attached node), then all other children
+are cleared. The audio element stays in the document throughout, so no
+pause/play cycle ever occurs.
+
+Also reverted the `beginTransition`/`endTransition` complexity from AudioManager
+since it is no longer needed.
 
 **Updated Files:**
-- `js/managers/AudioManager.js`: Added `_isTransitioning` flag, `beginTransition()`,
-  `endTransition()` methods; pause handler now skips clearing during transitions
-- `js/controllers/PlaybackController.js`: Calls `beginTransition()` before DOM
-  detach and `endTransition()` after re-attachment in `showSlide()`
+- `js/managers/AudioManager.js`: Reverted transition guard (no longer needed)
+- `js/controllers/PlaybackController.js`: Rewrote continuing audio handling in
+  `showSlide()` to use atomic reparent instead of detach/re-attach; updated
+  `_showEndSlide()` to properly stop audio before clearing
 
 ## 2026-02-18 (earlier)
 

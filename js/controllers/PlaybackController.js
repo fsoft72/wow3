@@ -194,38 +194,25 @@ export class PlaybackController {
 
     // Get continuing audio ID before clearing
     const continuingAudioId = window.AudioManager?.getContinuingAudio();
-    console.log('[PlaybackController] Continuing audio ID:', continuingAudioId);
 
-    // Suppress spurious 'pause' events during DOM detach/reattach
-    if (continuingAudioId && window.AudioManager) {
-      window.AudioManager.beginTransition();
-    }
-
-    // Clear presentation view, but preserve continuing audio element
-    // First, detach the continuing audio element if it exists
-    // IMPORTANT: Search within presentation view only, not entire document
-    // (there may be another element with same ID in the editor)
+    // If a continuing audio element exists, move it to presentationView level
+    // so it survives the slide container cleanup. appendChild on an already-
+    // attached node is an atomic reparent — the element never leaves the
+    // document, so no 'pause' events fire.
     let continuingAudioElement = null;
     if (continuingAudioId) {
       continuingAudioElement = this.presentationView.querySelector(`#${continuingAudioId}`);
-      console.log('[PlaybackController] Found continuing audio element:', continuingAudioElement);
-      console.log('[PlaybackController] Continuing audio element parent:', continuingAudioElement?.parentElement?.className);
-      console.log('[PlaybackController] Is audio playing?', continuingAudioElement?.querySelector('audio')?.paused === false);
-
       if (continuingAudioElement) {
-        console.log('[PlaybackController] Detaching continuing audio element:', continuingAudioId);
-        continuingAudioElement.remove(); // Detach but keep reference
-        console.log('[PlaybackController] After detach - is audio still playing?', continuingAudioElement?.querySelector('audio')?.paused === false);
+        this.presentationView.appendChild(continuingAudioElement);
       }
     }
 
-    // Remove all children (slide containers, indicators, etc.)
-    console.log('[PlaybackController] Presentation view children before clearing:', this.presentationView.children.length);
+    // Remove all children EXCEPT the continuing audio element
     Array.from(this.presentationView.children).forEach(child => {
-      console.log('[PlaybackController] Removing child:', child.id || child.className);
-      child.remove();
+      if (child !== continuingAudioElement) {
+        child.remove();
+      }
     });
-    console.log('[PlaybackController] Presentation view children after clearing:', this.presentationView.children.length);
 
     // Create slide container at design dimensions
     const slideContainer = document.createElement('div');
@@ -349,13 +336,12 @@ export class PlaybackController {
       await this._animationManager.play();
     }
 
-    // Re-attach continuing audio element if it should continue
+    // Handle continuing audio: it's currently a direct child of presentationView,
+    // never removed from the DOM. Decide whether to keep or discard it.
     if (continuingAudioElement) {
-      // Check if the continuing audio is on this slide
       const continuingAudioOnThisSlide = slide.elements &&
         slide.elements.some(el => el.id === continuingAudioId);
 
-      // Check if slide has competing autoplay audio
       const hasCompetingAutoplayAudio = slide.elements && slide.elements.some(
         el => el.type === 'audio' &&
              el.properties &&
@@ -363,25 +349,16 @@ export class PlaybackController {
              el.id !== continuingAudioId
       );
 
-      console.log('[PlaybackController] Continuing audio on this slide:', continuingAudioOnThisSlide);
-      console.log('[PlaybackController] Has competing autoplay audio:', hasCompetingAutoplayAudio);
-
-      if (!continuingAudioOnThisSlide && !hasCompetingAutoplayAudio) {
-        // Re-attach to the new slide container
-        console.log('[PlaybackController] Re-attaching continuing audio to new slide');
-        slideContainer.appendChild(continuingAudioElement);
-      } else if (hasCompetingAutoplayAudio) {
-        console.log('[PlaybackController] Not re-attaching - competing audio will fade it out');
-        // Don't re-attach - AudioManager will fade it out
-      } else {
-        console.log('[PlaybackController] Not re-attaching - audio is on this slide (will be rendered)');
-        // Don't re-attach - the audio will be rendered as part of this slide
+      if (continuingAudioOnThisSlide || hasCompetingAutoplayAudio) {
+        // Audio is being replaced — remove the old DOM element.
+        // AudioManager.onSlideChange() will handle fading / stopping.
+        continuingAudioElement.remove();
       }
+      // Otherwise it stays as a direct child of presentationView, untouched.
     }
 
-    // End transition and restore continuing audio state
+    // Notify AudioManager of slide change
     if (window.AudioManager) {
-      window.AudioManager.endTransition(continuingAudioId);
       window.AudioManager.onSlideChange(slide);
     }
 
@@ -483,8 +460,13 @@ export class PlaybackController {
       this._animationManager = null;
     }
 
-    // Clear and create end slide
-    this.presentationView.innerHTML = '';
+    // Stop any continuing audio — presentation is ending
+    if (window.AudioManager) {
+      window.AudioManager.stopAll(true);
+    }
+
+    // Clear presentation view
+    Array.from(this.presentationView.children).forEach(child => child.remove());
 
     // Calculate scale to fit screen while maintaining aspect ratio
     const viewportWidth = window.innerWidth;
