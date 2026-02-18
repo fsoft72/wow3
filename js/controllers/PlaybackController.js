@@ -379,13 +379,10 @@ export class PlaybackController {
 
     appEvents.emit(AppEvents.SLIDE_SELECTED, index);
 
-    // Start auto play timer if enabled for this slide
+    // Auto play timer starts AFTER all animations complete.
+    // For slides with click-triggered animations, the user must advance through them first.
     if (slide.autoPlay && slide.autoPlayDuration > 0) {
-      this._startAutoPlay(slide.autoPlayDuration, slideContainer);
-      // Listen for auto play completion
-      this.presentationView.addEventListener('wow3:autoPlayNext', () => {
-        this.nextSlide();
-      }, { once: true });
+      this._startAutoPlay(slide.autoPlayDuration);
     }
   }
 
@@ -474,6 +471,9 @@ export class PlaybackController {
    */
   _showEndSlide() {
     if (!this.presentationView) return;
+
+    // Clean up auto play timer
+    this._clearAutoPlay();
 
     // Clean up countdown timer
     this._stopCountdown();
@@ -584,10 +584,9 @@ export class PlaybackController {
   /**
    * Start the auto play timer and progress bar for the current slide
    * @param {number} durationSeconds - Duration in seconds
-   * @param {HTMLElement} slideContainer - The slide container element
    * @private
    */
-  _startAutoPlay(durationSeconds, slideContainer) {
+  _startAutoPlay(durationSeconds) {
     this._clearAutoPlay();
 
     // Create progress bar
@@ -601,14 +600,12 @@ export class PlaybackController {
     bar.offsetWidth;
     bar.style.width = '100%';
 
-    // Set timer to advance slide
+    // Set timer to advance slide — calls nextSlide() directly
+    // (no event dispatch needed, _clearAutoPlay() at top of showSlide prevents stale timers)
     this._autoPlayTimerId = setTimeout(() => {
       this._autoPlayTimerId = null;
       this._clearAutoPlay();
-      // Dispatch the same event as the "Next Slide" build out effect
-      this.presentationView.dispatchEvent(
-        new CustomEvent('wow3:autoPlayNext', { bubbles: false })
-      );
+      this.nextSlide();
     }, durationSeconds * 1000);
   }
 
