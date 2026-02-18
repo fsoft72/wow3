@@ -192,6 +192,30 @@ export class EditorController {
       });
     }
 
+    // Auto play checkbox
+    const slideAutoPlay = document.getElementById('slide-auto-play');
+    if (slideAutoPlay) {
+      slideAutoPlay.addEventListener('change', (e) => {
+        const activeSlide = this.getActiveSlide();
+        activeSlide.autoPlay = e.target.checked;
+        this.recordHistory();
+        this.updateUI();
+      });
+    }
+
+    // Auto play duration input
+    const slideAutoPlayDuration = document.getElementById('slide-auto-play-duration');
+    if (slideAutoPlayDuration) {
+      slideAutoPlayDuration.addEventListener('change', (e) => {
+        const activeSlide = this.getActiveSlide();
+        const val = parseInt(e.target.value, 10);
+        if (val >= 1 && val <= 300) {
+          activeSlide.autoPlayDuration = val;
+          this.recordHistory();
+        }
+      });
+    }
+
     // Shell preview toggle button
     const shellPreviewBtn = document.getElementById('shell-preview-btn');
     if (shellPreviewBtn) {
@@ -513,6 +537,20 @@ export class EditorController {
       if (icon) {
         icon.textContent = this.showShellPreview ? 'layers' : 'layers_clear';
       }
+    }
+
+    // Auto play controls
+    const slideAutoPlay = document.getElementById('slide-auto-play');
+    const slideAutoPlayDurationField = document.getElementById('slide-auto-play-duration-field');
+    const slideAutoPlayDuration = document.getElementById('slide-auto-play-duration');
+    if (slideAutoPlay) {
+      slideAutoPlay.checked = activeSlide.autoPlay === true;
+    }
+    if (slideAutoPlayDurationField) {
+      slideAutoPlayDurationField.style.display = activeSlide.autoPlay ? 'block' : 'none';
+    }
+    if (slideAutoPlayDuration) {
+      slideAutoPlayDuration.value = activeSlide.autoPlayDuration ?? 5;
     }
   }
 
