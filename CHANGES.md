@@ -2,6 +2,18 @@
 
 ## 2026-02-18
 
+### Feature: Replace text style dropdowns with toggle buttons
+
+Replaced the Font Weight, Font Style, and Text Decoration `<select>` dropdowns with
+compact icon toggle buttons grouped in a single "Text Style" row:
+- **Weight**: 4 buttons showing "A" at each weight (Light/Normal/Bold/Black)
+- **Style**: Italic toggle (on/off)
+- **Decoration**: Underline and Strikethrough toggles (mutually exclusive, click again to clear)
+
+**Updated Files:**
+- `js/panels/TextPanel.js`: Replaced dropdowns with `icon-toggle-group` buttons, updated event bindings
+- `css/panels.css`: Added `.icon-toggle-row` and `.weight-preview` styles
+
 ### Feature: Font family picker with font previews
 
 Replaced native `<select>` dropdowns for font family with a custom dropdown where each option is rendered in its actual font, giving a live preview of each typeface.

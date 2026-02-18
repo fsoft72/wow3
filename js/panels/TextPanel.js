@@ -37,30 +37,36 @@ export class TextPanel {
         ${PanelUtils.renderGradientPicker('Text Color', 'font-color-gradient-selector', font.color)}
 
         <div class="control-group">
-          <label>Font Weight</label>
-          <select id="font-weight" class="panel-select">
-            <option value="300" ${font.weight === '300' ? 'selected' : ''}>Light</option>
-            <option value="normal" ${font.weight === 'normal' || font.weight === '400' ? 'selected' : ''}>Normal</option>
-            <option value="bold" ${font.weight === 'bold' || font.weight === '700' ? 'selected' : ''}>Bold</option>
-            <option value="900" ${font.weight === '900' ? 'selected' : ''}>Black</option>
-          </select>
-        </div>
-
-        <div class="control-group">
-          <label>Font Style</label>
-          <select id="font-style" class="panel-select">
-            <option value="normal" ${font.style === 'normal' ? 'selected' : ''}>Normal</option>
-            <option value="italic" ${font.style === 'italic' ? 'selected' : ''}>Italic</option>
-          </select>
-        </div>
-
-        <div class="control-group">
-          <label>Text Decoration</label>
-          <select id="font-decoration" class="panel-select">
-            <option value="none" ${font.decoration === 'none' ? 'selected' : ''}>None</option>
-            <option value="underline" ${font.decoration === 'underline' ? 'selected' : ''}>Underline</option>
-            <option value="line-through" ${font.decoration === 'line-through' ? 'selected' : ''}>Line Through</option>
-          </select>
+          <label>Text Style</label>
+          <div class="icon-toggle-row">
+            <div class="icon-toggle-group" id="font-weight">
+              <button class="icon-toggle-btn ${font.weight === '300' ? 'active' : ''}" data-value="300" title="Light">
+                <span class="weight-preview" style="font-weight:300">A</span>
+              </button>
+              <button class="icon-toggle-btn ${font.weight === 'normal' || font.weight === '400' || (!font.weight || font.weight === '') ? 'active' : ''}" data-value="normal" title="Normal">
+                <span class="weight-preview" style="font-weight:400">A</span>
+              </button>
+              <button class="icon-toggle-btn ${font.weight === 'bold' || font.weight === '700' ? 'active' : ''}" data-value="bold" title="Bold">
+                <span class="weight-preview" style="font-weight:700">A</span>
+              </button>
+              <button class="icon-toggle-btn ${font.weight === '900' ? 'active' : ''}" data-value="900" title="Black">
+                <span class="weight-preview" style="font-weight:900">A</span>
+              </button>
+            </div>
+            <div class="icon-toggle-group" id="font-style">
+              <button class="icon-toggle-btn ${font.style === 'italic' ? 'active' : ''}" data-value="italic" title="Italic">
+                <i class="material-icons">format_italic</i>
+              </button>
+            </div>
+            <div class="icon-toggle-group" id="font-decoration">
+              <button class="icon-toggle-btn ${font.decoration === 'underline' ? 'active' : ''}" data-value="underline" title="Underline">
+                <i class="material-icons">format_underlined</i>
+              </button>
+              <button class="icon-toggle-btn ${font.decoration === 'line-through' ? 'active' : ''}" data-value="line-through" title="Strikethrough">
+                <i class="material-icons">strikethrough_s</i>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="control-group">
@@ -180,27 +186,39 @@ export class TextPanel {
       updateProperty('properties.font.colorAnimationType', animationType);
     }, element.properties.font.colorAnimationSpeed, element.properties.font.colorAnimationType);
 
-    // Font weight
+    // Font weight (radio-style: one active at a time)
     const fontWeight = document.getElementById('font-weight');
     if (fontWeight) {
-      fontWeight.addEventListener('change', (e) => {
-        updateProperty('properties.font.weight', e.target.value);
+      fontWeight.addEventListener('click', (e) => {
+        const btn = e.target.closest('.icon-toggle-btn');
+        if (!btn) return;
+        fontWeight.querySelectorAll('.icon-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateProperty('properties.font.weight', btn.dataset.value);
       });
     }
 
-    // Font style
+    // Font style (toggle: click toggles italic on/off)
     const fontStyle = document.getElementById('font-style');
     if (fontStyle) {
-      fontStyle.addEventListener('change', (e) => {
-        updateProperty('properties.font.style', e.target.value);
+      fontStyle.addEventListener('click', (e) => {
+        const btn = e.target.closest('.icon-toggle-btn');
+        if (!btn) return;
+        const isActive = btn.classList.toggle('active');
+        updateProperty('properties.font.style', isActive ? btn.dataset.value : 'normal');
       });
     }
 
-    // Font decoration
+    // Font decoration (toggle: click toggles on/off, only one active)
     const fontDecoration = document.getElementById('font-decoration');
     if (fontDecoration) {
-      fontDecoration.addEventListener('change', (e) => {
-        updateProperty('properties.font.decoration', e.target.value);
+      fontDecoration.addEventListener('click', (e) => {
+        const btn = e.target.closest('.icon-toggle-btn');
+        if (!btn) return;
+        const wasActive = btn.classList.contains('active');
+        fontDecoration.querySelectorAll('.icon-toggle-btn').forEach(b => b.classList.remove('active'));
+        if (!wasActive) btn.classList.add('active');
+        updateProperty('properties.font.decoration', wasActive ? 'none' : btn.dataset.value);
       });
     }
 

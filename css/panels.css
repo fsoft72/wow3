@@ -250,6 +250,21 @@
   font-size: 20px;
 }
 
+/* ==================== TEXT STYLE ROW ==================== */
+
+.icon-toggle-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.weight-preview {
+  font-size: 16px;
+  line-height: 1;
+  pointer-events: none;
+}
+
 /* ==================== MEDIA INPUT GROUP ==================== */
 
 .media-input-group {
