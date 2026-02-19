@@ -1,5 +1,15 @@
 # WOW3 Development Changelog
 
+## 2026-02-19
+
+### Feature: "Play from this slide" toolbar button
+
+Added a new toolbar button next to the existing play button that starts the presentation
+from the currently selected slide (equivalent to Shift+Click on the play button).
+
+- **`index.html`**: Added `#play-from-slide-btn` with `slideshow` Material Icon and "Play from this slide" tooltip
+- **`js/controllers/EditorController.js`**: Added click handler that calls `playbackController.start()` with `presentation.currentSlideIndex`
+
 ## 2026-02-18
 
 ### Fix: WITH_PREVIOUS (Chain) animations starting sequentially instead of in parallel

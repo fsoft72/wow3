@@ -103,6 +103,15 @@ export class EditorController {
       });
     }
 
+    const playFromSlideBtn = document.getElementById('play-from-slide-btn');
+    if (playFromSlideBtn) {
+      playFromSlideBtn.addEventListener('click', () => {
+        if (this.playbackController) {
+          this.playbackController.start(this.presentation.currentSlideIndex);
+        }
+      });
+    }
+
     // Add element buttons
     const addTextBtn = document.getElementById('add-text-btn');
     if (addTextBtn) {
