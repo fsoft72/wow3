@@ -529,9 +529,17 @@ export class PlaybackController {
   stop() {
     this.isPlaying = false;
 
-    // Stop all audio with smooth fade-out
+    // Stop all registered audio immediately (no fade — we're exiting)
     if (window.AudioManager) {
-      window.AudioManager.stopAll(true);
+      window.AudioManager.stopAll(false);
+    }
+
+    // Pause any remaining <audio>/<video> elements not tracked by AudioManager
+    if (this.presentationView) {
+      this.presentationView.querySelectorAll('audio, video').forEach(el => {
+        el.pause();
+        el.src = '';
+      });
     }
 
     // Clean up active countdown timer

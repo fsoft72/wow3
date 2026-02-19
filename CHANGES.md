@@ -10,6 +10,20 @@ from the currently selected slide (equivalent to Shift+Click on the play button)
 - **`index.html`**: Added `#play-from-slide-btn` with `slideshow` Material Icon and "Play from this slide" tooltip
 - **`js/controllers/EditorController.js`**: Added click handler that calls `playbackController.start()` with `presentation.currentSlideIndex`
 
+### Fix: Audio keeps playing after exiting presentation
+
+**Bug:** Music/audio continued playing after exiting the presentation.
+
+**Root cause:** `stop()` called `AudioManager.stopAll(true)` which started an async 500ms
+fade-out via `requestAnimationFrame`, but then immediately cleared `innerHTML`, leaving
+detached audio elements still playing. Also, unregistered audio (e.g. countdown sounds)
+could escape AudioManager cleanup entirely.
+
+**Fix** (`js/controllers/PlaybackController.js`):
+- Changed `stopAll(true)` → `stopAll(false)` for immediate stop on exit (no fade needed)
+- Added DOM query to pause all `<audio>`/`<video>` elements in the presentation view before
+  clearing, catching anything not tracked by AudioManager
+
 ## 2026-02-18
 
 ### Fix: WITH_PREVIOUS (Chain) animations starting sequentially instead of in parallel
