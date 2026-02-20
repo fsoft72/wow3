@@ -239,16 +239,22 @@ export class RecordingController {
 
     const { resolution, cursor, cameraDeviceId, micDeviceId } = settings;
 
-    // 1. Capture tab/screen (cursor is a top-level DisplayMediaStreamOptions property)
+    // 1. Capture tab/screen (cursor is both a top-level hint and a sub-property of video in some browsers)
     this._tabStream = await navigator.mediaDevices.getDisplayMedia({
       video: {
         width: { ideal: resolution.width },
         height: { ideal: resolution.height },
+        cursor: cursor ? 'always' : 'never',
       },
       audio: true,
       cursor: cursor ? 'always' : 'never',
       preferCurrentTab: true,
     });
+
+    // Hide cursor from UI as well if disabled (to ensure it is not captured by tab capture)
+    if (!cursor) {
+      document.body.classList.add('recording-no-cursor');
+    }
 
     // Auto-stop when user ends screen share via browser UI
     const videoTrack = this._tabStream.getVideoTracks()[0];
@@ -605,9 +611,27 @@ export class RecordingController {
     video.autoplay = true;
 
     this._pipOverlay.appendChild(video);
-    document.body.appendChild(this._pipOverlay);
+
+    // Stop clicks on the overlay from propagating to the presentation
+    this._pipOverlay.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    // Append to presentation view so it is visible in fullscreen
+    const view = document.getElementById('presentation-view');
+    if (view) {
+      view.appendChild(this._pipOverlay);
+    } else {
+      document.body.appendChild(this._pipOverlay);
+    }
 
     this._updatePipOverlayPosition();
+
+    // Listen for window resize to re-scale the overlay position
+    this._onResize = () => this._updatePipOverlayPosition();
+    window.addEventListener('resize', this._onResize);
+    document.addEventListener('fullscreenchange', this._onResize);
   }
 
   /**
@@ -618,10 +642,13 @@ export class RecordingController {
   _updatePipOverlayPosition() {
     if (!this._pipOverlay || !this._pipPos || !this._canvas) return;
 
+    // Use current window size since presentationView fills the screen
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const scaleX = this._canvas.width / vw;
-    const scaleY = this._canvas.height / vh;
+
+    // Use at least 1 to avoid division by zero
+    const scaleX = this._canvas.width / (vw || 1);
+    const scaleY = this._canvas.height / (vh || 1);
 
     // Convert canvas-space diameter to screen-space
     const screenW = PIP_DIAMETER / scaleX;
@@ -638,12 +665,17 @@ export class RecordingController {
   }
 
   /**
-   * Remove the PiP overlay element from the DOM.
+   * Remove the PiP overlay element from the DOM and cleanup listeners.
    */
   _removePipOverlay() {
     if (this._pipOverlay) {
       this._pipOverlay.remove();
       this._pipOverlay = null;
+    }
+    if (this._onResize) {
+      window.removeEventListener('resize', this._onResize);
+      document.removeEventListener('fullscreenchange', this._onResize);
+      this._onResize = null;
     }
   }
 
@@ -745,6 +777,9 @@ export class RecordingController {
       this._mixAudioCtx.close().catch(() => {});
       this._mixAudioCtx = null;
     }
+
+    // Restore cursor if it was hidden
+    document.body.classList.remove('recording-no-cursor');
 
     // Remove PiP drag listeners and overlay
     this._removePipDrag();
