@@ -284,10 +284,15 @@ class WOW3App {
           this.editor.playbackController.start();
         }
       }
-      // Escape: Exit play mode, exit crop mode, or deselect
+      // Escape: Exit play mode (or stop recording), exit crop mode, or deselect
       else if (e.key === 'Escape') {
         if (this.editor && this.editor.playbackController && this.editor.playbackController.isPlaying) {
-          this.editor.playbackController.stop();
+          const recorder = this.editor.recordingController;
+          if (recorder && recorder.isRecording) {
+            recorder.stop();
+          } else {
+            this.editor.playbackController.stop();
+          }
         } else if (this.editor && this.editor.elementController && this.editor.elementController._cropMode) {
           this.editor.elementController.exitCropMode();
         } else if (this.editor && this.editor.elementController) {

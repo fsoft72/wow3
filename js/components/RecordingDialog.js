@@ -105,6 +105,12 @@ export class RecordingDialog {
    * @returns {Promise<MediaDeviceInfo[]>}
    */
   _getDevicesWithLabels = async () => {
+    // mediaDevices API requires HTTPS or localhost
+    if (!navigator.mediaDevices) {
+      console.warn('navigator.mediaDevices not available (requires HTTPS or localhost)');
+      return [];
+    }
+
     let tempStream = null;
     try {
       tempStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });

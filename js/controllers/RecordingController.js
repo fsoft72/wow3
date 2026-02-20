@@ -129,13 +129,18 @@ export class RecordingController {
   async stop() {
     this.isRecording = false;
 
-    // Stop MediaRecorder if active
-    if (this._mediaRecorder && this._mediaRecorder.state !== 'inactive') {
-      this._mediaRecorder.stop();
-    }
-
-    // Wait for final chunk to be persisted
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Stop MediaRecorder and wait for final ondataavailable + onstop
+    await new Promise(resolve => {
+      if (this._mediaRecorder && this._mediaRecorder.state !== 'inactive') {
+        this._mediaRecorder.onstop = () => {
+          // Allow time for the final async IndexedDB write from ondataavailable
+          setTimeout(resolve, 200);
+        };
+        this._mediaRecorder.stop();
+      } else {
+        resolve();
+      }
+    });
 
     // Stop playback if playing
     if (this.editor.playbackController && this.editor.playbackController.isPlaying) {
@@ -195,12 +200,19 @@ export class RecordingController {
 
   /**
    * Handle record button click: toggle between start and stop.
+   * Guards against rapid double-clicks with a busy flag.
    */
-  _onRecordButtonClick() {
-    if (this.isRecording) {
-      this.stop();
-    } else {
-      this.startFlow();
+  async _onRecordButtonClick() {
+    if (this._busy) return;
+    this._busy = true;
+    try {
+      if (this.isRecording) {
+        await this.stop();
+      } else {
+        await this.startFlow();
+      }
+    } finally {
+      this._busy = false;
     }
   }
 
@@ -413,7 +425,7 @@ export class RecordingController {
    */
   _startCompositing() {
     const draw = () => {
-      if (!this.isRecording && !this._canvas) return;
+      if (!this.isRecording || !this._canvas) return;
 
       this._rafId = requestAnimationFrame(draw);
 
@@ -540,8 +552,8 @@ export class RecordingController {
     };
 
     view.addEventListener('mousedown', this._pipMouseDown, true);
-    view.addEventListener('mousemove', this._pipMouseMove, true);
-    view.addEventListener('mouseup', this._pipMouseUp, true);
+    document.addEventListener('mousemove', this._pipMouseMove, true);
+    document.addEventListener('mouseup', this._pipMouseUp, true);
   }
 
   /**
@@ -556,11 +568,11 @@ export class RecordingController {
       this._pipMouseDown = null;
     }
     if (this._pipMouseMove) {
-      view.removeEventListener('mousemove', this._pipMouseMove, true);
+      document.removeEventListener('mousemove', this._pipMouseMove, true);
       this._pipMouseMove = null;
     }
     if (this._pipMouseUp) {
-      view.removeEventListener('mouseup', this._pipMouseUp, true);
+      document.removeEventListener('mouseup', this._pipMouseUp, true);
       this._pipMouseUp = null;
     }
   }
