@@ -5,7 +5,7 @@ set -e
 ARCHIVE="/ramdisk/wow3.tar.bz2"
 DEST_DIR="/home/fabio/dev/web/os3-website-cf/tools/wow3"
 
-tar cfj $ARCHIVE  css js index.html
+tar cfj $ARCHIVE  css js icons index.html manifest.json
 
 cd $DEST_DIR
 
