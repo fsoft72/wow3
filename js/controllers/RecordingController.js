@@ -181,8 +181,10 @@ export class RecordingController {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Clean up session chunks from IndexedDB
-      await window.RecordingDB.deleteSession(this._sessionId);
+      // Clean up session chunks from IndexedDB (if persisted)
+      if (this._settings && this._settings.persist) {
+        await window.RecordingDB.deleteSession(this._sessionId);
+      }
 
       toast.success('Recording saved');
     } catch (err) {
@@ -343,11 +345,13 @@ export class RecordingController {
       this._chunks.push(event.data);
 
       // Secondary: IndexedDB persistence (crash resilience, fire-and-forget)
-      window.RecordingDB.saveChunk(
-        this._sessionId,
-        this._chunkIndex++,
-        event.data
-      ).catch(err => console.error('Failed to persist chunk to IndexedDB:', err));
+      if (this._settings.persist) {
+        window.RecordingDB.saveChunk(
+          this._sessionId,
+          this._chunkIndex++,
+          event.data
+        ).catch(err => console.error('Failed to persist chunk to IndexedDB:', err));
+      }
     };
 
     // 13. Start recording with chunk interval

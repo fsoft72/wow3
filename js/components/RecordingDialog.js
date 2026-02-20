@@ -181,6 +181,13 @@ export class RecordingDialog {
           </label>
         </div>
 
+        <div class="recording-field">
+          <label for="recording-persist">
+            <input type="checkbox" id="recording-persist" name="recording-persist" checked />
+            <span>Save to IndexedDB (crash resilience)</span>
+          </label>
+        </div>
+
         <div class="recording-divider"></div>
 
         <div class="recording-field">
@@ -407,6 +414,9 @@ export class RecordingDialog {
     // Parse cursor checkbox
     const cursor = inputs['recording-cursor'] === true || inputs['recording-cursor'] === 'true';
 
+    // Parse persist checkbox
+    const persist = inputs['recording-persist'] === true || inputs['recording-persist'] === 'true';
+
     // Parse camera
     const cameraRaw = inputs['recording-camera'] || 'OFF';
     const cameraDeviceId = cameraRaw === 'OFF' ? null : cameraRaw;
@@ -418,6 +428,7 @@ export class RecordingDialog {
     return {
       resolution: { width: resDef.width, height: resDef.height },
       cursor,
+      persist,
       cameraDeviceId,
       micDeviceId,
     };
