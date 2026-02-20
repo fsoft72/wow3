@@ -2,7 +2,7 @@
   "name": "WOW3 Presentation",
   "short_name": "WOW3",
   "description": "Web-based Presentation Software",
-  "start_url": "index.html",
+  "start_url": ".",
   "display": "standalone",
   "orientation": "landscape",
   "theme_color": "#1a1a2e",

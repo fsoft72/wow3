@@ -52,6 +52,7 @@
       <ul id="toolbar-left" class="toolbar-group toolbar-left">
         <li><a href="#" id="open-btn" title="Open Presentation"><i class="material-icons">folder_open</i></a></li>
         <li><a href="#" id="save-btn" title="Save Presentation"><i class="material-icons">save</i></a></li>
+        <li id="install-btn-wrapper" style="display: none;"><a href="#" id="install-btn" title="Install WOW3 App"><i class="material-icons">install_desktop</i></a></li>
       </ul>
       <!-- Center group: element tools -->
       <ul id="toolbar-center" class="toolbar-group toolbar-center">
@@ -299,8 +300,9 @@
   <!-- Application JavaScript (ES6 Modules) -->
   <script type="module" src="js/app.js"></script>
 
-  <!-- Service Worker Registration -->
+  <!-- Service Worker Registration & PWA Install -->
   <script>
+    // Service Worker Registration
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').then((registration) => {
@@ -310,6 +312,34 @@
         });
       });
     }
+
+    // PWA Install Prompt
+    let deferredInstallPrompt = null;
+    const installBtnWrapper = document.getElementById('install-btn-wrapper');
+    const installBtn = document.getElementById('install-btn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      installBtnWrapper.style.display = '';
+      console.log('[PWA] Install prompt available');
+    });
+
+    installBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      const { outcome } = await deferredInstallPrompt.userChoice;
+      console.log('[PWA] Install prompt outcome:', outcome);
+      deferredInstallPrompt = null;
+      installBtnWrapper.style.display = 'none';
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      installBtnWrapper.style.display = 'none';
+      console.log('[PWA] App installed successfully');
+    });
   </script>
 </body>
 </html>

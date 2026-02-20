@@ -2,6 +2,14 @@
 
 ## 2026-02-20
 
+### Feature: PWA install button
+
+- Added a `beforeinstallprompt` event handler so the browser install prompt is captured and deferred
+- Added an install button (install_desktop icon) in the toolbar-left area, visible only when installation is available
+- Button triggers the native install dialog on click, hides after install or dismissal
+- Listens for `appinstalled` event to clean up state
+- Fixed `start_url` in `manifest.json` from `"index.html"` to `"."` for better URL matching
+
 ### Fix: Camera PiP overlay visibility and default settings
 
 - Added a visible camera circle overlay on `#presentation-view` during recording so the user can see the PiP position on screen (previously only visible in the final video)
