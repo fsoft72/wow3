@@ -2,6 +2,12 @@
 
 ## 2026-02-20
 
+### Feature: Auto-update with confirmation dialog
+
+- Service worker now checks for updates on every startup via `registration.update()`
+- On activate, the SW posts a `SW_UPDATED` message to all clients when old caches are cleaned up
+- The app listens for the message and shows a Dialog with the new version, then reloads
+
 ### Feature: Register .wow3 file handler for installed PWA
 
 - Added `file_handlers` to `manifest.json` to register `.wow3` extension with the OS

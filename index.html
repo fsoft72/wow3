@@ -302,14 +302,29 @@
 
   <!-- Service Worker Registration & PWA Install -->
   <script>
-    // Service Worker Registration
+    // Service Worker Registration & Auto-Update
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').then((registration) => {
           console.log('[PWA] Service Worker registered, scope:', registration.scope);
+
+          // Check for updates immediately on startup
+          registration.update().catch(() => {});
         }).catch((err) => {
           console.warn('[PWA] Service Worker registration failed:', err);
         });
+      });
+
+      // Listen for update notification from the new service worker
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'SW_UPDATED') {
+          Dialog.alert(
+            'WOW3 has been updated to version <b>' + event.data.version + '</b>.<br>The app will now reload to apply changes.',
+            'Update Applied'
+          ).then(() => {
+            window.location.reload();
+          });
+        }
       });
     }
 

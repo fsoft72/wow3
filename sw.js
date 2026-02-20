@@ -141,21 +141,28 @@ self.addEventListener('install', (event) => {
 });
 
 /**
- * Activate event: clean up old cache versions.
+ * Activate event: clean up old cache versions and notify clients of updates.
  */
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys
-          .filter((key) => key !== CACHE_VERSION)
-          .map((key) => caches.delete(key))
-      );
+    caches.keys().then(async (keys) => {
+      const oldKeys = keys.filter((key) => key !== CACHE_VERSION);
+      const hadOldCache = oldKeys.length > 0;
+
+      await Promise.all(oldKeys.map((key) => caches.delete(key)));
+
+      // Take control of all clients immediately
+      await self.clients.claim();
+
+      // Notify clients that an update was applied
+      if (hadOldCache) {
+        const clients = await self.clients.matchAll({ type: 'window' });
+        for (const client of clients) {
+          client.postMessage({ type: 'SW_UPDATED', version: CACHE_VERSION });
+        }
+      }
     })
   );
-
-  // Take control of all clients immediately
-  self.clients.claim();
 });
 
 /**
