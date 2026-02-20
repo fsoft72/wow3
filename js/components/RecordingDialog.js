@@ -169,15 +169,15 @@ export class RecordingDialog {
       <div class="recording-settings">
         <div class="recording-field">
           <label for="recording-resolution">Resolution</label>
-          <select id="recording-resolution" name="recording-resolution" class="dialog-input">
+          <select id="recording-resolution" name="recording-resolution" class="browser-default">
             ${resolutionOptions}
           </select>
         </div>
 
         <div class="recording-field">
           <label for="recording-cursor">
-            <input type="checkbox" id="recording-cursor" name="recording-cursor" checked>
-            Show cursor
+            <input type="checkbox" id="recording-cursor" name="recording-cursor" checked />
+            <span>Show cursor</span>
           </label>
         </div>
 
@@ -185,7 +185,7 @@ export class RecordingDialog {
 
         <div class="recording-field">
           <label for="recording-camera">Camera</label>
-          <select id="recording-camera" name="recording-camera" class="dialog-input">
+          <select id="recording-camera" name="recording-camera" class="browser-default">
             ${cameraOptions}
           </select>
           <div class="recording-preview-container" id="recording-camera-container" style="display:none;">
@@ -197,7 +197,7 @@ export class RecordingDialog {
 
         <div class="recording-field">
           <label for="recording-mic">Microphone</label>
-          <select id="recording-mic" name="recording-mic" class="dialog-input">
+          <select id="recording-mic" name="recording-mic" class="browser-default">
             ${micOptions}
           </select>
           <div class="recording-preview-container" id="recording-mic-container" style="display:none;">
