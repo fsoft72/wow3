@@ -12,6 +12,10 @@ Made WOW3 installable as a desktop/mobile app with full offline support.
 - **`icons/`**: Created directory for app icons (user to provide `icon-192x192.png`, `icon-512x512.png`, `apple-touch-icon.png`)
 - **`scripts/new_version.sh`**: Created version bump script that updates version in both `UIManager.js` and `sw.js` cache version
 
+### Feature: Shift+F5 keyboard shortcut
+
+- **`js/app.js`**: Added Shift+F5 shortcut to start presentation from the current slide (F5 still starts from the beginning)
+
 ## 2026-02-19
 
 ### Feature: "Play from this slide" toolbar button

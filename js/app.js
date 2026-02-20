@@ -267,7 +267,14 @@ class WOW3App {
           this.editor.elementController.duplicateSelectedElements();
         }
       }
-      // Play: F5
+      // Play from current slide: Shift+F5
+      else if (e.key === 'F5' && shift) {
+        e.preventDefault();
+        if (this.editor && this.editor.playbackController) {
+          this.editor.playbackController.start(this.editor.presentation.currentSlideIndex);
+        }
+      }
+      // Play from beginning: F5
       else if (e.key === 'F5') {
         e.preventDefault();
         if (this.editor && this.editor.playbackController) {
