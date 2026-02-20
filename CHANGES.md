@@ -2,10 +2,29 @@
 
 ## 2026-02-20
 
-### feat: Add RecordingDB IndexedDB storage for recording chunks
+### Feature: Record Presentation
 
-- **`js/utils/recording_db.js`** (new): IndexedDB manager for recording chunks following the MediaDB pattern. DB name `wow3_recordings`, store `recording_chunks` with autoIncrement `id` keyPath and `sessionId` index. Methods: `init()` (lazy singleton), `saveChunk(sessionId, chunkIndex, blob)`, `getChunks(sessionId)` (sorted by chunkIndex), `deleteSession(sessionId)` (cursor-based deletion), `clearAll()`. Exposed globally as `window.RecordingDB`.
-- **`index.html`**: Added `<script src="js/utils/recording_db.js"></script>` after `media_db.js` in the utilities section.
+Full-featured presentation recording with camera overlay, microphone mixing, and crash-resilient chunk storage.
+
+- New toolbar button "Record Presentation" next to the Play buttons
+- Settings dialog with resolution selection (720p / 1080p / 1440p), cursor visibility toggle, camera device selection with live preview, and microphone selection with real-time level meter
+- Canvas compositing: captures the browser tab via `getDisplayMedia` and composites a draggable circular camera PiP overlay onto an offscreen canvas
+- Audio mixing: combines tab audio and microphone input into a single output stream
+- MediaRecorder encodes to WebM (VP9 video + Opus audio)
+- Recording chunks are saved to IndexedDB every 10 seconds for crash resilience
+- On stop, a processing modal assembles the final file and auto-downloads the `.webm`
+
+**Files created:**
+- **`js/utils/recording_db.js`**: IndexedDB manager for recording chunks (DB `wow3_recordings`, store `recording_chunks`). Methods: `init()`, `saveChunk()`, `getChunks()`, `deleteSession()`, `clearAll()`. Exposed as `window.RecordingDB`
+- **`js/components/RecordingDialog.js`**: Settings dialog component — resolution picker, cursor toggle, camera selector with `<video>` preview, microphone selector with animated level meter, Start / Cancel actions
+- **`js/controllers/RecordingController.js`**: Core recording engine — manages `getDisplayMedia` / `getUserMedia` streams, offscreen `<canvas>` compositing loop, `MediaRecorder` lifecycle, IndexedDB chunk persistence, and final blob assembly + download
+- **`css/recording.css`**: Styles for the recording dialog, camera preview, level meter, processing modal, and record button states
+
+**Files modified:**
+- **`index.html`**: Added Record button in the toolbar, `<link>` for `css/recording.css`, `<script>` tags for `recording_db.js`, `RecordingDialog.js`, and `RecordingController.js`
+- **`js/app.js`**: Instantiates `RecordingController` and wires it to the record button click handler
+- **`js/controllers/index.js`**: Added `RecordingController` to the controllers barrel export
+- **`js/controllers/PlaybackController.js`**: Integrated fullscreen exit to stop an active recording when the presentation ends
 
 ### UI: Add app icon to toolbar brand logo
 
