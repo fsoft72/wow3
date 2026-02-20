@@ -67,6 +67,9 @@ export class RecordingController {
     /** @type {number} Current chunk index for the recording session */
     this._chunkIndex = 0;
 
+    /** @type {Blob[]} In-memory chunk collection (primary source for assembly) */
+    this._chunks = [];
+
     /** @type {{ x: number, y: number }|null} Current PiP circle center position */
     this._pipPos = null;
 
@@ -130,12 +133,10 @@ export class RecordingController {
     this.isRecording = false;
 
     // Stop MediaRecorder and wait for final ondataavailable + onstop
+    // onstop fires after the last ondataavailable, so in-memory chunks are complete
     await new Promise(resolve => {
       if (this._mediaRecorder && this._mediaRecorder.state !== 'inactive') {
-        this._mediaRecorder.onstop = () => {
-          // Allow time for the final async IndexedDB write from ondataavailable
-          setTimeout(resolve, 200);
-        };
+        this._mediaRecorder.onstop = resolve;
         this._mediaRecorder.stop();
       } else {
         resolve();
@@ -151,9 +152,8 @@ export class RecordingController {
     const overlay = this._showProcessingModal();
 
     try {
-      // Get all chunks and concatenate
-      const chunks = await window.RecordingDB.getChunks(this._sessionId);
-      if (chunks.length === 0) {
+      // Use in-memory chunks (reliable) instead of IndexedDB (async, may lag)
+      if (this._chunks.length === 0) {
         toast.warning('No recording data captured');
         overlay.remove();
         this._cleanup();
@@ -161,9 +161,8 @@ export class RecordingController {
         return;
       }
 
-      const mimeType = chunks[0].blob.type || 'video/webm';
-      const blobs = chunks.map(c => c.blob);
-      const fullBlob = new Blob(blobs, { type: mimeType });
+      const mimeType = this._chunks[0].type || 'video/webm';
+      const fullBlob = new Blob(this._chunks, { type: mimeType });
 
       // Generate filename
       const title = (this.editor.presentation && this.editor.presentation.title)
@@ -335,19 +334,20 @@ export class RecordingController {
       videoBitsPerSecond: 5_000_000,
     });
 
-    // 12. Handle data chunks — save to IndexedDB
-    this._mediaRecorder.ondataavailable = async (event) => {
-      if (event.data && event.data.size > 0) {
-        try {
-          await window.RecordingDB.saveChunk(
-            this._sessionId,
-            this._chunkIndex++,
-            event.data
-          );
-        } catch (err) {
-          console.error('Failed to save recording chunk:', err);
-        }
-      }
+    // 12. Handle data chunks — keep in memory + persist to IndexedDB for crash resilience
+    this._chunks = [];
+    this._mediaRecorder.ondataavailable = (event) => {
+      if (!event.data || event.data.size === 0) return;
+
+      // Primary: in-memory array (used for final assembly)
+      this._chunks.push(event.data);
+
+      // Secondary: IndexedDB persistence (crash resilience, fire-and-forget)
+      window.RecordingDB.saveChunk(
+        this._sessionId,
+        this._chunkIndex++,
+        event.data
+      ).catch(err => console.error('Failed to persist chunk to IndexedDB:', err));
     };
 
     // 13. Start recording with chunk interval
@@ -691,6 +691,7 @@ export class RecordingController {
     this._pipDragging = false;
     this._pipDragOffset = null;
     this._chunkIndex = 0;
+    this._chunks = [];
   }
 }
 
