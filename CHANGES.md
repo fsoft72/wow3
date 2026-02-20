@@ -5,7 +5,7 @@
 ### UI: Add app icon to toolbar brand logo
 
 - **`index.html`**: Added `<img>` element with the 192x192 icon inside the brand-logo link (text removed, icon only). Added favicon link.
-- **`css/main.css`**: Added flexbox layout with gap to `.brand-logo`, centered alignment, sized the icon to 36x36px, reduced toolbar height to 40px
+- **`css/main.css`**: Added flexbox layout with gap to `.brand-logo`, centered alignment, sized the icon to 36x36px, reduced toolbar height to 40px. Presentation title input: 26px height, 4px padding, centered in toolbar.
 - **`favicon.ico`**: Generated favicon (48/32/16px) from the 192x192 icon using ImageMagick
 - **`js/views/UIManager.js`**: Added 96x96 WOW3 logo image to the About dialog
 

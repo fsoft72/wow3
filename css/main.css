@@ -64,7 +64,9 @@ body {
 #presentation-title-input {
   position: static;
   transform: none;
-  padding: 6px 12px;
+  height: 26px;
+  padding: 4px;
+  align-self: center;
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 4px;
