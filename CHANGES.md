@@ -1,5 +1,17 @@
 # WOW3 Development Changelog
 
+## 2026-02-20
+
+### Feature: Progressive Web App (PWA) support
+
+Made WOW3 installable as a desktop/mobile app with full offline support.
+
+- **`manifest.json`**: Created web app manifest with app metadata, standalone display mode, dark theme (`#1a1a2e`), and icon references
+- **`sw.js`**: Created service worker with cache-first strategy, pre-caching all local files (HTML, CSS, JS) and CDN resources (MaterializeCSS, Google Fonts, JSZip, html2canvas) for full offline support
+- **`index.html`**: Added PWA meta tags (`theme-color`, `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`), manifest link, Apple touch icon link, and service worker registration script
+- **`icons/`**: Created directory for app icons (user to provide `icon-192x192.png`, `icon-512x512.png`, `apple-touch-icon.png`)
+- **`scripts/new_version.sh`**: Created version bump script that updates version in both `UIManager.js` and `sw.js` cache version
+
 ## 2026-02-19
 
 ### Feature: "Play from this slide" toolbar button
