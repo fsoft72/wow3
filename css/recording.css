@@ -1,0 +1,112 @@
+/*
+ * WOW3 Recording Feature Styles
+ * Styles for the record button, settings dialog, camera preview,
+ * mic level meter, and processing modal.
+ */
+
+/* ==================== RECORD BUTTON ==================== */
+
+#record-btn i {
+    color: rgba(255, 255, 255, 0.9);
+    transition: color 0.2s;
+}
+
+#record-btn.recording-active i {
+    color: #f44336;
+    animation: recording-pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes recording-pulse {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+/* ==================== RECORDING SETTINGS DIALOG ==================== */
+
+.dialog-box.dialog-recording {
+    max-width: 480px;
+}
+
+.recording-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.recording-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.recording-field label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #424242;
+}
+
+.recording-field select {
+    height: 36px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.recording-field select:focus {
+    border-color: #2196F3;
+}
+
+.recording-divider {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 4px 0;
+}
+
+/* ==================== CAMERA PREVIEW ==================== */
+
+.recording-preview-container {
+    margin-top: 8px;
+}
+
+.recording-camera-preview {
+    width: 160px;
+    height: 120px;
+    border-radius: 8px;
+    background: #000;
+    object-fit: cover;
+}
+
+/* ==================== MIC LEVEL METER ==================== */
+
+.recording-mic-level {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.recording-mic-level-bar {
+    width: 0;
+    height: 100%;
+    background: linear-gradient(to right, #4caf50, #ffeb3b, #f44336);
+    border-radius: 4px;
+    transition: width 0.05s linear;
+}
+
+/* ==================== PROCESSING MODAL ==================== */
+
+.recording-processing-modal {
+    max-width: 360px;
+    text-align: center;
+}
+
+.recording-processing-modal .dialog-body {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.6;
+}
