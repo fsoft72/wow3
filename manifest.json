@@ -25,5 +25,13 @@
       "purpose": "maskable"
     }
   ],
-  "categories": ["productivity", "utilities"]
+  "categories": ["productivity", "utilities"],
+  "file_handlers": [
+    {
+      "action": ".",
+      "accept": {
+        "application/zip": [".wow3"]
+      }
+    }
+  ]
 }

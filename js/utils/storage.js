@@ -558,7 +558,7 @@ const mimeFromFilename = (filename) => {
  * @param {File} file - The .wow3 ZIP file
  * @returns {Promise<Object>} Presentation JSON data
  */
-const importZip = async (file) => {
+export const importZip = async (file) => {
   const zip = await JSZip.loadAsync(file);
 
   // Extract presentation.json

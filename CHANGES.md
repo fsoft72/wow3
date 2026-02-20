@@ -2,6 +2,13 @@
 
 ## 2026-02-20
 
+### Feature: Register .wow3 file handler for installed PWA
+
+- Added `file_handlers` to `manifest.json` to register `.wow3` extension with the OS
+- Added `setupFileHandler()` in `app.js` using the `LaunchQueue` API to receive files from the OS
+- Exported `importZip` from `storage.js` for direct use by the file handler
+- When the installed PWA is used to open a `.wow3` file, it automatically loads the presentation
+
 ### Feature: PWA install button
 
 - Added a `beforeinstallprompt` event handler so the browser install prompt is captured and deferred

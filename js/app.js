@@ -98,6 +98,9 @@ class WOW3App {
       this.initialized = true;
       console.log('WOW3 initialized successfully');
 
+      // Handle files opened from OS via File Handling API
+      this.setupFileHandler();
+
       // Show welcome message
       toast.success('WOW3 Ready!');
     } catch (error) {
@@ -155,6 +158,33 @@ class WOW3App {
       console.error('Failed to load presentation:', error);
       await this.editor.createNewPresentation(true);
     }
+  }
+
+  /**
+   * Setup File Handling API to open .wow3 files from the OS.
+   * When the installed PWA is used to open a .wow3 file, the OS
+   * launches the app and delivers the file via the launchQueue.
+   */
+  setupFileHandler() {
+    if (!('launchQueue' in window)) return;
+
+    window.launchQueue.setConsumer(async (launchParams) => {
+      if (!launchParams.files || launchParams.files.length === 0) return;
+
+      const handle = launchParams.files[0];
+      const file = await handle.getFile();
+      console.log(`📂 Opened file from OS: ${file.name}`);
+
+      try {
+        const { importZip } = await import('./utils/storage.js');
+        const data = await importZip(file);
+        await this.editor.loadPresentation(data);
+        toast.success(`Loaded ${file.name}`);
+      } catch (error) {
+        console.error('Failed to open file:', error);
+        toast.error('Failed to open file');
+      }
+    });
   }
 
   /**
