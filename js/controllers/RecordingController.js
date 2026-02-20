@@ -93,6 +93,9 @@ export class RecordingController {
 
     /** @type {Function|null} Bound mouseup handler for PiP drag */
     this._pipMouseUp = null;
+
+    /** @type {HTMLElement|null} Visible PiP overlay element on presentation view */
+    this._pipOverlay = null;
   }
 
   // ─── Public API ──────────────────────────────────────────
@@ -312,9 +315,10 @@ export class RecordingController {
       y: resolution.height - PIP_DIAMETER / 2 - PIP_MARGIN,
     };
 
-    // 7. Set up PiP drag if camera is enabled
+    // 7. Set up PiP drag and visible overlay if camera is enabled
     if (this._cameraStream) {
       this._setupPipDrag();
+      this._createPipOverlay();
     }
 
     // 8. Mark as recording BEFORE starting compositing loop (loop guard checks this flag)
@@ -542,6 +546,7 @@ export class RecordingController {
       newY = Math.max(r, Math.min(this._canvas.height - r, newY));
 
       this._pipPos = { x: newX, y: newY };
+      this._updatePipOverlayPosition();
 
       e.preventDefault();
       e.stopPropagation();
@@ -578,6 +583,69 @@ export class RecordingController {
     if (this._pipMouseUp) {
       document.removeEventListener('mouseup', this._pipMouseUp, true);
       this._pipMouseUp = null;
+    }
+  }
+
+  // ─── Private: PiP Overlay ──────────────────────────────
+
+  /**
+   * Create a visible camera circle overlay on #presentation-view.
+   * This lets the user see the PiP position during recording.
+   */
+  _createPipOverlay() {
+    const view = document.getElementById('presentation-view');
+    if (!view || !this._cameraStream) return;
+
+    this._pipOverlay = document.createElement('div');
+    this._pipOverlay.id = 'recording-pip-overlay';
+
+    const video = document.createElement('video');
+    video.srcObject = this._cameraStream;
+    video.muted = true;
+    video.playsInline = true;
+    video.autoplay = true;
+
+    this._pipOverlay.appendChild(video);
+    view.appendChild(this._pipOverlay);
+
+    this._updatePipOverlayPosition();
+  }
+
+  /**
+   * Update the PiP overlay DOM position to match the canvas-space _pipPos.
+   * Converts canvas coordinates to screen-relative coordinates within the view.
+   */
+  _updatePipOverlayPosition() {
+    if (!this._pipOverlay || !this._pipPos || !this._canvas) return;
+
+    const view = document.getElementById('presentation-view');
+    if (!view) return;
+
+    const rect = view.getBoundingClientRect();
+    const scaleX = this._canvas.width / rect.width;
+    const scaleY = this._canvas.height / rect.height;
+
+    // Convert canvas-space diameter to screen-space
+    const screenW = PIP_DIAMETER / scaleX;
+    const screenH = PIP_DIAMETER / scaleY;
+
+    // Convert canvas-space center to screen-space position
+    const screenCX = this._pipPos.x / scaleX;
+    const screenCY = this._pipPos.y / scaleY;
+
+    this._pipOverlay.style.width = `${screenW}px`;
+    this._pipOverlay.style.height = `${screenH}px`;
+    this._pipOverlay.style.left = `${screenCX - screenW / 2}px`;
+    this._pipOverlay.style.top = `${screenCY - screenH / 2}px`;
+  }
+
+  /**
+   * Remove the PiP overlay element from the DOM.
+   */
+  _removePipOverlay() {
+    if (this._pipOverlay) {
+      this._pipOverlay.remove();
+      this._pipOverlay = null;
     }
   }
 
@@ -680,8 +748,9 @@ export class RecordingController {
       this._mixAudioCtx = null;
     }
 
-    // Remove PiP drag listeners
+    // Remove PiP drag listeners and overlay
     this._removePipDrag();
+    this._removePipOverlay();
 
     // Null all references
     this._mediaRecorder = null;

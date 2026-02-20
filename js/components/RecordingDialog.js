@@ -176,14 +176,14 @@ export class RecordingDialog {
 
         <div class="recording-field">
           <label for="recording-cursor">
-            <input type="checkbox" id="recording-cursor" name="recording-cursor" checked />
+            <input type="checkbox" id="recording-cursor" name="recording-cursor" />
             <span>Show cursor</span>
           </label>
         </div>
 
         <div class="recording-field">
           <label for="recording-persist">
-            <input type="checkbox" id="recording-persist" name="recording-persist" checked />
+            <input type="checkbox" id="recording-persist" name="recording-persist" />
             <span>Save to IndexedDB (crash resilience)</span>
           </label>
         </div>

@@ -2,6 +2,17 @@
 
 ## 2026-02-20
 
+### Fix: Camera PiP overlay visibility and default settings
+
+- Added a visible camera circle overlay on `#presentation-view` during recording so the user can see the PiP position on screen (previously only visible in the final video)
+- The overlay mirrors the canvas PiP position and updates in real-time when dragged
+- Changed "Show Cursor" and "Save to IndexedDB" checkboxes to be **unchecked** by default in the Recording Settings dialog
+
+**Files modified:**
+- `js/controllers/RecordingController.js` — added `_pipOverlay`, `_createPipOverlay()`, `_updatePipOverlayPosition()`, `_removePipOverlay()` methods; wired overlay into recording lifecycle and drag handler
+- `js/components/RecordingDialog.js` — removed `checked` attribute from cursor and persist checkboxes
+- `css/recording.css` — added `#recording-pip-overlay` styles (circular, white border, drop shadow)
+
 ### Feature: Record Presentation
 
 Full-featured presentation recording with camera overlay, microphone mixing, and crash-resilient chunk storage.
