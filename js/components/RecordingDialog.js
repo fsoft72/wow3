@@ -32,6 +32,8 @@ const LEVEL_METER_FFT_SIZE = 256;
 // ─── RecordingDialog Class ───────────────────────────────
 
 export class RecordingDialog {
+  /** @type {Object|null} Static memory to persist settings across dialog openings in current session */
+  static _lastSettings = null;
 
   constructor() {
     /** @type {MediaStream|null} Active camera preview stream */
@@ -94,7 +96,18 @@ export class RecordingDialog {
     // If we got the Cancel button's null value instead
     if (!inputs || typeof inputs !== 'object') return null;
 
-    return this._parseResult(inputs);
+    const parsed = this._parseResult(inputs);
+
+    // Save to session memory
+    RecordingDialog._lastSettings = {
+      resolutionValue: inputs['recording-resolution'] || DEFAULT_RESOLUTION,
+      cursor: parsed.cursor,
+      persist: parsed.persist,
+      cameraDeviceId: inputs['recording-camera'] || 'OFF',
+      micDeviceId: inputs['recording-mic'] || 'OFF'
+    };
+
+    return parsed;
   };
 
   // ─── Private: Device Enumeration ─────────────────────────
@@ -146,22 +159,32 @@ export class RecordingDialog {
    * @returns {string}
    */
   _buildBody = (cameras, mics) => {
+    const last = RecordingDialog._lastSettings;
+
+    const currentResValue = last ? last.resolutionValue : DEFAULT_RESOLUTION;
+    const currentCursor = last ? last.cursor : false;
+    const currentPersist = last ? last.persist : false;
+    const currentCam = last ? last.cameraDeviceId : 'OFF';
+    const currentMic = last ? last.micDeviceId : 'OFF';
+
     const resolutionOptions = RESOLUTIONS.map(r => {
-      const selected = r.value === DEFAULT_RESOLUTION ? 'selected' : '';
+      const selected = r.value === currentResValue ? 'selected' : '';
       return `<option value="${r.value}" ${selected}>${r.label}</option>`;
     }).join('');
 
     const cameraOptions = ['<option value="OFF">OFF</option>']
       .concat(cameras.map((c, i) => {
         const label = c.label || `Camera ${i + 1}`;
-        return `<option value="${c.deviceId}">${label}</option>`;
+        const selected = c.deviceId === currentCam ? 'selected' : '';
+        return `<option value="${c.deviceId}" ${selected}>${label}</option>`;
       }))
       .join('');
 
     const micOptions = ['<option value="OFF">OFF</option>']
       .concat(mics.map((m, i) => {
         const label = m.label || `Microphone ${i + 1}`;
-        return `<option value="${m.deviceId}">${label}</option>`;
+        const selected = m.deviceId === currentMic ? 'selected' : '';
+        return `<option value="${m.deviceId}" ${selected}>${label}</option>`;
       }))
       .join('');
 
@@ -176,14 +199,14 @@ export class RecordingDialog {
 
         <div class="recording-field">
           <label for="recording-cursor">
-            <input type="checkbox" id="recording-cursor" name="recording-cursor" />
+            <input type="checkbox" id="recording-cursor" name="recording-cursor" ${currentCursor ? 'checked' : ''} />
             <span>Show cursor</span>
           </label>
         </div>
 
         <div class="recording-field">
           <label for="recording-persist">
-            <input type="checkbox" id="recording-persist" name="recording-persist" />
+            <input type="checkbox" id="recording-persist" name="recording-persist" ${currentPersist ? 'checked' : ''} />
             <span>Save to IndexedDB (crash resilience)</span>
           </label>
         </div>
@@ -234,12 +257,20 @@ export class RecordingDialog {
       cameraSelect.addEventListener('change', () => {
         this._handleCameraChange(box, cameraSelect.value);
       });
+      // Initial preview if device was remembered
+      if (cameraSelect.value !== 'OFF') {
+        this._handleCameraChange(box, cameraSelect.value);
+      }
     }
 
     if (micSelect) {
       micSelect.addEventListener('change', () => {
         this._handleMicChange(box, micSelect.value);
       });
+      // Initial meter if device was remembered
+      if (micSelect.value !== 'OFF') {
+        this._handleMicChange(box, micSelect.value);
+      }
     }
   };
 
