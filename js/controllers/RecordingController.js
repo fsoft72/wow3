@@ -317,26 +317,30 @@ export class RecordingController {
       this._setupPipDrag();
     }
 
-    // 8. Start compositing loop
+    // 8. Mark as recording BEFORE starting compositing loop (loop guard checks this flag)
+    this.isRecording = true;
+    this._updateRecordButton(true);
+
+    // 9. Start compositing loop
     this._startCompositing();
 
-    // 9. Get canvas stream at 30fps
+    // 10. Get canvas stream at 30fps
     const canvasStream = this._canvas.captureStream(30);
 
-    // 10. Mix audio tracks and add to canvas stream
+    // 11. Mix audio tracks and add to canvas stream
     const mixedAudioTracks = this._mixAudioTracks();
     for (const track of mixedAudioTracks) {
       canvasStream.addTrack(track);
     }
 
-    // 11. Create MediaRecorder with best supported mimeType
+    // 12. Create MediaRecorder with best supported mimeType
     const mimeType = this._getSupportedMimeType();
     this._mediaRecorder = new MediaRecorder(canvasStream, {
       mimeType,
       videoBitsPerSecond: 5_000_000,
     });
 
-    // 12. Handle data chunks — keep in memory + persist to IndexedDB for crash resilience
+    // 13. Handle data chunks — keep in memory + persist to IndexedDB for crash resilience
     this._chunks = [];
     this._mediaRecorder.ondataavailable = (event) => {
       if (!event.data || event.data.size === 0) return;
@@ -354,12 +358,8 @@ export class RecordingController {
       }
     };
 
-    // 13. Start recording with chunk interval
+    // 14. Start recording with chunk interval
     this._mediaRecorder.start(CHUNK_INTERVAL_MS);
-
-    // 14. Update state and UI
-    this.isRecording = true;
-    this._updateRecordButton(true);
 
     // 15. Auto-start playback from the beginning
     if (this.editor.playbackController) {

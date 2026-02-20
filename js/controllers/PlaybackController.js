@@ -148,10 +148,15 @@ export class PlaybackController {
         const last = this._findVisibleSlideReverse(this.editor.presentation.slides.length - 1);
         if (last !== -1) this.showSlide(last);
       }
-      // Exit: Escape
+      // Exit: Escape (if recording, stop recording which stops playback)
       else if (e.key === 'Escape') {
         e.preventDefault();
-        this.stop();
+        const recorder = this.editor.recordingController;
+        if (recorder && recorder.isRecording) {
+          recorder.stop();
+        } else {
+          this.stop();
+        }
       }
     };
 
