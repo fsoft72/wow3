@@ -318,11 +318,24 @@
     const installBtnWrapper = document.getElementById('install-btn-wrapper');
     const installBtn = document.getElementById('install-btn');
 
+    console.log('[PWA] Install button wrapper found:', !!installBtnWrapper);
+    console.log('[PWA] Install button found:', !!installBtn);
+    console.log('[PWA] Is standalone (already installed)?', window.matchMedia('(display-mode: standalone)').matches);
+    console.log('[PWA] Protocol:', window.location.protocol);
+    console.log('[PWA] Listening for beforeinstallprompt...');
+
+    // Check if the app is already installed via getInstalledRelatedApps
+    if ('getInstalledRelatedApps' in navigator) {
+      navigator.getInstalledRelatedApps().then((apps) => {
+        console.log('[PWA] Installed related apps:', apps.length, apps);
+      });
+    }
+
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredInstallPrompt = e;
       installBtnWrapper.style.display = '';
-      console.log('[PWA] Install prompt available');
+      console.log('[PWA] beforeinstallprompt fired! Platforms:', e.platforms);
     });
 
     installBtn.addEventListener('click', async (e) => {
@@ -340,6 +353,18 @@
       installBtnWrapper.style.display = 'none';
       console.log('[PWA] App installed successfully');
     });
+
+    // Log when SW is ready (install criteria requires active SW)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then((reg) => {
+        console.log('[PWA] Service Worker ready, active:', !!reg.active);
+        console.log('[PWA] If beforeinstallprompt has not fired, check:');
+        console.log('[PWA]   1. Is this served over HTTPS? (or localhost)');
+        console.log('[PWA]   2. Was the install prompt previously dismissed?');
+        console.log('[PWA]   3. Is the app already installed?');
+        console.log('[PWA]   4. Does manifest.json have valid icons (192+512)?');
+      });
+    }
   </script>
 </body>
 </html>
