@@ -2,6 +2,11 @@
 
 ## 2026-02-20
 
+### feat: Add RecordingDB IndexedDB storage for recording chunks
+
+- **`js/utils/recording_db.js`** (new): IndexedDB manager for recording chunks following the MediaDB pattern. DB name `wow3_recordings`, store `recording_chunks` with autoIncrement `id` keyPath and `sessionId` index. Methods: `init()` (lazy singleton), `saveChunk(sessionId, chunkIndex, blob)`, `getChunks(sessionId)` (sorted by chunkIndex), `deleteSession(sessionId)` (cursor-based deletion), `clearAll()`. Exposed globally as `window.RecordingDB`.
+- **`index.html`**: Added `<script src="js/utils/recording_db.js"></script>` after `media_db.js` in the utilities section.
+
 ### UI: Add app icon to toolbar brand logo
 
 - **`index.html`**: Added `<img>` element with the 192x192 icon inside the brand-logo link (text removed, icon only). Added favicon link.
