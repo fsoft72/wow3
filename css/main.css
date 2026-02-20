@@ -5,7 +5,7 @@
 
 :root {
   --sidebar-width: 280px;
-  --toolbar-height: 64px;
+  --toolbar-height: 40px;
   --statusbar-height: 32px;
   --canvas-bg: #f5f5f5;
   --sidebar-bg: #ffffff;
@@ -57,8 +57,8 @@ body {
 }
 
 #top-menu .brand-logo .brand-icon {
-  width: 64px;
-  height: 64px;
+  width: 36px;
+  height: 36px;
 }
 
 #presentation-title-input {
