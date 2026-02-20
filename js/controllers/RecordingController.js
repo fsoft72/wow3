@@ -239,14 +239,14 @@ export class RecordingController {
 
     const { resolution, cursor, cameraDeviceId, micDeviceId } = settings;
 
-    // 1. Capture tab/screen
+    // 1. Capture tab/screen (cursor is a top-level DisplayMediaStreamOptions property)
     this._tabStream = await navigator.mediaDevices.getDisplayMedia({
       video: {
-        cursor: cursor ? 'always' : 'never',
         width: { ideal: resolution.width },
         height: { ideal: resolution.height },
       },
       audio: true,
+      cursor: cursor ? 'always' : 'never',
       preferCurrentTab: true,
     });
 
@@ -593,8 +593,7 @@ export class RecordingController {
    * This lets the user see the PiP position during recording.
    */
   _createPipOverlay() {
-    const view = document.getElementById('presentation-view');
-    if (!view || !this._cameraStream) return;
+    if (!this._cameraStream) return;
 
     this._pipOverlay = document.createElement('div');
     this._pipOverlay.id = 'recording-pip-overlay';
@@ -606,24 +605,23 @@ export class RecordingController {
     video.autoplay = true;
 
     this._pipOverlay.appendChild(video);
-    view.appendChild(this._pipOverlay);
+    document.body.appendChild(this._pipOverlay);
 
     this._updatePipOverlayPosition();
   }
 
   /**
    * Update the PiP overlay DOM position to match the canvas-space _pipPos.
-   * Converts canvas coordinates to screen-relative coordinates within the view.
+   * Uses window dimensions for conversion since the presentation view fills the viewport.
+   * This works even before the view is visible (avoids zero-size getBoundingClientRect).
    */
   _updatePipOverlayPosition() {
     if (!this._pipOverlay || !this._pipPos || !this._canvas) return;
 
-    const view = document.getElementById('presentation-view');
-    if (!view) return;
-
-    const rect = view.getBoundingClientRect();
-    const scaleX = this._canvas.width / rect.width;
-    const scaleY = this._canvas.height / rect.height;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const scaleX = this._canvas.width / vw;
+    const scaleY = this._canvas.height / vh;
 
     // Convert canvas-space diameter to screen-space
     const screenW = PIP_DIAMETER / scaleX;
