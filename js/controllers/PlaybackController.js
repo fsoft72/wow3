@@ -170,7 +170,13 @@ export class PlaybackController {
     // Exit fullscreen handler
     const fullscreenChangeHandler = () => {
       if (!document.fullscreenElement && this.isPlaying) {
-        this.stop();
+        // If recording is active, stop recording first (which will stop playback)
+        const recorder = this.editor.recordingController;
+        if (recorder && recorder.isRecording) {
+          recorder.stop();
+        } else {
+          this.stop();
+        }
       }
     };
 
