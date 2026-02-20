@@ -4,8 +4,9 @@
 
 ### UI: Add app icon to toolbar brand logo
 
-- **`index.html`**: Added `<img>` element with the 192x192 icon inside the brand-logo link, before the "WOW3" text
-- **`css/main.css`**: Added flexbox layout with gap to `.brand-logo` and sized the icon to 24x24px
+- **`index.html`**: Added `<img>` element with the 192x192 icon inside the brand-logo link, before the "WOW3" text. Added favicon link.
+- **`css/main.css`**: Added flexbox layout with gap to `.brand-logo`, centered alignment, and sized the icon to 64x64px
+- **`favicon.ico`**: Generated favicon (48/32/16px) from the 192x192 icon using ImageMagick
 
 ### Feature: Progressive Web App (PWA) support
 
