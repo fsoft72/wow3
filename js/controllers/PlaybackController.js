@@ -227,9 +227,15 @@ export class PlaybackController {
       }
     }
 
-    // Remove all children EXCEPT the continuing audio element
+    // If a recording PiP overlay exists, preserve it as well
+    const pipOverlay = this.presentationView.querySelector('#recording-pip-overlay');
+    if (pipOverlay) {
+      this.presentationView.appendChild(pipOverlay);
+    }
+
+    // Remove all children EXCEPT the continuing audio element and PiP overlay
     Array.from(this.presentationView.children).forEach(child => {
-      if (child !== continuingAudioElement) {
+      if (child !== continuingAudioElement && child !== pipOverlay) {
         child.remove();
       }
     });
