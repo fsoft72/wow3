@@ -4,7 +4,7 @@
  * Bump CACHE_VERSION when deploying updates to force re-caching.
  */
 
-const CACHE_VERSION = 'wow3-v0.8.0';
+const CACHE_VERSION = 'wow3-v0.8.1';
 
 /** Local app files to pre-cache */
 const LOCAL_FILES = [
