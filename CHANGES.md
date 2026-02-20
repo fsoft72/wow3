@@ -2,6 +2,11 @@
 
 ## 2026-02-20
 
+### UI: Add app icon to toolbar brand logo
+
+- **`index.html`**: Added `<img>` element with the 192x192 icon inside the brand-logo link, before the "WOW3" text
+- **`css/main.css`**: Added flexbox layout with gap to `.brand-logo` and sized the icon to 24x24px
+
 ### Feature: Progressive Web App (PWA) support
 
 Made WOW3 installable as a desktop/mobile app with full offline support.
