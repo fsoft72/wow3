@@ -10,3 +10,4 @@ export { AnimationEditorController } from './AnimationEditorController.js';
 export { PlaybackController } from './PlaybackController.js';
 export { SettingsController } from './SettingsController.js';
 export { RecordingController } from './RecordingController.js';
+export { RemoteController } from './RemoteController.js';

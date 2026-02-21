@@ -4,7 +4,7 @@
  * Bump CACHE_VERSION when deploying updates to force re-caching.
  */
 
-const CACHE_VERSION = 'wow3-v0.9.3';
+const CACHE_VERSION = 'wow3-v0.9.4';
 
 /** Local app files to pre-cache */
 const LOCAL_FILES = [
@@ -25,6 +25,8 @@ const LOCAL_FILES = [
   'css/gradient-manager.css',
   'css/countdown-timer.css',
   'css/settings.css',
+  // Mobile remote control
+  'mobile/index.html',
   // JS - Utils
   'js/utils/presentations_db.js',
   'js/utils/media_db.js',
@@ -70,6 +72,7 @@ const LOCAL_FILES = [
   'js/controllers/AnimationEditorController.js',
   'js/controllers/PlaybackController.js',
   'js/controllers/SettingsController.js',
+  'js/controllers/RemoteController.js',
   // JS - Views
   'js/views/index.js',
   'js/views/UIManager.js',
@@ -110,6 +113,10 @@ const CDN_FILES = [
   'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
   // html2canvas
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+  // PeerJS
+  'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js',
+  // QRCode
+  'https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js',
   // Material Icons
   'https://fonts.googleapis.com/icon?family=Material+Icons',
   // Google Fonts

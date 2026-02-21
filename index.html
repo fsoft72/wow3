@@ -69,6 +69,7 @@
         <li><a href="#" id="import-btn" title="Import Presentation"><i class="material-icons">download</i></a></li>
         <li><a href="#" id="export-btn" title="Export Presentation"><i class="material-icons">backup</i></a></li>
         <li class="divider-vertical"></li>
+        <li><a href="#" id="remote-btn" title="Remote Controller"><i class="material-icons">settings_remote</i></a></li>
         <li><a href="#" id="record-btn" title="Record Presentation"><i class="material-icons">fiber_manual_record</i></a></li>
         <li><a href="#" id="play-from-slide-btn" title="Play from this slide"><i class="material-icons">slideshow</i></a></li>
         <li><a href="#" id="play-btn" title="Play Presentation"><i class="material-icons">play_arrow</i></a></li>
@@ -280,6 +281,12 @@
 
   <!-- html2canvas for slide thumbnails -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- PeerJS for WebRTC remote control -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <!-- QRCode for remote controller QR generation -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 
   <!-- Utilities & Managers (Must load before modules) -->
   <script src="js/utils/presentations_db.js"></script>

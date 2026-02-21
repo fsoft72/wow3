@@ -1,5 +1,25 @@
 # WOW3 Development Changelog
 
+## 2026-02-21
+
+### Feature: Mobile Remote Controller
+
+- Added WebRTC-based remote control via PeerJS (CDN library, P2P communication)
+- New `mobile/index.html` — self-contained page with two large buttons (prev/next) for controlling presentations from a phone
+  - Landscape-only layout with full viewport buttons
+  - Auto-reconnect on connection drop
+  - Connection status indicator
+  - Forces landscape orientation via `screen.orientation.lock()` + CSS fallback
+- New `js/controllers/RemoteController.js` — desktop-side controller
+  - Creates PeerJS peer with random ID (e.g. `wow3-A1B2C3`)
+  - Generates QR code via qrcode.js CDN library
+  - Shows pairing dialog with QR code, text code, and connection status
+  - Forwards `next`/`prev` commands to `PlaybackController` only during active playback
+  - Peer stays alive after dialog close — once paired, works until page reload
+- Added "Remote Controller" button (settings_remote icon) in toolbar-right, before Record button
+- Added PeerJS and QRCode CDN scripts to `index.html` and service worker cache
+- Bumped `CACHE_VERSION` to `wow3-v0.9.4`
+
 ## 2026-02-20
 
 ### Feature: Auto-update with confirmation dialog

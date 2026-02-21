@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a1a">
+  <title>WOW3 Remote</title>
+
+  <!-- PeerJS -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #1a1a1a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Force landscape via CSS fallback */
+    @media (orientation: portrait) {
+      body {
+        transform: rotate(90deg);
+        transform-origin: top left;
+        width: 100vh;
+        height: 100vw;
+        position: absolute;
+        top: 0;
+        left: 100%;
+      }
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100dvh;
+    }
+
+    /* ── Status Bar ── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 36px;
+      min-height: 36px;
+      background: #111;
+      color: #aaa;
+      font-size: 14px;
+      padding: 0 16px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #f44336;
+      transition: background 0.3s;
+    }
+
+    .status-dot.connecting {
+      background: #ff9800;
+      animation: pulse 1.2s infinite;
+    }
+
+    .status-dot.connected {
+      background: #4caf50;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ── Buttons Area ── */
+    .buttons {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .btn-remote {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+      font-weight: 600;
+      color: #fff;
+      transition: filter 0.1s;
+      outline: none;
+    }
+
+    .btn-remote:active {
+      filter: brightness(1.3);
+    }
+
+    .btn-remote:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .btn-remote:disabled:active {
+      filter: none;
+    }
+
+    .btn-prev {
+      background: #333;
+      border-right: 1px solid #222;
+    }
+
+    .btn-next {
+      background: #1565C0;
+    }
+
+    .btn-arrow {
+      font-size: 40px;
+      line-height: 1;
+    }
+
+    /* ── Connection Screen ── */
+    .connect-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      color: #aaa;
+      font-size: 18px;
+      gap: 16px;
+      padding: 20px;
+    }
+
+    .connect-screen .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #333;
+      border-top-color: #1565C0;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .connect-screen .error-text {
+      color: #f44336;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .connect-screen .retry-btn {
+      background: #1565C0;
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .connect-screen .retry-btn:active {
+      filter: brightness(1.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <!-- Initial: connecting screen -->
+    <div class="status-bar">
+      <div class="status-dot connecting" id="status-dot"></div>
+      <span id="status-text">Connecting...</span>
+    </div>
+    <div class="connect-screen" id="connect-screen">
+      <div class="spinner"></div>
+      <div>Connecting to presentation...</div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      // ── Constants ──
+      const RECONNECT_DELAY_MS = 2000;
+      const MAX_RECONNECT_ATTEMPTS = 30;
+
+      // ── DOM refs ──
+      const statusDot = document.getElementById('status-dot');
+      const statusText = document.getElementById('status-text');
+      const connectScreen = document.getElementById('connect-screen');
+      const app = document.getElementById('app');
+
+      // ── State ──
+      let peer = null;
+      let conn = null;
+      let peerCode = null;
+      let reconnectAttempts = 0;
+      let reconnectTimer = null;
+      let isConnected = false;
+
+      /**
+       * Read the peer code from URL query param
+       * @returns {string|null}
+       */
+      const getPeerCode = () => {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('code');
+      };
+
+      /**
+       * Update the status UI
+       * @param {'connecting'|'connected'|'disconnected'|'error'} state
+       * @param {string} [message]
+       */
+      const setStatus = (state, message) => {
+        statusDot.className = 'status-dot';
+
+        if (state === 'connecting') {
+          statusDot.classList.add('connecting');
+          statusText.textContent = message || 'Connecting...';
+        } else if (state === 'connected') {
+          statusDot.classList.add('connected');
+          statusText.textContent = message || 'Connected';
+        } else if (state === 'disconnected' || state === 'error') {
+          statusText.textContent = message || 'Disconnected';
+        }
+      };
+
+      /**
+       * Show the remote control buttons
+       */
+      const showButtons = () => {
+        connectScreen.remove();
+
+        const buttons = document.createElement('div');
+        buttons.className = 'buttons';
+        buttons.innerHTML = `
+          <button class="btn-remote btn-prev" id="btn-prev">
+            <span class="btn-arrow">&#9664;</span>
+            <span>PREV</span>
+          </button>
+          <button class="btn-remote btn-next" id="btn-next">
+            <span>NEXT</span>
+            <span class="btn-arrow">&#9654;</span>
+          </button>
+        `;
+        app.appendChild(buttons);
+
+        document.getElementById('btn-prev').addEventListener('click', () => sendCommand('prev'));
+        document.getElementById('btn-next').addEventListener('click', () => sendCommand('next'));
+      };
+
+      /**
+       * Send a command to the presentation
+       * @param {string} cmd - 'next' or 'prev'
+       */
+      const sendCommand = (cmd) => {
+        if (!conn || !conn.open) return;
+        conn.send(cmd);
+      };
+
+      /**
+       * Connect to the presentation peer
+       */
+      const connect = () => {
+        if (!peerCode) return;
+
+        // Clean up any existing peer
+        if (peer) {
+          peer.destroy();
+          peer = null;
+        }
+
+        setStatus('connecting', 'Connecting...');
+
+        peer = new Peer();
+
+        peer.on('open', () => {
+          conn = peer.connect(peerCode, { reliable: true });
+
+          conn.on('open', () => {
+            isConnected = true;
+            reconnectAttempts = 0;
+            setStatus('connected');
+
+            // Show buttons on first connection
+            if (document.getElementById('connect-screen')) {
+              showButtons();
+            }
+          });
+
+          conn.on('close', () => {
+            isConnected = false;
+            setStatus('disconnected', 'Disconnected');
+            scheduleReconnect();
+          });
+
+          conn.on('error', () => {
+            isConnected = false;
+            setStatus('error', 'Connection error');
+            scheduleReconnect();
+          });
+        });
+
+        peer.on('error', (err) => {
+          console.warn('[Remote] Peer error:', err);
+          isConnected = false;
+
+          if (err.type === 'peer-unavailable') {
+            setStatus('error', 'Presentation not found');
+          } else {
+            setStatus('error', 'Connection error');
+          }
+          scheduleReconnect();
+        });
+
+        peer.on('disconnected', () => {
+          if (!isConnected) {
+            scheduleReconnect();
+          }
+        });
+      };
+
+      /**
+       * Schedule a reconnection attempt
+       */
+      const scheduleReconnect = () => {
+        if (reconnectTimer) return;
+        if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+          setStatus('error', 'Could not reconnect');
+
+          // Show retry button if still on connect screen
+          if (document.getElementById('connect-screen')) {
+            connectScreen.innerHTML = `
+              <div class="error-text">Could not connect to presentation.<br>Check the code and try again.</div>
+              <button class="retry-btn" onclick="location.reload()">Retry</button>
+            `;
+          }
+          return;
+        }
+
+        reconnectAttempts++;
+        setStatus('connecting', `Reconnecting (${reconnectAttempts})...`);
+
+        reconnectTimer = setTimeout(() => {
+          reconnectTimer = null;
+          connect();
+        }, RECONNECT_DELAY_MS);
+      };
+
+      // ── Init ──
+      peerCode = getPeerCode();
+
+      if (!peerCode) {
+        setStatus('error', 'No code provided');
+        connectScreen.innerHTML = `
+          <div class="error-text">No presentation code found in the URL.</div>
+        `;
+      } else {
+        // Try to lock landscape orientation
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(() => {});
+        }
+
+        connect();
+      }
+    })();
+  </script>
+</body>
+</html>

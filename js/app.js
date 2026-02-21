@@ -12,7 +12,8 @@ import {
   AnimationEditorController,
   PlaybackController,
   SettingsController,
-  RecordingController
+  RecordingController,
+  RemoteController
 } from './controllers/index.js';
 import { loadSettings } from './utils/settings.js';
 import {
@@ -58,6 +59,7 @@ class WOW3App {
       this.editor.animationEditorController = new AnimationEditorController(this.editor);
       this.editor.playbackController = new PlaybackController(this.editor);
       this.editor.recordingController = new RecordingController(this.editor);
+      this.editor.remoteController = new RemoteController(this.editor);
 
       // Initialize Settings Controller
       this.settingsController = new SettingsController(this.editor);
@@ -67,6 +69,7 @@ class WOW3App {
       await this.editor.animationEditorController.init();
       await this.editor.playbackController.init();
       await this.editor.recordingController.init();
+      this.editor.remoteController.init();
       this.settingsController.init();
 
       // Initialize interaction handlers
