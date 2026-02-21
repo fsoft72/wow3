@@ -71,20 +71,6 @@ export class RemoteController {
 
     const mobileUrl = `${window.location.origin}${window.location.pathname.replace(/\/[^/]*$/, '/mobile/')}?code=${this._peerId}`;
 
-    // Build QR canvas
-    const qrCanvas = document.createElement('canvas');
-    try {
-      await QRCode.toCanvas(qrCanvas, mobileUrl, {
-        width: 220,
-        margin: 2,
-        color: { dark: '#000000', light: '#ffffff' }
-      });
-    } catch (err) {
-      console.error('[Remote] QR generation failed:', err);
-      toast.error('Failed to generate QR code');
-      return;
-    }
-
     // Build dialog body
     const statusLabel = this.isConnected ? 'Connected' : 'Waiting for connection...';
     const statusColor = this.isConnected ? '#4caf50' : '#ff9800';
@@ -115,8 +101,20 @@ export class RemoteController {
       ],
       onRender: (box) => {
         const container = box.querySelector('#remote-qr-container');
-        if (container) {
-          container.appendChild(qrCanvas);
+        if (!container) return;
+
+        try {
+          new QRCode(container, {
+            text: mobileUrl,
+            width: 220,
+            height: 220,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+          });
+        } catch (err) {
+          console.error('[Remote] QR generation failed:', err);
+          container.textContent = mobileUrl;
         }
       }
     });

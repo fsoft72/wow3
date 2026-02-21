@@ -115,8 +115,8 @@ const CDN_FILES = [
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
   // PeerJS
   'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js',
-  // QRCode
-  'https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js',
+  // QRCode.js
+  'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
   // Material Icons
   'https://fonts.googleapis.com/icon?family=Material+Icons',
   // Google Fonts
