@@ -118,7 +118,7 @@ export class UIManager {
             <p style="margin: 0 0 10px 0;">This software is Open Source under the MIT license</p>
             <p style="margin: 0 0 15px 0;">Please, star us on <a href="https://github.com/fsoft72/wow3" target="_blank" rel="noopener">Github</a>!</p>
             <p style="margin: 0 0 15px 0;"><a href="https://buymeacoffee.com/fsoft" target="_blank" rel="noopener"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 40px;"></a></p>
-            <p style="margin: 0; font-size: 0.9em; color: #888;">v. 0.10.0</p>
+            <p style="margin: 0; font-size: 0.9em; color: #888;">v. 0.11.0</p>
           </div>
         `,
 				buttons: [{ text: "OK", type: "primary", value: true }],
