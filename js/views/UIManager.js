@@ -112,12 +112,12 @@ export class UIManager {
 				title: "About",
 				body: `
           <div style="text-align: center; line-height: 1.8;">
-            <img src="icons/icon-192x192.png" alt="WOW3" style="width: 96px; height: 96px; margin-bottom: 10px;">
-            <h4 style="margin: 0 0 5px 0; font-weight: bold;">wow3</h4>
+            <img src="icons/logo.png" alt="WOW3" style="max-width: 200px; margin-bottom: 10px;">
             <p style="margin: 0 0 15px 0;">the browser based presentation app</p>
             <p style="margin: 0 0 10px 0;">written by <a href="https://github.com/fsoft72" target="_blank" rel="noopener">Fabio "fsoft" Rotondo</a></p>
             <p style="margin: 0 0 10px 0;">This software is Open Source under the MIT license</p>
             <p style="margin: 0 0 15px 0;">Please, star us on <a href="https://github.com/fsoft72/wow3" target="_blank" rel="noopener">Github</a>!</p>
+            <p style="margin: 0 0 15px 0;"><a href="https://buymeacoffee.com/fsoft" target="_blank" rel="noopener"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 40px;"></a></p>
             <p style="margin: 0; font-size: 0.9em; color: #888;">v. 0.10.0</p>
           </div>
         `,
