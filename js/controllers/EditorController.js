@@ -285,6 +285,9 @@ export class EditorController {
     // Re-render the new presentation
     await this.render();
 
+    // Notify listeners that slide 0 is now active so panels (e.g. Elements) refresh
+    appEvents.emit(AppEvents.SLIDE_SELECTED, 0);
+
     // Save snapshot of new presentation
     saveSnapshot(this.presentation);
 
