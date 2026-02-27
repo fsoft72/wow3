@@ -19,6 +19,16 @@
   - Reuses `importPresentation()` from storage.js (handles ZIP asset ingestion + URL rewriting)
   - Added `pickPresentationFile()` method to `EditorController` for file picker access
 
+### Feature: Slide Copy / Cut / Paste
+
+- Added slide clipboard to `SlideController` with `copySlide()`, `cutSlide()`, `pasteSlide()` methods
+- Right-click context menu on slides now includes Copy, Cut, Paste items (with dividers)
+  - Cut disabled when only one slide remains; Paste disabled when clipboard is empty
+- Keyboard shortcuts Ctrl+C / Ctrl+X / Ctrl+V now route to slide operations when no elements are selected
+  - Elements take priority: if elements are selected, element copy/cut runs instead
+  - Paste prefers element clipboard if it has data, otherwise pastes slide
+- Pasted slides are cloned via `importSlidesFromPresentation()` (new IDs, cleared `shellId`)
+
 ## 2026-02-21
 
 ### Feature: Mobile Remote Controller

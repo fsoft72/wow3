@@ -22,6 +22,9 @@ export class SlideController {
     /** @type {number|null} Debounce timer for thumbnail capture */
     this._thumbTimer = null;
 
+    /** @type {Object|null} Slide clipboard (JSON snapshot for copy/paste) */
+    this.slideClipboard = null;
+
     /** @type {number} Debounce delay in ms */
     this.THUMB_DEBOUNCE_MS = 2000;
   }
@@ -749,9 +752,28 @@ export class SlideController {
           this.renderSlides();
         }
       },
+      { divider: true },
+      {
+        label: 'Copy',
+        icon: 'content_copy',
+        action: () => this.copySlide()
+      },
+      {
+        label: 'Cut',
+        icon: 'content_cut',
+        action: () => this.cutSlide(),
+        disabled: this.editor.presentation.slides.length <= 1
+      },
+      {
+        label: 'Paste',
+        icon: 'content_paste',
+        action: () => this.pasteSlide(),
+        disabled: !this.slideClipboard
+      },
+      { divider: true },
       {
         label: 'Duplicate',
-        icon: 'content_copy',
+        icon: 'file_copy',
         action: () => this.duplicateSlide(index)
       },
       {
@@ -785,6 +807,44 @@ export class SlideController {
    */
   deleteSlide(index) {
     this.editor.deleteSlide(index);
+  }
+
+  /**
+   * Copy the current slide to the slide clipboard
+   */
+  copySlide() {
+    const slide = this.editor.presentation.getCurrentSlide();
+    if (!slide) return;
+
+    this.slideClipboard = slide.toJSON();
+    toast.success('Slide copied');
+  }
+
+  /**
+   * Cut the current slide to the slide clipboard (copy + delete)
+   */
+  cutSlide() {
+    if (this.editor.presentation.slides.length <= 1) {
+      toast.warning('Cannot cut the last slide');
+      return;
+    }
+
+    const index = this.editor.presentation.currentSlideIndex;
+    const slide = this.editor.presentation.slides[index];
+    if (!slide) return;
+
+    this.slideClipboard = slide.toJSON();
+    this.editor.deleteSlide(index);
+    toast.success('Slide cut');
+  }
+
+  /**
+   * Paste slide from the slide clipboard after the current slide
+   */
+  pasteSlide() {
+    if (!this.slideClipboard) return;
+
+    this.editor.importSlidesFromPresentation([this.slideClipboard]);
   }
 
   /**

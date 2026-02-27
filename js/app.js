@@ -275,25 +275,31 @@ class WOW3App {
           this.editor.elementController.nudgeSelected(dx, dy);
         }
       }
-      // Copy: Ctrl+C
+      // Copy: Ctrl+C (elements if selected, otherwise current slide)
       else if (ctrl && e.key === 'c') {
         e.preventDefault();
-        if (this.editor && this.editor.elementController) {
+        if (this.editor?.elementController?._selectedElements?.size > 0) {
           this.editor.elementController.copySelectedElements();
+        } else if (this.editor?.slideController) {
+          this.editor.slideController.copySlide();
         }
       }
-      // Cut: Ctrl+X
+      // Cut: Ctrl+X (elements if selected, otherwise current slide)
       else if (ctrl && e.key === 'x') {
         e.preventDefault();
-        if (this.editor && this.editor.elementController) {
+        if (this.editor?.elementController?._selectedElements?.size > 0) {
           this.editor.elementController.cutSelectedElements();
+        } else if (this.editor?.slideController) {
+          this.editor.slideController.cutSlide();
         }
       }
-      // Paste: Ctrl+V
+      // Paste: Ctrl+V (elements if element clipboard has data, otherwise slide)
       else if (ctrl && e.key === 'v') {
         e.preventDefault();
-        if (this.editor && this.editor.elementController) {
+        if (this.editor?.elementController?.clipboard) {
           this.editor.elementController.pasteElements();
+        } else if (this.editor?.slideController?.slideClipboard) {
+          this.editor.slideController.pasteSlide();
         }
       }
       // Duplicate: Ctrl+D
