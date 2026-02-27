@@ -41,6 +41,10 @@ export class UIManager {
 		await TemplateManager.init();
 		this.attachTemplateManagerButton();
 
+		// Initialize global SlideImporter and attach button handler
+		await SlideImporter.init();
+		this.attachSlideImporterButton();
+
 		// Attach About dialog to brand logo
 		this.attachAboutDialog();
 
@@ -79,6 +83,18 @@ export class UIManager {
 		if (btn) {
 			btn.addEventListener("click", () => {
 				TemplateManager.open();
+			});
+		}
+	}
+
+	/**
+	 * Attach slide importer button click handler
+	 */
+	attachSlideImporterButton() {
+		const btn = document.getElementById("insert-slides-btn");
+		if (btn) {
+			btn.addEventListener("click", () => {
+				SlideImporter.open();
 			});
 		}
 	}

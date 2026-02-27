@@ -1,5 +1,21 @@
 # WOW3 Development Changelog
 
+## 2026-02-27
+
+### Feature: Slide Importer (Cherry-Picker)
+
+- New `SlideImporter` singleton (`js/utils/slide_importer.js`) — two-step overlay for importing slides from other saved presentations
+  - Step 1: Browse saved presentations (excluding current one) with search and date grouping
+  - Step 2: View slide thumbnails with checkbox selection, Select All/None, and Import button
+  - Slides are cloned with new IDs, `shellId` cleared, and inserted after the current slide
+  - Falls back to miniature HTML preview when no stored thumbnail is available
+- New `css/slide-importer.css` — overlay/card styles with `si-` prefix, orange accent color (#FF9800)
+- Added `importSlidesFromPresentation()` method to `EditorController` — handles cloning, inserting, history recording, and navigation
+- Added "Insert Slides" button (library_add icon, orange) to the left sidebar next to Templates
+- Wired initialization in `UIManager.init()` and button handler in `attachSlideImporterButton()`
+- Added i18n keys: `insert_slides`, `select_all`, `select_none`, `import_slides`
+- Added CSS, script, and button references to `index.html`
+
 ## 2026-02-21
 
 ### Feature: Mobile Remote Controller

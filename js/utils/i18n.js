@@ -17,6 +17,12 @@ window.translationsEn = {
   'search_presentations': 'Search presentations...',
   'new_presentation': 'New Presentation',
 
+  // Slide Importer
+  'insert_slides': 'Insert Slides',
+  'select_all': 'Select All',
+  'select_none': 'Select None',
+  'import_slides': 'Import',
+
   // Dialog
   'ok': 'OK',
   'cancel': 'Cancel',

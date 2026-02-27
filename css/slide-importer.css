@@ -1,0 +1,402 @@
+/* =========================================
+   SLIDE IMPORTER
+   ========================================= */
+
+/* Modal Overlay */
+#slide-importer-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Roboto', sans-serif;
+}
+#slide-importer-overlay.active { display: flex; }
+
+/* Main Window */
+#slide-importer-window {
+    width: 90%;
+    max-width: 1200px;
+    height: 85%;
+    background: #111;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+/* Header */
+.si-header {
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    background: #161616;
+}
+.si-title-group h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.si-count {
+    background: #FF9800;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    vertical-align: middle;
+}
+.si-controls { display: flex; gap: 15px; align-items: center; }
+
+/* Back button */
+.btn-si-back {
+    background: transparent;
+    border: 1px solid #555;
+    color: #ccc;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s, color 0.2s;
+}
+.btn-si-back:hover { background: #333; color: #fff; }
+
+/* Close button */
+.btn-si-icon {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 5px;
+}
+.btn-si-icon:hover { color: #fff; }
+
+/* Content Area */
+.si-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    flex-direction: column;
+}
+
+/* Toolbar (step 2) */
+.si-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 30px;
+    background: #161616;
+    border-bottom: 1px solid #333;
+}
+.si-toolbar-spacer { flex: 1; }
+.si-selected-count {
+    color: #aaa;
+    font-size: 13px;
+}
+
+.btn-si-tool {
+    background: #333;
+    color: #ccc;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.btn-si-tool:hover { background: #444; color: #fff; }
+
+/* Import button */
+.btn-si-import {
+    background: #FF9800;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: background 0.2s, opacity 0.2s;
+}
+.btn-si-import:hover { background: #F57C00; }
+.btn-si-import:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Main Grid */
+.si-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    background: #000;
+}
+
+/* Date Group */
+.si-date-group { margin-bottom: 30px; }
+.si-date-header {
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.si-date-header span {
+    color: #FF9800;
+    font-weight: normal;
+    font-size: 14px;
+}
+
+/* Presentation Grid */
+.si-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* Presentation Card */
+.si-card {
+    background: #1a1a1a;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #333;
+}
+.si-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border-color: #555;
+}
+
+.si-card-preview {
+    height: 180px;
+    width: 100%;
+    background: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+.si-card-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.si-card-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+}
+.si-card-placeholder i {
+    font-size: 64px;
+    color: #444;
+}
+
+.si-card-info { padding: 12px; }
+.si-card-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.si-card-meta {
+    font-size: 11px;
+    color: #888;
+}
+
+/* Hover Actions */
+.si-card-actions {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 180px;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 5;
+}
+.si-card:hover .si-card-actions { opacity: 1; }
+.btn-si-action {
+    background: #FF9800;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.btn-si-action:hover { background: #F57C00; }
+
+/* Search Bar */
+.si-search-bar {
+    background: #222;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    width: 300px;
+}
+.si-search-bar input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    width: 100%;
+    margin: 0;
+    padding: 5px;
+    font-size: 14px;
+    outline: none;
+}
+.si-search-bar i { color: #666; }
+
+/* --- Step 2: Slide Picker --- */
+
+/* Slide Grid */
+.si-slide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+/* Slide Card */
+.si-slide-card {
+    background: #1a1a1a;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    border: 2px solid #333;
+}
+.si-slide-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border-color: #555;
+}
+.si-slide-card.selected {
+    border-color: #FF9800;
+    box-shadow: 0 0 0 1px #FF9800, 0 5px 15px rgba(255, 152, 0, 0.2);
+}
+
+.si-slide-preview {
+    height: 140px;
+    width: 100%;
+    background: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+.si-slide-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+}
+
+/* Miniature slide preview (fallback) */
+.si-slide-mini-preview {
+    width: 220px;
+    height: 124px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 2px;
+}
+.si-slide-mini-preview-element {
+    position: absolute;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+/* Checkbox overlay */
+.si-slide-checkbox {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.6);
+    border: 2px solid #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: background 0.2s, border-color 0.2s;
+}
+.si-slide-checkbox i {
+    font-size: 16px;
+    color: transparent;
+    transition: color 0.2s;
+}
+.si-slide-card.selected .si-slide-checkbox {
+    background: #FF9800;
+    border-color: #FF9800;
+}
+.si-slide-card.selected .si-slide-checkbox i {
+    color: white;
+}
+
+.si-slide-info {
+    padding: 8px 12px;
+}
+.si-slide-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: #ccc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Empty state */
+.si-empty {
+    text-align: center;
+    color: #555;
+    margin-top: 50px;
+}
+.si-empty i {
+    font-size: 48px;
+    opacity: 0.5;
+}
+.si-empty p {
+    margin-top: 10px;
+    font-size: 14px;
+}

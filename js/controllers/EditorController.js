@@ -679,6 +679,34 @@ export class EditorController {
   }
 
   /**
+   * Import slides from another presentation's raw JSON data.
+   * Clones each slide with new IDs, clears shellId, and inserts after current slide.
+   * @param {Object[]} slidesJsonArray - Array of slide JSON objects
+   */
+  async importSlidesFromPresentation(slidesJsonArray) {
+    if (!slidesJsonArray || slidesJsonArray.length === 0) return;
+
+    let insertIndex = this.presentation.currentSlideIndex + 1;
+
+    for (const slideData of slidesJsonArray) {
+      const tempSlide = Slide.fromJSON(slideData);
+      const newSlide = tempSlide.clone();
+      newSlide.shellId = null;
+      this.presentation.addSlide(newSlide, insertIndex);
+      insertIndex++;
+    }
+
+    // Select the first imported slide
+    this.presentation.setCurrentSlide(this.presentation.currentSlideIndex + 1);
+    this.recordHistory();
+    await this.render();
+    appEvents.emit(AppEvents.SLIDE_SELECTED, this.presentation.currentSlideIndex);
+
+    const n = slidesJsonArray.length;
+    toast.success(`${n} slide${n > 1 ? 's' : ''} imported`);
+  }
+
+  /**
    * Delete slide
    * @param {number} index - Slide index
    */
