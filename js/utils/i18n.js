@@ -22,6 +22,7 @@ window.translationsEn = {
   'select_all': 'Select All',
   'select_none': 'Select None',
   'import_slides': 'Import',
+  'load_from_file': 'Load from file',
 
   // Dialog
   'ok': 'OK',

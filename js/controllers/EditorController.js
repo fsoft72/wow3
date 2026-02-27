@@ -707,6 +707,21 @@ export class EditorController {
   }
 
   /**
+   * Open a file picker for .wow3/.json files and return the parsed presentation data.
+   * Handles asset ingestion for .wow3 ZIP files. Does NOT load the presentation.
+   * @returns {Promise<Object|null>} Presentation JSON data, or null if cancelled/failed
+   */
+  async pickPresentationFile() {
+    try {
+      const data = await importPresentation();
+      return data;
+    } catch (error) {
+      console.error('Failed to pick presentation file:', error);
+      return null;
+    }
+  }
+
+  /**
    * Delete slide
    * @param {number} index - Slide index
    */

@@ -13,8 +13,11 @@
 - Added `importSlidesFromPresentation()` method to `EditorController` — handles cloning, inserting, history recording, and navigation
 - Added "Insert Slides" button (library_add icon, orange) to the left sidebar next to Templates
 - Wired initialization in `UIManager.init()` and button handler in `attachSlideImporterButton()`
-- Added i18n keys: `insert_slides`, `select_all`, `select_none`, `import_slides`
+- Added i18n keys: `insert_slides`, `select_all`, `select_none`, `import_slides`, `load_from_file`
 - Added CSS, script, and button references to `index.html`
+- "Load from file" button in the importer header to import slides from external `.wow3`/`.json` files
+  - Reuses `importPresentation()` from storage.js (handles ZIP asset ingestion + URL rewriting)
+  - Added `pickPresentationFile()` method to `EditorController` for file picker access
 
 ## 2026-02-21
 

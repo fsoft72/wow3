@@ -124,6 +124,9 @@ const SlideImporter = {
                     <h2>${__('insert_slides')} <span class="si-count" id="si-total-count">0</span></h2>
                 </div>
                 <div class="si-controls">
+                    <button class="btn-si-file" id="btn-si-file">
+                        <i class="material-icons">folder_open</i> ${__('load_from_file')}
+                    </button>
                     <div class="si-search-bar">
                         <i class="material-icons">search</i>
                         <input type="text" id="si-search-input" placeholder="${__('search_presentations')}" value="${this.state.searchQuery}">
@@ -133,6 +136,7 @@ const SlideImporter = {
             `;
 
             document.getElementById('btn-si-close').onclick = () => this.close();
+            document.getElementById('btn-si-file').onclick = () => this.loadFromFile();
             document.getElementById('si-search-input').oninput = (e) => {
                 this.state.searchQuery = e.target.value;
                 this.refresh();
@@ -458,6 +462,26 @@ const SlideImporter = {
         if (window.app && window.app.editor) {
             await window.app.editor.importSlidesFromPresentation(selectedSlides);
         }
+    },
+
+    /**
+     * Open a file picker to load a .wow3/.json file and switch to slide picker
+     */
+    loadFromFile: async function () {
+        if (!window.app?.editor) return;
+
+        const data = await window.app.editor.pickPresentationFile();
+        if (!data) return;
+
+        this.state.selectedPresentationData = data;
+        this.state.selectedSlideIds.clear();
+        this.state.step = 'slides';
+
+        // File-loaded presentations have no stored thumbnails — map stays empty
+        this.state.thumbnailMap.clear();
+
+        this.renderHeader();
+        this.renderSlidePicker();
     },
 
     /**

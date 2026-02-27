@@ -73,6 +73,23 @@
 }
 .btn-si-back:hover { background: #333; color: #fff; }
 
+/* Load from file button */
+.btn-si-file {
+    background: #333;
+    color: #ccc;
+    border: 1px solid #555;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s, color 0.2s;
+}
+.btn-si-file:hover { background: #444; color: #fff; }
+.btn-si-file i { font-size: 18px; }
+
 /* Close button */
 .btn-si-icon {
     background: transparent;
