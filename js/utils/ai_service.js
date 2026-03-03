@@ -297,7 +297,7 @@ const AIService = {
    * Resolve the position for an element: use explicit position if provided, else role-based layout.
    * @param {Object} el - AI element data
    * @param {Object} layout - Role-based layout preset
-   * @returns {{ x: number, y: number, width: number, height: number }}
+   * @returns {{ x: number, y: number, width: number, height: number, rotation: number }}
    */
   _resolvePosition: function (el, layout) {
     const pos = el.position || {};
@@ -305,7 +305,8 @@ const AIService = {
       x: pos.x ?? layout.x,
       y: pos.y ?? layout.y,
       width: pos.width ?? layout.width,
-      height: pos.height ?? layout.height
+      height: pos.height ?? layout.height,
+      rotation: pos.rotation ?? 0
     };
   },
 
@@ -324,7 +325,9 @@ const AIService = {
       style: style?.fontStyle || 'normal',
       decoration: style?.decoration || 'none',
       alignment: style?.alignment || layout.alignment || 'left',
-      verticalAlign: style?.verticalAlign || 'top'
+      verticalAlign: style?.verticalAlign || 'top',
+      colorAnimationSpeed: style?.colorAnimationSpeed ?? 0,
+      colorAnimationType: style?.colorAnimationType || 'pingpong'
     };
 
     // Text shadow
@@ -352,7 +355,7 @@ const AIService = {
 
   /**
    * Convert AI-generated slide data into WOW3 Slide.fromJSON-compatible format.
-   * Handles all element types: text, list, shape, link, countdown_timer.
+   * Handles all element types: text, list, shape, image, video, link, countdown_timer.
    * @param {Object} aiSlide - A single slide from the AI response
    * @returns {Object} JSON compatible with Slide.fromJSON
    */
@@ -360,6 +363,10 @@ const AIService = {
     const slideJSON = {
       title: aiSlide.title || 'Untitled Slide',
       background: aiSlide.background || '#ffffff',
+      backgroundAnimationSpeed: aiSlide.backgroundAnimationSpeed ?? 0,
+      backgroundAnimationType: aiSlide.backgroundAnimationType || 'pingpong',
+      autoPlay: aiSlide.autoPlay ?? false,
+      autoPlayDuration: aiSlide.autoPlayDuration ?? 5,
       elements: []
     };
 
@@ -371,13 +378,25 @@ const AIService = {
       const position = this._resolvePosition(el, layout);
 
       if (el.type === 'text') {
+        const textProps = {
+          text: el.content || '',
+          font: this._buildFont(el.style, layout)
+        };
+
+        // Text background image (image fill for text)
+        if (el.style?.backgroundImage || el.backgroundImage) {
+          const bgImg = el.style?.backgroundImage || el.backgroundImage;
+          textProps.backgroundImage = {
+            url: bgImg.url || '',
+            direction: bgImg.direction || 'none',
+            speed: bgImg.speed ?? 0
+          };
+        }
+
         slideJSON.elements.push({
           type: 'text',
           position,
-          properties: {
-            text: el.content || '',
-            font: this._buildFont(el.style, layout)
-          }
+          properties: textProps
         });
       } else if (el.type === 'list') {
         slideJSON.elements.push({
@@ -397,7 +416,34 @@ const AIService = {
             shapeType: el.shapeType || 'rectangle',
             fillColor: el.style?.fillColor || el.fillColor || '#1565C0',
             strokeColor: el.style?.strokeColor || '#000000',
-            strokeWidth: el.style?.strokeWidth ?? 0
+            strokeWidth: el.style?.strokeWidth ?? 0,
+            fillColorAnimationSpeed: el.style?.fillColorAnimationSpeed ?? 0
+          }
+        });
+      } else if (el.type === 'image') {
+        slideJSON.elements.push({
+          type: 'image',
+          position,
+          properties: {
+            url: el.url || '',
+            objectFit: el.style?.objectFit || 'cover',
+            clipShape: el.clipShape || 'none',
+            shapeBorderWidth: el.style?.shapeBorderWidth ?? 0,
+            shapeBorderColor: el.style?.shapeBorderColor || '#000000',
+            borderRadius: el.style?.borderRadius ?? 0,
+            shapeScale: el.style?.shapeScale ?? 100
+          }
+        });
+      } else if (el.type === 'video') {
+        slideJSON.elements.push({
+          type: 'video',
+          position,
+          properties: {
+            url: el.url || '',
+            autoplay: el.style?.autoplay ?? false,
+            loop: el.style?.loop ?? false,
+            muted: el.style?.muted ?? false,
+            controls: el.style?.controls ?? true
           }
         });
       } else if (el.type === 'link') {
@@ -428,6 +474,8 @@ const AIService = {
             borderColor: el.style?.borderColor || '#333333',
             borderWidth: el.style?.borderWidth ?? 2,
             borderRadius: el.style?.borderRadius ?? 8,
+            backgroundAnimationSpeed: el.style?.backgroundAnimationSpeed ?? 0,
+            backgroundAnimationType: el.style?.backgroundAnimationType || 'pingpong',
             font: {
               size: el.style?.fontSize || 48,
               color: el.style?.color || '#ffffff'

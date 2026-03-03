@@ -2,6 +2,29 @@
 
 ## 2026-03-03
 
+### Enhancement: AI Prompt — Full WOW3 Power Features
+
+- Updated `ai_prompt_examples.js` system prompt with all WOW3 element types and features:
+  - **image** element type: url, clipShape (none/circle/rectangle), objectFit, borderRadius, shapeBorderWidth/Color
+  - **video** element type: url (YouTube & direct), autoplay, loop, muted, controls
+  - **rotation** support: all elements can now specify rotation (0-359 degrees) in position
+  - **animated gradient backgrounds**: slide-level backgroundAnimationSpeed/Type for living gradient effects
+  - **animated gradient text**: colorAnimationSpeed/Type for mesmerizing shifting gradient text
+  - **text background image**: backgroundImage with url, direction, speed for image-filled text (clipping mask)
+  - **animated shape fills**: fillColorAnimationSpeed for gradient-filled shapes that pulse/shift
+  - **countdown_timer animations**: backgroundAnimationSpeed/Type for timer background gradients
+  - **autoPlay/autoPlayDuration**: slide auto-advance capability
+- Updated `ai_service.js` converter (`convertToSlideJSON`) to handle all new features:
+  - Slide-level: backgroundAnimationSpeed, backgroundAnimationType, autoPlay, autoPlayDuration
+  - Element rotation in position objects
+  - Image element conversion (url, clipShape, objectFit, borders, borderRadius, shapeScale)
+  - Video element conversion (url, autoplay, loop, muted, controls)
+  - Text colorAnimationSpeed/colorAnimationType in font objects
+  - Text backgroundImage (url, direction, speed)
+  - Shape fillColorAnimationSpeed
+  - Countdown timer backgroundAnimationSpeed/Type
+- Enriched example presentation in prompt with: animated gradient bg, animated gradient text, split layout with image, video slide, circular avatar image
+
 ### Feature: AI-Powered Presentation Generation
 
 - New `AIService` singleton (`js/utils/ai_service.js`) — unified abstraction for 4 AI providers:
