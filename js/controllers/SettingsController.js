@@ -319,7 +319,7 @@ class SettingsController {
     this._aiContent.innerHTML = `
       <div class="settings-form-group">
         <label class="settings-label">Provider</label>
-        <select id="settings-ai-provider" class="settings-input">
+        <select id="settings-ai-provider" class="settings-input browser-default">
           <option value="openai" ${provider === 'openai' ? 'selected' : ''}>OpenAI</option>
           <option value="google" ${provider === 'google' ? 'selected' : ''}>Google Gemini</option>
           <option value="ollama" ${provider === 'ollama' ? 'selected' : ''}>Ollama</option>
@@ -340,7 +340,7 @@ class SettingsController {
       <div class="settings-form-group">
         <label class="settings-label">Model</label>
         <div class="settings-row">
-          <select id="settings-ai-model" class="settings-input" style="flex:1">
+          <select id="settings-ai-model" class="settings-input browser-default" style="flex:1">
             ${model ? `<option value="${model}" selected>${model}</option>` : '<option value="">Select a model...</option>'}
           </select>
           <button id="settings-ai-fetch-models" class="settings-fetch-btn" title="Fetch available models">
