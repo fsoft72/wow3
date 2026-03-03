@@ -137,6 +137,12 @@ const AIService = {
 
     const systemPrompt = this._buildSystemPrompt();
     const url = this._resolveUrl(providerDef.chat, config);
+
+    console.group('[AIService] generateSlides');
+    console.log('[AIService] Provider:', config.provider, '| Model:', config.model);
+    console.log('[AIService] System prompt:\n', systemPrompt);
+    console.log('[AIService] User prompt:\n', userPrompt);
+
     let responseText;
 
     if (config.provider === 'google') {
@@ -145,7 +151,13 @@ const AIService = {
       responseText = await this._callOpenAICompatible(url, config, systemPrompt, userPrompt);
     }
 
-    return this._parseJSONResponse(responseText);
+    console.log('[AIService] Raw AI response:\n', responseText);
+
+    const parsed = this._parseJSONResponse(responseText);
+    console.log('[AIService] Parsed slides:', parsed);
+    console.groupEnd();
+
+    return parsed;
   },
 
   /**
@@ -304,7 +316,7 @@ const AIService = {
    * @returns {Object} Font properties for WOW3 element
    */
   _buildFont: function (style, layout) {
-    return {
+    const font = {
       family: style?.fontFamily || 'Roboto',
       size: style?.fontSize || layout.fontSize || 28,
       color: style?.color || '#000000',
@@ -314,6 +326,28 @@ const AIService = {
       alignment: style?.alignment || layout.alignment || 'left',
       verticalAlign: style?.verticalAlign || 'top'
     };
+
+    // Text shadow
+    if (style?.shadow) {
+      font.shadow = {
+        enabled: true,
+        color: style.shadow.color || '#000000',
+        offsetX: style.shadow.offsetX ?? 2,
+        offsetY: style.shadow.offsetY ?? 2,
+        blur: style.shadow.blur ?? 4
+      };
+    }
+
+    // Text stroke / outline
+    if (style?.stroke) {
+      font.stroke = {
+        enabled: true,
+        color: style.stroke.color || '#000000',
+        width: style.stroke.width ?? 1
+      };
+    }
+
+    return font;
   },
 
   /**
