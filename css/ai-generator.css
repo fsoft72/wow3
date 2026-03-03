@@ -375,6 +375,26 @@
     color: #fff;
 }
 
+/* --- Settings AI tab: full-width overrides --- */
+#settings-tab-ai .settings-input {
+    width: 100%;
+    box-sizing: border-box;
+}
+body.dark-mode #settings-tab-ai input[type="password"] {
+    background: #333;
+    color: #eee;
+    border-color: #555;
+}
+body.dark-mode .settings-fetch-btn {
+    background: #333;
+    border-color: #555;
+    color: #ccc;
+}
+body.dark-mode .settings-fetch-btn:hover {
+    background: #444;
+    color: #fff;
+}
+
 /* --- Settings fetch button (reused in AI tab) --- */
 .settings-fetch-btn {
     background: #333;
