@@ -28,6 +28,7 @@ class SettingsController {
     this._tabButtons = this._panel.querySelectorAll('.settings-panel-tab');
     this._generalContent = document.getElementById('settings-tab-general');
     this._themeContent = document.getElementById('settings-tab-theme');
+    this._aiContent = document.getElementById('settings-tab-ai');
 
     // Toggle button in status bar
     this._toggleBtn.addEventListener('click', () => this.togglePanel());
@@ -49,6 +50,7 @@ class SettingsController {
     // Render initial tab contents
     this._renderGeneralTab();
     this._renderThemeTab();
+    this._renderAITab();
   }
 
   /**
@@ -86,6 +88,7 @@ class SettingsController {
     // Refresh tab contents
     this._renderGeneralTab();
     this._renderThemeTab();
+    this._renderAITab();
   }
 
   /**
@@ -118,6 +121,7 @@ class SettingsController {
     // Update content visibility
     this._generalContent.classList.toggle('active', tabName === 'general');
     this._themeContent.classList.toggle('active', tabName === 'theme');
+    this._aiContent.classList.toggle('active', tabName === 'ai');
   }
 
   /**
@@ -292,6 +296,108 @@ class SettingsController {
         </button>
       </div>
     `;
+  }
+
+  /**
+   * Render the AI tab contents with provider, API key, base URL, model selector.
+   */
+  _renderAITab() {
+    const settings = loadSettings();
+    const ai = settings.ai || {};
+    const provider = ai.provider || 'openai';
+    const apiKey = ai.apiKey || '';
+    const baseUrl = ai.baseUrl || '';
+    const model = ai.model || '';
+
+    const REQUIRES_KEY = ['openai', 'google'];
+    const REQUIRES_URL = ['ollama', 'lmstudio'];
+    const DEFAULT_URLS = { ollama: 'http://localhost:11434', lmstudio: 'http://localhost:1234' };
+
+    const showKey = REQUIRES_KEY.includes(provider);
+    const showUrl = REQUIRES_URL.includes(provider);
+
+    this._aiContent.innerHTML = `
+      <div class="settings-form-group">
+        <label class="settings-label">Provider</label>
+        <select id="settings-ai-provider" class="settings-input">
+          <option value="openai" ${provider === 'openai' ? 'selected' : ''}>OpenAI</option>
+          <option value="google" ${provider === 'google' ? 'selected' : ''}>Google Gemini</option>
+          <option value="ollama" ${provider === 'ollama' ? 'selected' : ''}>Ollama</option>
+          <option value="lmstudio" ${provider === 'lmstudio' ? 'selected' : ''}>LM Studio</option>
+        </select>
+      </div>
+
+      <div class="settings-form-group" id="settings-ai-key-group" style="display:${showKey ? 'block' : 'none'}">
+        <label class="settings-label">API Key</label>
+        <input type="password" id="settings-ai-apikey" class="settings-input" value="${apiKey}" placeholder="Enter your API key">
+      </div>
+
+      <div class="settings-form-group" id="settings-ai-url-group" style="display:${showUrl ? 'block' : 'none'}">
+        <label class="settings-label">Base URL</label>
+        <input type="text" id="settings-ai-baseurl" class="settings-input" value="${baseUrl || DEFAULT_URLS[provider] || ''}" placeholder="http://localhost:11434">
+      </div>
+
+      <div class="settings-form-group">
+        <label class="settings-label">Model</label>
+        <div class="settings-row">
+          <select id="settings-ai-model" class="settings-input" style="flex:1">
+            ${model ? `<option value="${model}" selected>${model}</option>` : '<option value="">Select a model...</option>'}
+          </select>
+          <button id="settings-ai-fetch-models" class="settings-fetch-btn" title="Fetch available models">
+            <i class="material-icons">refresh</i>
+          </button>
+        </div>
+        <span class="settings-helper" id="settings-ai-status"></span>
+      </div>
+    `;
+
+    // Provider change handler
+    const providerSelect = document.getElementById('settings-ai-provider');
+    providerSelect.addEventListener('change', () => {
+      setSetting('ai.provider', providerSelect.value);
+      setSetting('ai.model', '');
+      this._renderAITab();
+    });
+
+    // API key change handler
+    const apiKeyInput = document.getElementById('settings-ai-apikey');
+    apiKeyInput.addEventListener('change', () => {
+      setSetting('ai.apiKey', apiKeyInput.value.trim());
+    });
+
+    // Base URL change handler
+    const baseUrlInput = document.getElementById('settings-ai-baseurl');
+    baseUrlInput.addEventListener('change', () => {
+      setSetting('ai.baseUrl', baseUrlInput.value.trim());
+    });
+
+    // Model change handler
+    const modelSelect = document.getElementById('settings-ai-model');
+    modelSelect.addEventListener('change', () => {
+      setSetting('ai.model', modelSelect.value);
+    });
+
+    // Fetch models button
+    const fetchBtn = document.getElementById('settings-ai-fetch-models');
+    fetchBtn.addEventListener('click', async () => {
+      if (!window.AIService) return;
+
+      const statusEl = document.getElementById('settings-ai-status');
+      statusEl.textContent = 'Fetching models...';
+      fetchBtn.disabled = true;
+
+      try {
+        const models = await AIService.fetchModels();
+        const currentModel = getSetting('ai.model') || '';
+        modelSelect.innerHTML = '<option value="">Select a model...</option>' +
+          models.map(m => `<option value="${m}" ${m === currentModel ? 'selected' : ''}>${m}</option>`).join('');
+        statusEl.textContent = `${models.length} model(s) found`;
+      } catch (err) {
+        statusEl.textContent = 'Error: ' + err.message;
+      } finally {
+        fetchBtn.disabled = false;
+      }
+    });
   }
 
   /**

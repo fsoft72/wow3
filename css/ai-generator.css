@@ -1,0 +1,403 @@
+/* =========================================
+   AI GENERATOR OVERLAY
+   ========================================= */
+
+/* Modal Overlay */
+#ai-generator-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Roboto', sans-serif;
+}
+#ai-generator-overlay.active { display: flex; }
+
+/* Main Window */
+#ai-generator-window {
+    width: 90%;
+    max-width: 900px;
+    height: 85%;
+    background: #111;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+/* Header */
+.aig-header {
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    background: #161616;
+}
+.aig-header h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.aig-header h2 i {
+    color: #FF9800;
+    font-size: 26px;
+}
+.btn-aig-close {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 5px;
+}
+.btn-aig-close:hover { color: #fff; }
+
+/* Body */
+.aig-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* --- Step 1: Prompt --- */
+.aig-prompt-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 30px;
+    gap: 20px;
+}
+.aig-prompt-label {
+    font-size: 15px;
+    color: #ccc;
+    font-weight: 500;
+}
+.aig-prompt-textarea {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    padding: 16px;
+    resize: none;
+    outline: none;
+    line-height: 1.6;
+    transition: border-color 0.2s;
+}
+.aig-prompt-textarea:focus {
+    border-color: #FF9800;
+}
+.aig-prompt-textarea::placeholder {
+    color: #555;
+}
+.aig-prompt-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Generate button */
+.btn-aig-generate {
+    background: #FF9800;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    transition: background 0.2s, opacity 0.2s;
+}
+.btn-aig-generate:hover { background: #F57C00; }
+.btn-aig-generate:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* --- Loading / Spinner --- */
+.aig-loading {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    color: #888;
+}
+.aig-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #333;
+    border-top-color: #FF9800;
+    border-radius: 50%;
+    animation: aig-spin 0.8s linear infinite;
+}
+@keyframes aig-spin {
+    to { transform: rotate(360deg); }
+}
+.aig-loading-text {
+    font-size: 15px;
+    color: #888;
+}
+
+/* --- Step 2: Review --- */
+.aig-review-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.aig-review-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 30px;
+    background: #161616;
+    border-bottom: 1px solid #333;
+}
+.aig-review-count {
+    color: #aaa;
+    font-size: 13px;
+}
+.aig-toolbar-spacer { flex: 1; }
+
+.btn-aig-tool {
+    background: #333;
+    color: #ccc;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.btn-aig-tool:hover { background: #444; color: #fff; }
+
+.btn-aig-create {
+    background: #FF9800;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+.btn-aig-create:hover { background: #F57C00; }
+
+/* Review slide list */
+.aig-review-list {
+    flex: 1;
+    padding: 20px 30px;
+    overflow-y: auto;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Slide Card */
+.aig-slide-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+.aig-slide-card:hover {
+    border-color: #555;
+}
+
+.aig-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #161616;
+    border-bottom: 1px solid #2a2a2a;
+}
+.aig-card-number {
+    background: #FF9800;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.aig-card-title-input {
+    flex: 1;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 4px 8px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.aig-card-title-input:focus {
+    border-color: #555;
+    background: #222;
+}
+.aig-card-actions {
+    display: flex;
+    gap: 4px;
+}
+.aig-card-actions button {
+    background: transparent;
+    border: none;
+    color: #777;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s, color 0.2s;
+}
+.aig-card-actions button:hover {
+    background: #333;
+    color: #fff;
+}
+.aig-card-actions button.aig-delete-btn:hover {
+    background: #c62828;
+    color: #fff;
+}
+
+/* Card body — element summaries */
+.aig-card-body {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.aig-element-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.aig-element-badge {
+    background: #333;
+    color: #aaa;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+.aig-element-content {
+    flex: 1;
+    min-width: 0;
+}
+.aig-element-textarea {
+    width: 100%;
+    background: #222;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: #ccc;
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    padding: 8px;
+    resize: vertical;
+    outline: none;
+    min-height: 32px;
+    line-height: 1.4;
+    transition: border-color 0.2s;
+}
+.aig-element-textarea:focus {
+    border-color: #FF9800;
+}
+.aig-element-summary {
+    color: #888;
+    font-size: 12px;
+}
+
+/* --- Not configured state --- */
+.aig-not-configured {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 40px;
+    text-align: center;
+}
+.aig-not-configured i {
+    font-size: 64px;
+    color: #444;
+}
+.aig-not-configured p {
+    color: #888;
+    font-size: 15px;
+    max-width: 400px;
+    line-height: 1.6;
+}
+.btn-aig-settings {
+    background: #333;
+    color: #ccc;
+    border: 1px solid #555;
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s, color 0.2s;
+}
+.btn-aig-settings:hover {
+    background: #444;
+    color: #fff;
+}
+
+/* --- Settings fetch button (reused in AI tab) --- */
+.settings-fetch-btn {
+    background: #333;
+    border: 1px solid #555;
+    color: #ccc;
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+    flex-shrink: 0;
+}
+.settings-fetch-btn:hover {
+    background: #444;
+    color: #fff;
+}
+.settings-fetch-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.settings-fetch-btn i {
+    font-size: 20px;
+}

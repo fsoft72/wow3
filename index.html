@@ -38,6 +38,7 @@
   <link rel="stylesheet" href="css/countdown-timer.css">
   <link rel="stylesheet" href="css/settings.css">
   <link rel="stylesheet" href="css/recording.css">
+  <link rel="stylesheet" href="css/ai-generator.css">
 </head>
 <body>
   <!-- Top Menu Bar -->
@@ -51,6 +52,7 @@
       />
       <!-- Left group: file operations -->
       <ul id="toolbar-left" class="toolbar-group toolbar-left">
+        <li><a href="#" id="ai-generate-btn" title="Generate with AI"><i class="material-icons">auto_awesome</i></a></li>
         <li><a href="#" id="open-btn" title="Open Presentation"><i class="material-icons">folder_open</i></a></li>
         <li><a href="#" id="save-btn" title="Save Presentation"><i class="material-icons">save</i></a></li>
         <li id="install-btn-wrapper" style="display: none;"><a href="#" id="install-btn" title="Install WOW3 App"><i class="material-icons">install_desktop</i></a></li>
@@ -263,12 +265,16 @@
         <button class="settings-panel-tab" data-settings-tab="theme">
           <i class="material-icons">palette</i> Theme
         </button>
+        <button class="settings-panel-tab" data-settings-tab="ai">
+          <i class="material-icons">smart_toy</i> AI
+        </button>
       </div>
       <button class="settings-panel-close"><i class="material-icons">close</i></button>
     </div>
     <div class="settings-panel-body">
       <div id="settings-tab-general" class="settings-panel-content active"></div>
       <div id="settings-tab-theme" class="settings-panel-content"></div>
+      <div id="settings-tab-ai" class="settings-panel-content"></div>
     </div>
   </div>
 
@@ -305,6 +311,8 @@
   <script src="js/utils/templates_db.js"></script>
   <script src="js/utils/template_manager.js"></script>
   <script src="js/utils/slide_importer.js"></script>
+  <script src="js/utils/ai_service.js"></script>
+  <script src="js/utils/ai_generator.js"></script>
   <script src="js/utils/gradient_manager.js"></script>
   <script src="js/components/range_input.js"></script>
   <script src="js/components/image_selector.js" type="module"></script>

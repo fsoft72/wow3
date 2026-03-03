@@ -72,6 +72,11 @@ class WOW3App {
       this.editor.remoteController.init();
       this.settingsController.init();
 
+      // Initialize AI Generator
+      if (window.AIGenerator) {
+        AIGenerator.init();
+      }
+
       // Initialize interaction handlers
       this.editor.elementController.dragHandler = new DragHandler(this.editor.elementController);
       this.editor.elementController.resizeHandler = new ResizeHandler(this.editor.elementController);
@@ -211,6 +216,15 @@ class WOW3App {
         e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
       }
     });
+
+    // AI Generate button
+    const aiBtn = document.getElementById('ai-generate-btn');
+    if (aiBtn) {
+      aiBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (window.AIGenerator) AIGenerator.open();
+      });
+    }
 
     // Click outside to deselect is handled by MarqueeHandler
   }

@@ -15,6 +15,12 @@ const DEFAULT_SETTINGS = {
     navColor: '#1565C0',
     buttonColor: '#1976D2',
     panelColor: '#1565C0'
+  },
+  ai: {
+    provider: 'openai',
+    apiKey: '',
+    baseUrl: '',
+    model: ''
   }
 };
 

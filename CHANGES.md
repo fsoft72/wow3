@@ -1,5 +1,33 @@
 # WOW3 Development Changelog
 
+## 2026-03-03
+
+### Feature: AI-Powered Presentation Generation
+
+- New `AIService` singleton (`js/utils/ai_service.js`) — unified abstraction for 4 AI providers:
+  - OpenAI, Google Gemini, Ollama, LM Studio with provider-specific API handling
+  - `fetchModels()` to list available models from any provider
+  - `generateSlides()` to send a natural language prompt and receive structured slide JSON
+  - `convertToSlideJSON()` maps AI output to `Slide.fromJSON`-compatible format with role-based layout presets
+  - System prompt instructs the AI to return structured JSON with text, list, and shape elements
+- New `AIGenerator` singleton (`js/utils/ai_generator.js`) — two-step overlay following SlideImporter pattern:
+  - Step 1 (Prompt): Textarea for natural language description, Ctrl+Enter to generate
+  - Step 2 (Review): Scrollable card list with editable titles, text content, list items; move up/down and delete controls
+  - "Generate Presentation" creates actual slides via `importSlidesFromPresentation()`
+  - "Clear All" returns to prompt step with text preserved
+  - Shows helpful setup message when AI is not configured
+- New `css/ai-generator.css` — overlay styles with `aig-` prefix, dark theme, orange accent (#FF9800), loading spinner
+- Added AI defaults to `DEFAULT_SETTINGS` in `settings.js`: `ai.provider`, `ai.apiKey`, `ai.baseUrl`, `ai.model`
+- Added AI tab to Settings panel in `SettingsController.js`:
+  - Provider dropdown (OpenAI, Google Gemini, Ollama, LM Studio)
+  - API Key input (shown for OpenAI/Google), Base URL input (shown for Ollama/LM Studio with defaults)
+  - Model dropdown with "Fetch Models" button
+  - Provider change auto-hides/shows relevant fields
+- Added toolbar button (`auto_awesome` icon) in `index.html` for quick access
+- Added AI tab button and content div to settings panel HTML
+- Added script tags and CSS link to `index.html`
+- Wired `AIGenerator.init()` and toolbar click handler in `app.js`
+
 ## 2026-02-27
 
 ### Feature: Slide Importer (Cherry-Picker)
