@@ -32,7 +32,10 @@ const AIGenerator = {
         <div id="ai-generator-window">
           <div class="aig-header" id="aig-header">
             <h2><i class="material-icons">auto_awesome</i> Generate with AI</h2>
-            <button class="btn-aig-close" id="btn-aig-close"><i class="material-icons">close</i></button>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <button class="btn-aig-close" id="btn-aig-settings" title="AI Settings"><i class="material-icons">settings</i></button>
+              <button class="btn-aig-close" id="btn-aig-close" title="Close"><i class="material-icons">close</i></button>
+            </div>
           </div>
           <div class="aig-body" id="aig-body">
             <!-- Content injected per step -->
@@ -49,6 +52,16 @@ const AIGenerator = {
   _bindGlobalEvents: function () {
     document.getElementById('ai-generator-overlay').addEventListener('click', (e) => {
       if (e.target.id === 'ai-generator-overlay') this.close();
+    });
+
+    document.getElementById('btn-aig-close').addEventListener('click', () => this.close());
+
+    document.getElementById('btn-aig-settings').addEventListener('click', () => {
+      this.close();
+      if (window.app && window.app.settingsController) {
+        window.app.settingsController.showPanel();
+        window.app.settingsController.switchTab('ai');
+      }
     });
 
     document.addEventListener('keydown', (e) => {
@@ -280,11 +293,31 @@ const AIGenerator = {
               </div>
             </div>`;
         } else if (el.type === 'shape') {
+          const fillColor = el.style?.fillColor || el.fillColor || '#ccc';
           elementsHTML += `
             <div class="aig-element-row">
               <span class="aig-element-badge">shape</span>
               <div class="aig-element-content">
-                <span class="aig-element-summary">${el.shapeType || 'rectangle'} — ${el.fillColor || '#ccc'}</span>
+                <span class="aig-element-summary">${el.shapeType || 'rectangle'} — ${fillColor}</span>
+              </div>
+            </div>`;
+        } else if (el.type === 'link') {
+          elementsHTML += `
+            <div class="aig-element-row" data-slide-idx="${index}" data-el-idx="${elIdx}">
+              <span class="aig-element-badge">link</span>
+              <div class="aig-element-content">
+                <textarea class="aig-element-textarea aig-edit-text" data-slide-idx="${index}" data-el-idx="${elIdx}"
+                  rows="1">${this._escapeHtml(el.content || 'Click Here')}</textarea>
+                <div class="aig-element-summary">${this._escapeHtml(el.url || '#')}</div>
+              </div>
+            </div>`;
+        } else if (el.type === 'countdown_timer') {
+          const mins = Math.round((el.duration || 300) / 60);
+          elementsHTML += `
+            <div class="aig-element-row">
+              <span class="aig-element-badge">timer</span>
+              <div class="aig-element-content">
+                <span class="aig-element-summary">${mins} minute${mins !== 1 ? 's' : ''} countdown</span>
               </div>
             </div>`;
         }

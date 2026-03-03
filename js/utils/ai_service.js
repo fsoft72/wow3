@@ -29,12 +29,13 @@ const AI_PROVIDERS = {
 
 /** Layout presets for role-based element positioning on a 1280x720 canvas */
 const LAYOUT_PRESETS = {
-  title:      { x: 40, y: 80,  width: 1200, height: 100, fontSize: 64, fontWeight: 'bold',   alignment: 'center' },
+  title:      { x: 40, y: 80,  width: 1200, height: 120, fontSize: 64, fontWeight: 'bold',   alignment: 'center' },
   subtitle:   { x: 40, y: 220, width: 1200, height: 60,  fontSize: 32, fontWeight: 'normal', alignment: 'center' },
   heading:    { x: 60, y: 40,  width: 1160, height: 80,  fontSize: 48, fontWeight: 'bold',   alignment: 'left' },
-  body:       { x: 60, y: 180, width: 1160, height: 460, fontSize: 28, fontWeight: 'normal', alignment: 'left' },
-  list:       { x: 60, y: 180, width: 1160, height: 460, fontSize: 28, fontWeight: 'normal', alignment: 'left' },
-  decoration: { x: 0,  y: 680, width: 1280, height: 40 }
+  body:       { x: 60, y: 160, width: 1160, height: 480, fontSize: 28, fontWeight: 'normal', alignment: 'left' },
+  list:       { x: 80, y: 160, width: 1120, height: 480, fontSize: 28, fontWeight: 'normal', alignment: 'left' },
+  decoration: { x: 0,  y: 680, width: 1280, height: 40 },
+  accent:     { x: 540, y: 600, width: 200, height: 50 }
 };
 
 const AIService = {
@@ -268,69 +269,56 @@ const AIService = {
   },
 
   /**
-   * Build the system prompt that instructs the AI to return structured slide JSON.
+   * Build the system prompt from the external AI_PROMPT_EXAMPLES file.
+   * Falls back to a minimal prompt if the file is not loaded.
    * @returns {string}
    */
   _buildSystemPrompt: function () {
-    return `You are a presentation designer. Given a user's description, create a structured JSON presentation.
-
-Return ONLY valid JSON with this exact structure (no markdown, no explanation):
-{
-  "slides": [
-    {
-      "title": "Slide Title",
-      "background": "#ffffff",
-      "elements": [
-        {
-          "type": "text",
-          "content": "The actual text content",
-          "role": "title|subtitle|heading|body",
-          "style": {
-            "fontSize": 64,
-            "fontWeight": "bold|normal",
-            "color": "#000000",
-            "alignment": "left|center|right"
-          }
-        },
-        {
-          "type": "list",
-          "listType": "ordered|unordered",
-          "items": ["Item 1", "Item 2", "Item 3"],
-          "role": "list",
-          "style": {
-            "fontSize": 28,
-            "fontWeight": "normal",
-            "color": "#333333",
-            "alignment": "left"
-          }
-        },
-        {
-          "type": "shape",
-          "shapeType": "rectangle|circle|triangle|line",
-          "fillColor": "#hex",
-          "role": "decoration"
-        }
-      ]
+    if (window.AI_PROMPT_EXAMPLES && window.AI_PROMPT_EXAMPLES.SYSTEM_PROMPT) {
+      return window.AI_PROMPT_EXAMPLES.SYSTEM_PROMPT;
     }
-  ]
-}
+    // Minimal fallback
+    return 'You are a presentation designer. Return ONLY valid JSON with { "slides": [ { "title": "...", "background": "#fff", "elements": [ { "type": "text", "content": "...", "role": "title", "style": {} } ] } ] }. Canvas is 1280x720. No markdown.';
+  },
 
-Rules:
-- The canvas is 1280x720 pixels
-- Use role to indicate the purpose of each element: "title", "subtitle", "heading", "body", "list", "decoration"
-- Each slide should have a clear visual hierarchy
-- Title slides should use "title" and optionally "subtitle" roles
-- Content slides should use "heading" for the slide heading and "body" or "list" for content
-- Use shapes sparingly for decoration (bottom bars, accent rectangles)
-- Choose professional, readable color schemes
-- Return 3-10 slides depending on content complexity
-- The first slide should be a title slide
-- Keep text concise and presentation-friendly (bullet points, short phrases)
-- IMPORTANT: Return ONLY the JSON object, no wrapping text or markdown`;
+  /**
+   * Resolve the position for an element: use explicit position if provided, else role-based layout.
+   * @param {Object} el - AI element data
+   * @param {Object} layout - Role-based layout preset
+   * @returns {{ x: number, y: number, width: number, height: number }}
+   */
+  _resolvePosition: function (el, layout) {
+    const pos = el.position || {};
+    return {
+      x: pos.x ?? layout.x,
+      y: pos.y ?? layout.y,
+      width: pos.width ?? layout.width,
+      height: pos.height ?? layout.height
+    };
+  },
+
+  /**
+   * Build a font object from AI style data merged with layout defaults.
+   * @param {Object} style - AI style object
+   * @param {Object} layout - Role-based layout preset
+   * @returns {Object} Font properties for WOW3 element
+   */
+  _buildFont: function (style, layout) {
+    return {
+      family: style?.fontFamily || 'Roboto',
+      size: style?.fontSize || layout.fontSize || 28,
+      color: style?.color || '#000000',
+      weight: style?.fontWeight || layout.fontWeight || 'normal',
+      style: style?.fontStyle || 'normal',
+      decoration: style?.decoration || 'none',
+      alignment: style?.alignment || layout.alignment || 'left',
+      verticalAlign: style?.verticalAlign || 'top'
+    };
   },
 
   /**
    * Convert AI-generated slide data into WOW3 Slide.fromJSON-compatible format.
+   * Handles all element types: text, list, shape, link, countdown_timer.
    * @param {Object} aiSlide - A single slide from the AI response
    * @returns {Object} JSON compatible with Slide.fromJSON
    */
@@ -346,61 +334,70 @@ Rules:
     aiSlide.elements.forEach((el) => {
       const role = el.role || 'body';
       const layout = LAYOUT_PRESETS[role] || LAYOUT_PRESETS.body;
+      const position = this._resolvePosition(el, layout);
 
       if (el.type === 'text') {
         slideJSON.elements.push({
           type: 'text',
-          position: {
-            x: layout.x,
-            y: layout.y,
-            width: layout.width,
-            height: layout.height
-          },
+          position,
           properties: {
             text: el.content || '',
-            font: {
-              family: 'Roboto',
-              size: el.style?.fontSize || layout.fontSize,
-              color: el.style?.color || '#000000',
-              weight: el.style?.fontWeight || layout.fontWeight,
-              alignment: el.style?.alignment || layout.alignment
-            }
+            font: this._buildFont(el.style, layout)
           }
         });
       } else if (el.type === 'list') {
         slideJSON.elements.push({
           type: 'list',
-          position: {
-            x: layout.x,
-            y: layout.y,
-            width: layout.width,
-            height: layout.height
-          },
+          position,
           properties: {
             listType: el.listType || 'unordered',
             items: el.items || ['Item 1'],
-            font: {
-              family: 'Roboto',
-              size: el.style?.fontSize || layout.fontSize,
-              color: el.style?.color || '#333333',
-              weight: el.style?.fontWeight || layout.fontWeight,
-              alignment: el.style?.alignment || layout.alignment
-            }
+            font: this._buildFont(el.style, layout)
           }
         });
       } else if (el.type === 'shape') {
-        const decoLayout = LAYOUT_PRESETS.decoration;
         slideJSON.elements.push({
           type: 'shape',
-          position: {
-            x: decoLayout.x,
-            y: decoLayout.y,
-            width: decoLayout.width,
-            height: decoLayout.height
-          },
+          position,
           properties: {
             shapeType: el.shapeType || 'rectangle',
-            fillColor: el.fillColor || '#1565C0'
+            fillColor: el.style?.fillColor || el.fillColor || '#1565C0',
+            strokeColor: el.style?.strokeColor || '#000000',
+            strokeWidth: el.style?.strokeWidth ?? 0
+          }
+        });
+      } else if (el.type === 'link') {
+        slideJSON.elements.push({
+          type: 'link',
+          position,
+          properties: {
+            text: el.content || 'Click Here',
+            url: el.url || '#',
+            target: '_blank',
+            backgroundColor: el.style?.backgroundColor || '#2196F3',
+            textColor: el.style?.textColor || '#ffffff',
+            borderRadius: el.style?.borderRadius ?? 4,
+            font: {
+              family: el.style?.fontFamily || 'Roboto',
+              size: el.style?.fontSize || 18,
+              weight: el.style?.fontWeight || '500'
+            }
+          }
+        });
+      } else if (el.type === 'countdown_timer') {
+        slideJSON.elements.push({
+          type: 'countdown_timer',
+          position,
+          properties: {
+            duration: el.duration || 300,
+            background: el.style?.background || '#000000',
+            borderColor: el.style?.borderColor || '#333333',
+            borderWidth: el.style?.borderWidth ?? 2,
+            borderRadius: el.style?.borderRadius ?? 8,
+            font: {
+              size: el.style?.fontSize || 48,
+              color: el.style?.color || '#ffffff'
+            }
           }
         });
       }
