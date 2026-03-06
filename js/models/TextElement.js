@@ -5,6 +5,7 @@
 
 import { Element } from './Element.js';
 import { ElementType } from '../utils/constants.js';
+import { MediaDB } from '../utils/media_db.js';
 
 export class TextElement extends Element {
   /**
@@ -123,8 +124,8 @@ export class TextElement extends Element {
     // Load background image asynchronously if set
     if (hasBgImage) {
       const url = bgImg.url;
-      if (url.startsWith('media_') && window.MediaDB) {
-        window.MediaDB.getMediaDataURL(url).then((dataURL) => {
+      if (url.startsWith('media_') && MediaDB) {
+        MediaDB.getMediaDataURL(url).then((dataURL) => {
           if (dataURL) textContent.style.backgroundImage = `url(${dataURL})`;
         });
       } else {

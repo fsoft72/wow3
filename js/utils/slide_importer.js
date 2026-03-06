@@ -1,10 +1,14 @@
+import { PresentationsDB } from './presentations_db.js';
+import { MediaDB } from './media_db.js';
+import { __ } from './i18n.js';
+
 /**
  * SlideImporter: Two-step overlay for cherry-picking slides from other presentations.
  * Step 1: Pick a presentation from the saved library.
  * Step 2: Pick individual slides to import after the current slide.
  */
 
-const SlideImporter = {
+export const SlideImporter = {
     state: {
         step: 'presentations',       // 'presentations' | 'slides'
         presentations: [],
@@ -499,4 +503,6 @@ const SlideImporter = {
     }
 };
 
+// Expose globally for inline onclick handlers in generated HTML
 window.SlideImporter = SlideImporter;
+

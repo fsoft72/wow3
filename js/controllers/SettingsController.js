@@ -5,6 +5,7 @@
  */
 
 import { loadSettings, setSetting, getSetting, DEFAULT_SETTINGS } from '../utils/settings.js';
+import { AIService } from '../utils/ai_service.js';
 
 class SettingsController {
   /**
@@ -380,7 +381,7 @@ class SettingsController {
     // Fetch models button
     const fetchBtn = document.getElementById('settings-ai-fetch-models');
     fetchBtn.addEventListener('click', async () => {
-      if (!window.AIService) return;
+      if (!AIService) return;
 
       const statusEl = document.getElementById('settings-ai-status');
       statusEl.textContent = 'Fetching models...';

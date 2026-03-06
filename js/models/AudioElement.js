@@ -6,6 +6,7 @@
 
 import { Element } from './Element.js';
 import { ElementType } from '../utils/constants.js';
+import { MediaDB } from '../utils/media_db.js';
 
 export class AudioElement extends Element {
   /**
@@ -156,7 +157,7 @@ export class AudioElement extends Element {
    */
   async loadFromMediaDB(audio) {
     try {
-      const dataURL = await window.MediaDB.getMediaDataURL(this.properties.url);
+      const dataURL = await MediaDB.getMediaDataURL(this.properties.url);
       if (dataURL) {
         audio.src = dataURL;
       } else {
@@ -175,7 +176,7 @@ export class AudioElement extends Element {
   async setUrl(source) {
     if (source instanceof File || source instanceof Blob) {
       // Upload to MediaDB
-      const item = await window.MediaDB.addMedia(source);
+      const item = await MediaDB.addMedia(source);
       this.properties.url = item.id;
       console.log('✅ Audio uploaded to MediaDB:', item.id);
     } else {

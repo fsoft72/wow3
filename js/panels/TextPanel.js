@@ -1,3 +1,7 @@
+import { PanelUtils } from '../utils/panel_utils.js';
+import { RangeInput } from '../components/range_input.js';
+import { MediaDB } from '../utils/media_db.js';
+
 /**
  * Text Element Property Panel
  */
@@ -226,7 +230,7 @@ export class TextPanel {
       value: element.properties.backgroundImage?.url || '',
       onMediaChange: async (value) => {
         if (value instanceof File) {
-          const item = await window.MediaDB.addMedia(value);
+          const item = await MediaDB.addMedia(value);
           updateProperty('properties.backgroundImage.url', item.id);
         } else {
           updateProperty('properties.backgroundImage.url', value);

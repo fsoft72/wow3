@@ -6,6 +6,7 @@
 
 import { Element } from './Element.js';
 import { ElementType } from '../utils/constants.js';
+import { MediaDB } from '../utils/media_db.js';
 
 export class VideoElement extends Element {
   /**
@@ -312,7 +313,7 @@ export class VideoElement extends Element {
   async loadFromMediaDB(video, mediaId = null) {
     try {
       const id = mediaId || this.properties.url;
-      const dataURL = await window.MediaDB.getMediaDataURL(id);
+      const dataURL = await MediaDB.getMediaDataURL(id);
       if (dataURL) {
         video.src = dataURL;
       } else {
@@ -331,7 +332,7 @@ export class VideoElement extends Element {
   async setUrl(source) {
     if (source instanceof File || source instanceof Blob) {
       // Upload to MediaDB
-      const item = await window.MediaDB.addMedia(source);
+      const item = await MediaDB.addMedia(source);
       this.properties.url = item.id;
       console.log('✅ Video uploaded to MediaDB:', item.id);
     } else {

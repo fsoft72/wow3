@@ -11,7 +11,7 @@
  *     { label: 'Delete', icon: 'delete', action: () => { ... }, disabled: true }
  *   ], { theme: 'light' });
  */
-class ContextMenu {
+export class ContextMenu {
 
   /** @type {HTMLDivElement|null} */
   static _el = null;
@@ -123,4 +123,3 @@ class ContextMenu {
   };
 }
 
-window.ContextMenu = ContextMenu;

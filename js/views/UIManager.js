@@ -6,6 +6,11 @@
 import { RightSidebar } from "./RightSidebar.js";
 import { StatusBar } from "./StatusBar.js";
 import { toast } from "../utils/toasts.js";
+import { Dialog } from "../utils/dialog.js";
+import { MediaManager } from "../utils/media_manager.js";
+import { PresentationManager } from "../utils/presentation_manager.js";
+import { TemplateManager } from "../utils/template_manager.js";
+import { SlideImporter } from "../utils/slide_importer.js";
 
 export class UIManager {
 	constructor() {

@@ -6,6 +6,9 @@
 import { TEXT_ALIGNMENTS } from '../utils/constants.js';
 import { TextPanel, ImagePanel, VideoPanel, AudioPanel, CountdownTimerPanel } from '../panels/index.js';
 import { toast } from '../utils/toasts.js';
+import { PanelUtils } from '../utils/panel_utils.js';
+import { RangeInput } from '../components/range_input.js';
+import { GradientSelector } from '../components/gradient_selector.js';
 
 export class RightSidebar {
   constructor() {
@@ -373,7 +376,7 @@ export class RightSidebar {
 
     // Instantiate GradientSelector after DOM insertion
     requestAnimationFrame(() => {
-      if ( window.GradientSelector ) {
+      if ( GradientSelector ) {
         this._textColorSelector = new GradientSelector('text-color-gradient-selector', {
           value: element.properties.font.color,
           onChange: (val) => {
@@ -579,7 +582,7 @@ export class RightSidebar {
 
     // Instantiate GradientSelector after DOM insertion
     requestAnimationFrame(() => {
-      if ( window.GradientSelector ) {
+      if ( GradientSelector ) {
         this._shapeFillSelector = new GradientSelector('shape-fill-gradient-selector', {
           value: element.properties.fillColor,
           animationSpeed: element.properties.fillColorAnimationSpeed ?? 0,
@@ -605,7 +608,7 @@ export class RightSidebar {
 
     // Instantiate stroke GradientSelector after DOM insertion
     requestAnimationFrame(() => {
-      if ( window.GradientSelector ) {
+      if ( GradientSelector ) {
         this._shapeStrokeSelector = new GradientSelector('shape-stroke-gradient-selector', {
           value: element.properties.strokeColor,
           animationSpeed: element.properties.strokeColorAnimationSpeed ?? 0,

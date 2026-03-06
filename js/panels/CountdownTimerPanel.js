@@ -1,3 +1,6 @@
+import { PanelUtils } from '../utils/panel_utils.js';
+import { MediaManager } from '../utils/media_manager.js';
+
 /**
  * Countdown Timer Element Property Panel
  * Provides Content (duration, sound, clear) and Style (font, background, border) tabs.
@@ -136,7 +139,7 @@ export class CountdownTimerPanel {
     const ctSelectSound = document.getElementById('ct-select-sound');
     if (ctSelectSound) {
       ctSelectSound.addEventListener('click', () => {
-        if (typeof MediaManager === 'undefined') return;
+        if (!MediaManager) return;
         MediaManager.open((data) => {
           const mediaId = data.localUrl ? data.localUrl.replace('local://', '') : data.originalItem?.id;
           if (mediaId) {

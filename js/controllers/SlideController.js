@@ -6,6 +6,10 @@
 import { appEvents, AppEvents } from '../utils/events.js';
 import { toast } from '../utils/toasts.js';
 import { CountdownTimerElement } from '../models/CountdownTimerElement.js';
+import { Dialog } from '../utils/dialog.js';
+import { ContextMenu } from '../components/context_menu.js';
+import { TemplateManager } from '../utils/template_manager.js';
+import { MediaDB } from '../utils/media_db.js';
 
 export class SlideController {
   /**
@@ -61,7 +65,7 @@ export class SlideController {
     if (thumbnailIds.length === 0) return;
 
     try {
-      const thumbs = await window.MediaDB.loadThumbnails(thumbnailIds);
+      const thumbs = await MediaDB.loadThumbnails(thumbnailIds);
       for (const [thumbId, dataUrl] of thumbs) {
         const slideId = thumbToSlide.get(thumbId);
         if (slideId) this._thumbCache.set(slideId, dataUrl);
@@ -545,7 +549,7 @@ export class SlideController {
 
     this._thumbCache.delete(shellId);
     if (thumbId) {
-      window.MediaDB.deleteThumbnail(thumbId).catch(() => {});
+      MediaDB.deleteThumbnail(thumbId).catch(() => {});
     }
 
     this.editor.recordHistory();
@@ -780,7 +784,7 @@ export class SlideController {
         label: 'Save as Template',
         icon: 'dashboard_customize',
         action: () => {
-          if (window.TemplateManager) TemplateManager.saveSlideAsTemplate(index);
+          if (TemplateManager) TemplateManager.saveSlideAsTemplate(index);
         }
       },
       {
@@ -914,14 +918,14 @@ export class SlideController {
       // Generate a unique thumbnail key and persist to IndexedDB
       const newThumbId = 'thumb_' + Date.now();
 
-      window.MediaDB.saveThumbnail(newThumbId, dataUrl).catch(
+      MediaDB.saveThumbnail(newThumbId, dataUrl).catch(
         err => console.warn('Failed to persist thumbnail:', err)
       );
 
       // Delete old thumbnail if the slide had one
       const oldThumbId = activeSlide.thumbnailId;
       if (oldThumbId) {
-        window.MediaDB.deleteThumbnail(oldThumbId).catch(() => {});
+        MediaDB.deleteThumbnail(oldThumbId).catch(() => {});
       }
 
       // Update slide reference

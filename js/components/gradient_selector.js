@@ -1,9 +1,13 @@
+import { GradientManager } from '../utils/gradient_manager.js';
+import { RangeInput } from './range_input.js';
+import { Dialog } from '../utils/dialog.js';
+
 /**
  * GradientSelector — Reusable gradient/color picker widget.
  *
  * Renders a dropdown selector (presets, solid color, custom gradient),
  * plus type toggle (linear/radial) and angle controls that appear when
- * a gradient is active. Delegates data operations to window.GradientManager.
+ * a gradient is active. Delegates data operations to GradientManager.
  *
  * Usage:
  *   const sel = new GradientSelector('my-container', {
@@ -15,7 +19,7 @@
  *   sel.update('#ff0000');
  *   sel.update('linear-gradient(90deg, #000 0%, #fff 100%)');
  */
-class GradientSelector {
+export class GradientSelector {
 
   /**
    * @param {string} containerId - ID of the DOM element to render into
@@ -514,4 +518,3 @@ class GradientSelector {
   }
 }
 
-window.GradientSelector = GradientSelector;

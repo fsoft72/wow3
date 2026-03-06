@@ -1,9 +1,11 @@
+import { GradientSelector } from '../components/gradient_selector.js';
+
 /**
  * Panel Utilities for WOW3
  * Helper functions for rendering property panels
  */
 
-window.PanelUtils = {
+export const PanelUtils = {
   /**
    * Parse CSS value into number and unit
    * @param {string} str - CSS value (e.g., "16px", "1.5em")
@@ -269,7 +271,7 @@ window.PanelUtils = {
    * @returns {GradientSelector|null} The selector instance, or null
    */
   bindGradientPicker(id, currentValue, onChange, animationSpeed, animationType) {
-    if ( ! window.GradientSelector ) return null;
+    if ( ! GradientSelector ) return null;
 
     return new GradientSelector(id, {
       value: currentValue || '#ffffff',

@@ -18,6 +18,7 @@
  *   selector.setValue('media_1'); // update display
  */
 import { toast } from '../utils/toasts.js';
+import { MediaManager } from '../utils/media_manager.js';
 
 class ImageSelector {
 

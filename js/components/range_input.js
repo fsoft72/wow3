@@ -21,7 +21,7 @@
  *   range.getValue();         // 180
  *   range.setVisible(false);  // hide the whole component
  */
-class RangeInput {
+export class RangeInput {
 
   /**
    * @param {string} containerId - ID of the DOM element to render into
@@ -134,4 +134,3 @@ class RangeInput {
   }
 }
 
-window.RangeInput = RangeInput;

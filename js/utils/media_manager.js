@@ -1,8 +1,13 @@
+import { MediaDB } from './media_db.js';
+import { ContextMenu } from '../components/context_menu.js';
+import { Dialog } from './dialog.js';
+import { __ } from './i18n.js';
+
 /**
  * MediaManager: Handles UI and Logic for the Media Library.
  */
 
-const MediaManager = {
+export const MediaManager = {
     state: {
         currentFolderId: 'all', // 'all', null (root), or folder ID
         selectedItems: new Set(),
@@ -393,4 +398,6 @@ const MediaManager = {
     }
 };
 
+// Expose globally for inline onclick handlers in generated HTML
 window.MediaManager = MediaManager;
+

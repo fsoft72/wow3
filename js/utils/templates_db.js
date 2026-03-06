@@ -9,7 +9,7 @@ const STORE_TEMPLATES = 'templates';
 
 let templatesDbPromise = null;
 
-const TemplatesDB = {
+export const TemplatesDB = {
   /**
    * Initialize IndexedDB for templates
    * @returns {Promise<IDBDatabase>}
@@ -162,5 +162,3 @@ const TemplatesDB = {
   }
 };
 
-// Make available globally
-window.TemplatesDB = TemplatesDB;

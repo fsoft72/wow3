@@ -9,7 +9,7 @@ const STORE_PRESENTATIONS = 'presentations';
 
 let dbPromise = null;
 
-const PresentationsDB = {
+export const PresentationsDB = {
   /**
    * Initialize IndexedDB
    * @returns {Promise<IDBDatabase>}
@@ -214,5 +214,3 @@ const PresentationsDB = {
   }
 };
 
-// Make available globally
-window.PresentationsDB = PresentationsDB;

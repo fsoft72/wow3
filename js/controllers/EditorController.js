@@ -16,6 +16,10 @@ import {
 } from '../utils/storage.js';
 import { appEvents, AppEvents } from '../utils/events.js';
 import { toast } from '../utils/toasts.js';
+import { Dialog } from '../utils/dialog.js';
+import { GradientManager } from '../utils/gradient_manager.js';
+import { GradientSelector } from '../components/gradient_selector.js';
+import { MediaDB } from '../utils/media_db.js';
 
 export class EditorController {
   /**
@@ -149,7 +153,7 @@ export class EditorController {
     }
 
     // Slide background gradient selector
-    if ( window.GradientManager && window.GradientSelector ) {
+    if ( GradientManager && GradientSelector ) {
       GradientManager.init();
       this._bgSelector = new GradientSelector('slide-background-gradient-selector', {
         value: '#ffffff',
@@ -744,7 +748,7 @@ export class EditorController {
         this.slideController._thumbCache.delete(slideId);
       }
       if (thumbId) {
-        window.MediaDB.deleteThumbnail(thumbId).catch(() => {});
+        MediaDB.deleteThumbnail(thumbId).catch(() => {});
       }
 
       this.recordHistory();

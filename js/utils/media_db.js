@@ -11,7 +11,7 @@ const STORE_THUMBNAILS = 'slide_thumbnails';
 
 let mediaDbPromise = null;
 
-const MediaDB = {
+export const MediaDB = {
   /**
    * Initialize Media IndexedDB
    * @returns {Promise<IDBDatabase>}
@@ -490,5 +490,3 @@ const MediaDB = {
   }
 };
 
-// Make available globally
-window.MediaDB = MediaDB;

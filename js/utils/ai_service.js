@@ -1,3 +1,5 @@
+import { AI_PROMPT_EXAMPLES } from './ai_prompt_examples.js';
+
 /**
  * AIService: Unified abstraction for multiple AI providers.
  * Supports OpenAI, Google Gemini, Ollama, and LM Studio.
@@ -38,7 +40,7 @@ const LAYOUT_PRESETS = {
   accent:     { x: 540, y: 600, width: 200, height: 50 }
 };
 
-const AIService = {
+export const AIService = {
   /**
    * Read the AI configuration from WOW3Settings.
    * @returns {{ provider: string, apiKey: string, baseUrl: string, model: string }}
@@ -286,8 +288,8 @@ const AIService = {
    * @returns {string}
    */
   _buildSystemPrompt: function () {
-    if (window.AI_PROMPT_EXAMPLES && window.AI_PROMPT_EXAMPLES.SYSTEM_PROMPT) {
-      return window.AI_PROMPT_EXAMPLES.SYSTEM_PROMPT;
+    if (AI_PROMPT_EXAMPLES && AI_PROMPT_EXAMPLES.SYSTEM_PROMPT) {
+      return AI_PROMPT_EXAMPLES.SYSTEM_PROMPT;
     }
     // Minimal fallback
     return 'You are a presentation designer. Return ONLY valid JSON with { "slides": [ { "title": "...", "background": "#fff", "elements": [ { "type": "text", "content": "...", "role": "title", "style": {} } ] } ] }. Canvas is 1280x720. No markdown.';
@@ -489,4 +491,3 @@ const AIService = {
   }
 };
 
-window.AIService = AIService;

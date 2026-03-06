@@ -1,8 +1,14 @@
+import { PresentationsDB } from './presentations_db.js';
+import { MediaDB } from './media_db.js';
+import { ContextMenu } from '../components/context_menu.js';
+import { Dialog } from './dialog.js';
+import { __ } from './i18n.js';
+
 /**
  * PresentationManager: Handles UI and Logic for the Presentation Library.
  */
 
-const PresentationManager = {
+export const PresentationManager = {
     state: {
         selectedPresentationId: null,
         searchQuery: '',
@@ -230,4 +236,6 @@ const PresentationManager = {
     }
 };
 
+// Expose globally for inline onclick handlers in generated HTML
 window.PresentationManager = PresentationManager;
+

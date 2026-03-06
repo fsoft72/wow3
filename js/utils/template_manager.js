@@ -1,3 +1,7 @@
+import { TemplatesDB } from './templates_db.js';
+import { ContextMenu } from '../components/context_menu.js';
+import { Dialog } from './dialog.js';
+
 /**
  * TemplateManager: Handles UI and Logic for the Template Library.
  * Provides built-in slide templates and user-saved templates.
@@ -278,7 +282,7 @@ const BUILTIN_TEMPLATES = [
   }
 ];
 
-const TemplateManager = {
+export const TemplateManager = {
   state: {
     userTemplates: [],
     searchQuery: ''
@@ -665,4 +669,6 @@ const TemplateManager = {
   }
 };
 
+// Expose globally for inline onclick handlers in generated HTML
 window.TemplateManager = TemplateManager;
+

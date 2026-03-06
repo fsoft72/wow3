@@ -31,6 +31,7 @@ import {
   loadPresentation,
   importZip
 } from './utils/storage.js';
+import { AIGenerator } from './utils/ai_generator.js';
 
 class WOW3App {
   constructor() {
@@ -79,7 +80,7 @@ class WOW3App {
       this.settingsController.init();
 
       // Initialize AI Generator
-      if (window.AIGenerator) {
+      if (AIGenerator) {
         AIGenerator.init();
       }
 
@@ -223,7 +224,7 @@ class WOW3App {
     if (aiBtn) {
       aiBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        if (window.AIGenerator) AIGenerator.open();
+        if (AIGenerator) AIGenerator.open();
       });
     }
 

@@ -6,6 +6,7 @@
 
 import { RecordingDialog } from '../components/RecordingDialog.js';
 import { toast } from '../utils/toasts.js';
+import { RecordingDB } from '../utils/recording_db.js';
 
 // ─── Constants ───────────────────────────────────────────
 
@@ -186,7 +187,7 @@ export class RecordingController {
 
       // Clean up session chunks from IndexedDB (if persisted)
       if (this._settings && this._settings.persist) {
-        await window.RecordingDB.deleteSession(this._sessionId);
+        await RecordingDB.deleteSession(this._sessionId);
       }
 
       toast.success('Recording saved');
@@ -360,7 +361,7 @@ export class RecordingController {
 
       // Secondary: IndexedDB persistence (crash resilience, fire-and-forget)
       if (this._settings.persist) {
-        window.RecordingDB.saveChunk(
+        RecordingDB.saveChunk(
           this._sessionId,
           this._chunkIndex++,
           event.data

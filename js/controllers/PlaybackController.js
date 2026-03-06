@@ -7,6 +7,7 @@ import { appEvents, AppEvents } from '../utils/events.js';
 import { toast } from '../utils/toasts.js';
 import { CountdownTimerElement } from '../models/CountdownTimerElement.js';
 import { AnimationManager } from '../animations/AnimationManager.js';
+import { MediaDB } from '../utils/media_db.js';
 
 export class PlaybackController {
   /**
@@ -822,8 +823,8 @@ export class PlaybackController {
     try {
       const audio = document.createElement('audio');
 
-      if (soundId.startsWith('media_') && window.MediaDB) {
-        const dataURL = await window.MediaDB.getMediaDataURL(soundId);
+      if (soundId.startsWith('media_') && MediaDB) {
+        const dataURL = await MediaDB.getMediaDataURL(soundId);
         if (dataURL) {
           audio.src = dataURL;
         } else {

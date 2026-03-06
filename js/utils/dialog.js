@@ -1,7 +1,9 @@
+import { __ } from './i18n.js';
+
 /**
  * Custom Dialog widget to replace native alert and confirm.
  */
-class Dialog {
+export class Dialog {
     /**
      * Shows an alert dialog.
      * @param {string} message - The message to display.
@@ -178,5 +180,3 @@ class Dialog {
     }
 }
 
-// Global helper for easy access
-window.Dialog = Dialog;

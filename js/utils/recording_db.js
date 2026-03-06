@@ -9,7 +9,7 @@ const STORE_RECORDING_CHUNKS = 'recording_chunks';
 
 let recordingDbPromise = null;
 
-const RecordingDB = {
+export const RecordingDB = {
   /**
    * Initialize Recording IndexedDB (lazy singleton)
    * @returns {Promise<IDBDatabase>}
@@ -140,5 +140,3 @@ const RecordingDB = {
   }
 };
 
-// Make available globally
-window.RecordingDB = RecordingDB;

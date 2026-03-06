@@ -5,6 +5,7 @@
 
 import { Element } from './Element.js';
 import { ElementType, DEFAULTS } from '../utils/constants.js';
+import { GradientManager } from '../utils/gradient_manager.js';
 
 export class ShapeElement extends Element {
   /**
@@ -110,7 +111,7 @@ export class ShapeElement extends Element {
   _resolveSvgFill(svg, color, suffix = 'fill') {
     if ( ! color ) return 'none';
 
-    const gm = window.GradientManager;
+    const gm = GradientManager;
     if ( ! gm ) return color;
 
     const grad = gm.fromCSS(color);

@@ -10,7 +10,7 @@
 
 /* eslint-disable no-unused-vars */
 
-const AI_PROMPT_EXAMPLES = {
+export const AI_PROMPT_EXAMPLES = {
 	/**
 	 * Full instructions sent as the system prompt.
 	 * The LLM must return ONLY a JSON object matching the schema below.
@@ -668,4 +668,3 @@ You may override any default by providing an explicit "position" object.
 IMPORTANT: Return ONLY the JSON object. No wrapping text, no markdown code fences, no explanation.`,
 };
 
-window.AI_PROMPT_EXAMPLES = AI_PROMPT_EXAMPLES;

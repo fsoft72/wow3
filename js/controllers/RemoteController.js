@@ -6,6 +6,7 @@
  */
 
 import { toast } from '../utils/toasts.js';
+import { Dialog } from '../utils/dialog.js';
 
 // ─── Constants ───────────────────────────────────────────
 

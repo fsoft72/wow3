@@ -2,7 +2,7 @@
  * Simple i18n for WOW3 (English only)
  */
 
-window.translationsEn = {
+export const translationsEn = {
   // Media Library
   'media_library': 'Media Library',
   'search_widgets_placeholder': 'Search media...',
@@ -33,11 +33,11 @@ window.translationsEn = {
   'remove': 'Remove'
 };
 
-window.I18n = {
+export const I18n = {
   currentLang: 'en',
 
   t: function(key, ...args) {
-    const langSource = window.translationsEn;
+    const langSource = translationsEn;
     if (!langSource) return key;
     let translation = langSource[key] || key;
 
@@ -55,4 +55,4 @@ window.I18n = {
 /**
  * Global helper for translation
  */
-window.__ = (key, ...args) => window.I18n.t(key, ...args);
+export const __ = (key, ...args) => I18n.t(key, ...args);

@@ -20,6 +20,9 @@ import { appEvents, AppEvents } from '../utils/events.js';
 import { centerOnCanvas } from '../utils/positioning.js';
 import { toast } from '../utils/toasts.js';
 import { CANVAS } from '../utils/constants.js';
+import { ContextMenu } from '../components/context_menu.js';
+import { MediaManager } from '../utils/media_manager.js';
+import { MediaDB } from '../utils/media_db.js';
 
 export class ElementController {
   /**
@@ -1005,7 +1008,7 @@ export class ElementController {
    * @param {Element} element - Image or video element without a URL
    */
   _openMediaManagerFor(element) {
-    if (typeof MediaManager === 'undefined') return;
+    if (!MediaManager) return;
 
     MediaManager.open(async (data) => {
       const mediaId = data.localUrl
@@ -1059,7 +1062,7 @@ export class ElementController {
       const url = element.properties.url;
       if (!url) return null;
       if (url.startsWith('media_')) {
-        src = await window.MediaDB.getMediaDataURL(url);
+        src = await MediaDB.getMediaDataURL(url);
       } else {
         src = url;
       }

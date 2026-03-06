@@ -1,3 +1,5 @@
+import { AIService } from './ai_service.js';
+
 /**
  * AIGenerator: Two-step overlay for AI-powered presentation generation.
  * Step 1: User enters a prompt describing the desired presentation.
@@ -5,7 +7,7 @@
  * Follows the SlideImporter singleton pattern.
  */
 
-const AIGenerator = {
+export const AIGenerator = {
   state: {
     step: 'prompt',            // 'prompt' | 'review'
     userPrompt: '',
@@ -85,7 +87,7 @@ const AIGenerator = {
     const overlay = document.getElementById('ai-generator-overlay');
     overlay.classList.add('active');
 
-    if (!window.AIService || !AIService.isConfigured()) {
+    if (!AIService || !AIService.isConfigured()) {
       this._showNotConfigured();
       return;
     }
@@ -439,7 +441,7 @@ const AIGenerator = {
    */
   _createSlides: async function () {
     if (this.state.generatedSlides.length === 0) return;
-    if (!window.AIService || !window.app?.editor) return;
+    if (!AIService || !window.app?.editor) return;
 
     const slidesJSON = this.state.generatedSlides.map(
       (s) => AIService.convertToSlideJSON(s)
@@ -475,4 +477,3 @@ const AIGenerator = {
   }
 };
 
-window.AIGenerator = AIGenerator;

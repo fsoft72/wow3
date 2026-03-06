@@ -6,6 +6,7 @@
 
 import { Element } from './Element.js';
 import { ElementType } from '../utils/constants.js';
+import { MediaDB } from '../utils/media_db.js';
 
 export class ImageElement extends Element {
   /**
@@ -218,7 +219,7 @@ export class ImageElement extends Element {
    */
   async loadFromMediaDB(img) {
     try {
-      const dataURL = await window.MediaDB.getMediaDataURL(this.properties.url);
+      const dataURL = await MediaDB.getMediaDataURL(this.properties.url);
       if (dataURL) {
         img.src = dataURL;
       } else {
@@ -237,7 +238,7 @@ export class ImageElement extends Element {
   async setUrl(source) {
     if (source instanceof File || source instanceof Blob) {
       // Upload to MediaDB
-      const item = await window.MediaDB.addMedia(source);
+      const item = await MediaDB.addMedia(source);
       this.properties.url = item.id;
       console.log('✅ Image uploaded to MediaDB:', item.id);
     } else {

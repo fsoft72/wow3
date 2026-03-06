@@ -6,9 +6,8 @@
  */
 
 import { STORAGE_KEYS } from './constants.js';
-
-// PresentationsDB is loaded globally via script tag
-const PresentationsDB = window.PresentationsDB;
+import { PresentationsDB } from './presentations_db.js';
+import { MediaDB } from './media_db.js';
 
 // ==================== INDEXEDDB (PERMANENT STORAGE) ====================
 
@@ -469,7 +468,7 @@ export const exportPresentation = async (presentation) => {
 
   for (const id of mediaIds) {
     try {
-      const item = await window.MediaDB.getMediaItem(id);
+      const item = await MediaDB.getMediaItem(id);
       if (!item || !item.blob) {
         console.warn(`⚠️ Media item not found, skipping: ${id}`);
         continue;
@@ -581,7 +580,7 @@ export const importZip = async (file) => {
     let folderId = null;
     if (assetFiles.length > 0) {
       const albumName = jsonData.title?.trim() || 'Imported Presentation';
-      const folder = await window.MediaDB.createFolder(albumName);
+      const folder = await MediaDB.createFolder(albumName);
       folderId = folder.id;
     }
 
@@ -590,7 +589,7 @@ export const importZip = async (file) => {
         const blob = await entry.async('blob');
         const mimeType = mimeFromFilename(relativePath);
         const mediaFile = new File([blob], relativePath, { type: mimeType });
-        const item = await window.MediaDB.addMedia(mediaFile, folderId);
+        const item = await MediaDB.addMedia(mediaFile, folderId);
         filenameToId.set(relativePath, item.id);
       } catch (err) {
         console.warn(`⚠️ Failed to import asset ${relativePath}:`, err);

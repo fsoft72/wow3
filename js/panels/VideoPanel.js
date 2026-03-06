@@ -1,3 +1,5 @@
+import { PanelUtils } from '../utils/panel_utils.js';
+
 /**
  * Video Element Property Panel
  */

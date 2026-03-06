@@ -71,7 +71,7 @@ const DEFAULT_PRESETS = [
   }
 ];
 
-const GradientManager = {
+export const GradientManager = {
   /** @type {Array} All saved gradients */
   _gradients: [],
 
@@ -453,4 +453,3 @@ const GradientManager = {
   }
 };
 
-window.GradientManager = GradientManager;

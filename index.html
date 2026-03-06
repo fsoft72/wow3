@@ -298,31 +298,33 @@
   <!-- QRCode.js for remote controller QR generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-  <!-- Utilities & Managers (Must load before modules) -->
-  <script src="js/utils/presentations_db.js"></script>
-  <script src="js/utils/media_db.js"></script>
-  <script src="js/utils/recording_db.js"></script>
-  <script src="js/utils/dialog.js"></script>
-  <script src="js/utils/i18n.js"></script>
-  <script src="js/utils/panel_utils.js"></script>
-  <script src="js/components/context_menu.js"></script>
-  <script src="js/utils/media_manager.js"></script>
-  <script src="js/utils/presentation_manager.js"></script>
-  <script src="js/utils/templates_db.js"></script>
-  <script src="js/utils/template_manager.js"></script>
-  <script src="js/utils/slide_importer.js"></script>
-  <script src="js/utils/ai_prompt_examples.js"></script>
-  <script src="js/utils/ai_service.js"></script>
-  <script src="js/utils/ai_generator.js"></script>
-  <script src="js/utils/gradient_manager.js"></script>
-  <script src="js/components/range_input.js"></script>
-  <script src="js/components/image_selector.js" type="module"></script>
-  <script src="js/components/gradient_selector.js"></script>
+  <!-- Utilities & Managers (ES Modules) -->
+  <script type="module" src="js/utils/presentations_db.js"></script>
+  <script type="module" src="js/utils/media_db.js"></script>
+  <script type="module" src="js/utils/recording_db.js"></script>
+  <script type="module" src="js/utils/dialog.js"></script>
+  <script type="module" src="js/utils/i18n.js"></script>
+  <script type="module" src="js/utils/panel_utils.js"></script>
+  <script type="module" src="js/components/context_menu.js"></script>
+  <script type="module" src="js/utils/media_manager.js"></script>
+  <script type="module" src="js/utils/presentation_manager.js"></script>
+  <script type="module" src="js/utils/templates_db.js"></script>
+  <script type="module" src="js/utils/template_manager.js"></script>
+  <script type="module" src="js/utils/slide_importer.js"></script>
+  <script type="module" src="js/utils/ai_prompt_examples.js"></script>
+  <script type="module" src="js/utils/ai_service.js"></script>
+  <script type="module" src="js/utils/ai_generator.js"></script>
+  <script type="module" src="js/utils/gradient_manager.js"></script>
+  <script type="module" src="js/components/range_input.js"></script>
+  <script type="module" src="js/components/image_selector.js"></script>
+  <script type="module" src="js/components/gradient_selector.js"></script>
   <!-- Application JavaScript (ES6 Modules) -->
   <script type="module" src="js/app.js"></script>
 
   <!-- Service Worker Registration & PWA Install -->
-  <script>
+  <script type="module">
+    import { Dialog } from './js/utils/dialog.js';
+
     // Service Worker Registration & Auto-Update
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
