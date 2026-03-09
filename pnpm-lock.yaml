@@ -35,9 +35,9 @@ importers:
       peerjs:
         specifier: ^1.5.4
         version: 1.5.5
-      qrcodejs:
-        specifier: ^1.0.0
-        version: 1.0.0
+      qrcodejs2:
+        specifier: ^0.0.2
+        version: 0.0.2
     devDependencies:
       vite:
         specifier: ^6.0.0
@@ -445,8 +445,8 @@ packages:
   process-nextick-args@2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
 
-  qrcodejs@1.0.0:
-    resolution: {integrity: sha512-67rj3mMBhSBepaD57qENnltO+r8rSYlqM7HGThks/BiyDAkc86sLvkKqjkqPS5v13f7tvnt6dbEf3qt7zq+BCg==}
+  qrcodejs2@0.0.2:
+    resolution: {integrity: sha512-+Y4HA+cb6qUzdgvI3KML8GYpMFwB24dFwzMkS/yXq6hwtUGNUnZQdUnksrV1XGMc2mid5ROw5SAuY9XhI3ValA==}
 
   readable-stream@2.3.8:
     resolution: {integrity: sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==}
@@ -793,7 +793,7 @@ snapshots:
 
   process-nextick-args@2.0.1: {}
 
-  qrcodejs@1.0.0: {}
+  qrcodejs2@0.0.2: {}
 
   readable-stream@2.3.8:
     dependencies:

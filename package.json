@@ -9,16 +9,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "qrcodejs": "^1.0.0",
-    "html2canvas": "^1.4.1",
-    "jszip": "^3.10.1",
-    "materialize-css": "^1.0.0",
-    "peerjs": "^1.5.4",
-    "@fontsource/roboto": "^5.0.0",
-    "@fontsource/open-sans": "^5.0.0",
     "@fontsource/lato": "^5.0.0",
     "@fontsource/montserrat": "^5.0.0",
-    "material-icons": "^1.13.0"
+    "@fontsource/open-sans": "^5.0.0",
+    "@fontsource/roboto": "^5.0.0",
+    "html2canvas": "^1.4.1",
+    "jszip": "^3.10.1",
+    "material-icons": "^1.13.0",
+    "materialize-css": "^1.0.0",
+    "peerjs": "^1.5.4",
+    "qrcodejs2": "^0.0.2"
   },
   "devDependencies": {
     "vite": "^6.0.0"

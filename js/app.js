@@ -9,7 +9,7 @@ import 'materialize-css/dist/css/materialize.min.css';
 import JSZip from 'jszip';
 import html2canvas from 'html2canvas';
 import { Peer } from 'peerjs';
-import QRCode from 'qrcodejs';
+import QRCode from 'qrcodejs2';
 
 window.M = M;
 window.JSZip = JSZip;
