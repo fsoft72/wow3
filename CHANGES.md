@@ -1,5 +1,28 @@
 # WOW3 Development Changelog
 
+## 2026-03-09
+
+### ADD: Complete Vite Setup with npm Dependencies (Zero CDN)
+
+- **Created `package.json`** with Vite (dev) + all runtime deps as npm packages
+- **Created `vite.config.js`** with multi-page app config (index.html + mobile/index.html)
+- **Migrated all CDN dependencies to npm packages:**
+  - `materialize-css` (CSS framework + JS)
+  - `jszip` (ZIP export/import)
+  - `html2canvas` (slide thumbnails)
+  - `peerjs` (WebRTC remote control)
+  - `qrcodejs` (QR code generation)
+- **Migrated fonts & icons to npm packages (zero CDN):**
+  - `@fontsource/roboto`, `@fontsource/open-sans`, `@fontsource/lato`, `@fontsource/montserrat`
+  - `material-icons`
+- **Updated `js/app.js`:** imports all npm packages, exposes as `window.*` globals for backward compat, imports all CSS (fonts, icons, materialize, app styles)
+- **Updated `index.html`:** removed all CDN `<link>` and `<script>` tags, removed 18 individual module script tags, kept single `js/app.js` entry
+- **Extracted `mobile/main.js`** from inline script in `mobile/index.html`, added PeerJS import
+- **Updated `mobile/index.html`:** removed CDN PeerJS script, references `mobile/main.js` module
+- **Updated `sw.js`:** emptied `CDN_FILES` array (all deps now bundled locally)
+- **Updated `.gitignore`:** removed `pnpm-lock.yaml` from ignore list
+- **Moved service worker registration & PWA install prompt** from inline `<script>` in index.html into `js/app.js`
+
 ## 2026-03-03
 
 ### Enhancement: AI Prompt — Full WOW3 Power Features

@@ -104,24 +104,8 @@ const LOCAL_FILES = [
   'js/app.js',
 ];
 
-/** External CDN resources to pre-cache */
-const CDN_FILES = [
-  // MaterializeCSS
-  'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css',
-  'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js',
-  // JSZip
-  'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
-  // html2canvas
-  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-  // PeerJS
-  'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js',
-  // QRCode.js
-  'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
-  // Material Icons
-  'https://fonts.googleapis.com/icon?family=Material+Icons',
-  // Google Fonts
-  'https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap',
-];
+/** External CDN resources to pre-cache (all deps are now bundled locally) */
+const CDN_FILES = [];
 
 /**
  * Install event: pre-cache all app resources.

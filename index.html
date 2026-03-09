@@ -15,30 +15,7 @@
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 
-  <!-- Material Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-  <!-- MaterializeCSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/animation-editor.css">
-  <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/editor.css">
-  <link rel="stylesheet" href="css/sidebar.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/media-manager.css">
-  <link rel="stylesheet" href="css/presentation-manager.css">
-  <link rel="stylesheet" href="css/template-manager.css">
-  <link rel="stylesheet" href="css/slide-importer.css">
-  <link rel="stylesheet" href="css/dialog.css">
-  <link rel="stylesheet" href="css/panels.css">
-  <link rel="stylesheet" href="css/gradient-manager.css">
-  <link rel="stylesheet" href="css/countdown-timer.css">
-  <link rel="stylesheet" href="css/settings.css">
-  <link rel="stylesheet" href="css/recording.css">
-  <link rel="stylesheet" href="css/ai-generator.css">
+  <!-- CSS is loaded via js/app.js imports -->
 </head>
 <body>
   <!-- Top Menu Bar -->
@@ -283,98 +260,7 @@
     <!-- Presentation slides rendered here during playback -->
   </div>
 
-  <!-- MaterializeCSS JavaScript -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-
-  <!-- JSZip for .wow3 export/import -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-  <!-- html2canvas for slide thumbnails -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-  <!-- PeerJS for WebRTC remote control -->
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-
-  <!-- QRCode.js for remote controller QR generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-  <!-- Utilities & Managers (ES Modules) -->
-  <script type="module" src="js/utils/presentations_db.js"></script>
-  <script type="module" src="js/utils/media_db.js"></script>
-  <script type="module" src="js/utils/recording_db.js"></script>
-  <script type="module" src="js/utils/dialog.js"></script>
-  <script type="module" src="js/utils/i18n.js"></script>
-  <script type="module" src="js/utils/panel_utils.js"></script>
-  <script type="module" src="js/components/context_menu.js"></script>
-  <script type="module" src="js/utils/media_manager.js"></script>
-  <script type="module" src="js/utils/presentation_manager.js"></script>
-  <script type="module" src="js/utils/templates_db.js"></script>
-  <script type="module" src="js/utils/template_manager.js"></script>
-  <script type="module" src="js/utils/slide_importer.js"></script>
-  <script type="module" src="js/utils/ai_prompt_examples.js"></script>
-  <script type="module" src="js/utils/ai_service.js"></script>
-  <script type="module" src="js/utils/ai_generator.js"></script>
-  <script type="module" src="js/utils/gradient_manager.js"></script>
-  <script type="module" src="js/components/range_input.js"></script>
-  <script type="module" src="js/components/image_selector.js"></script>
-  <script type="module" src="js/components/gradient_selector.js"></script>
-  <!-- Application JavaScript (ES6 Modules) -->
+  <!-- Application entry point -->
   <script type="module" src="js/app.js"></script>
-
-  <!-- Service Worker Registration & PWA Install -->
-  <script type="module">
-    import { Dialog } from './js/utils/dialog.js';
-
-    // Service Worker Registration & Auto-Update
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then((registration) => {
-          console.log('[PWA] Service Worker registered, scope:', registration.scope);
-
-          // Check for updates immediately on startup
-          registration.update().catch(() => {});
-        }).catch((err) => {
-          console.warn('[PWA] Service Worker registration failed:', err);
-        });
-      });
-
-      // Listen for update notification from the new service worker
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'SW_UPDATED') {
-          Dialog.alert(
-            'WOW3 has been updated to version <b>' + event.data.version + '</b>.<br>The app will now reload to apply changes.',
-            'Update Applied'
-          ).then(() => {
-            window.location.reload();
-          });
-        }
-      });
-    }
-
-    // PWA Install Prompt
-    let deferredInstallPrompt = null;
-    const installBtnWrapper = document.getElementById('install-btn-wrapper');
-    const installBtn = document.getElementById('install-btn');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredInstallPrompt = e;
-      installBtnWrapper.style.display = '';
-    });
-
-    installBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      if (!deferredInstallPrompt) return;
-      deferredInstallPrompt.prompt();
-      const { outcome } = await deferredInstallPrompt.userChoice;
-      deferredInstallPrompt = null;
-      installBtnWrapper.style.display = 'none';
-    });
-
-    window.addEventListener('appinstalled', () => {
-      deferredInstallPrompt = null;
-      installBtnWrapper.style.display = 'none';
-    });
-  </script>
 </body>
 </html>

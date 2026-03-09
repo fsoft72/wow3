@@ -3,6 +3,88 @@
  * Main entry point for the application
  */
 
+/* ── npm dependencies (exposed as globals for backward compat) ── */
+import M from 'materialize-css';
+import 'materialize-css/dist/css/materialize.min.css';
+import JSZip from 'jszip';
+import html2canvas from 'html2canvas';
+import { Peer } from 'peerjs';
+import QRCode from 'qrcodejs';
+
+window.M = M;
+window.JSZip = JSZip;
+window.html2canvas = html2canvas;
+window.Peer = Peer;
+window.QRCode = QRCode;
+
+/* ── Fonts & Icons ── */
+import 'material-icons/iconfont/material-icons.css';
+// Roboto
+import '@fontsource/roboto/100.css';
+import '@fontsource/roboto/100-italic.css';
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/300-italic.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/400-italic.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/500-italic.css';
+import '@fontsource/roboto/700.css';
+import '@fontsource/roboto/700-italic.css';
+import '@fontsource/roboto/900.css';
+import '@fontsource/roboto/900-italic.css';
+// Open Sans
+import '@fontsource/open-sans/300.css';
+import '@fontsource/open-sans/300-italic.css';
+import '@fontsource/open-sans/400.css';
+import '@fontsource/open-sans/400-italic.css';
+import '@fontsource/open-sans/600.css';
+import '@fontsource/open-sans/600-italic.css';
+import '@fontsource/open-sans/700.css';
+import '@fontsource/open-sans/700-italic.css';
+// Lato
+import '@fontsource/lato/100.css';
+import '@fontsource/lato/100-italic.css';
+import '@fontsource/lato/300.css';
+import '@fontsource/lato/300-italic.css';
+import '@fontsource/lato/400.css';
+import '@fontsource/lato/400-italic.css';
+import '@fontsource/lato/700.css';
+import '@fontsource/lato/700-italic.css';
+import '@fontsource/lato/900.css';
+import '@fontsource/lato/900-italic.css';
+// Montserrat
+import '@fontsource/montserrat/100.css';
+import '@fontsource/montserrat/100-italic.css';
+import '@fontsource/montserrat/300.css';
+import '@fontsource/montserrat/300-italic.css';
+import '@fontsource/montserrat/400.css';
+import '@fontsource/montserrat/400-italic.css';
+import '@fontsource/montserrat/500.css';
+import '@fontsource/montserrat/500-italic.css';
+import '@fontsource/montserrat/700.css';
+import '@fontsource/montserrat/700-italic.css';
+import '@fontsource/montserrat/900.css';
+import '@fontsource/montserrat/900-italic.css';
+
+/* ── App CSS ── */
+import '../css/animation-editor.css';
+import '../css/main.css';
+import '../css/editor.css';
+import '../css/sidebar.css';
+import '../css/components.css';
+import '../css/media-manager.css';
+import '../css/presentation-manager.css';
+import '../css/template-manager.css';
+import '../css/slide-importer.css';
+import '../css/dialog.css';
+import '../css/panels.css';
+import '../css/gradient-manager.css';
+import '../css/countdown-timer.css';
+import '../css/settings.css';
+import '../css/recording.css';
+import '../css/ai-generator.css';
+
+/* ── App modules ── */
 import { UIManager } from './views/UIManager.js';
 import { toast } from './utils/toasts.js';
 import {
@@ -32,6 +114,7 @@ import {
   importZip
 } from './utils/storage.js';
 import { AIGenerator } from './utils/ai_generator.js';
+import { Dialog } from './utils/dialog.js';
 
 class WOW3App {
   constructor() {
@@ -390,6 +473,57 @@ if (document.readyState === 'loading') {
   // DOM is already ready
   window.app = new WOW3App();
   window.app.init();
+}
+
+// ── Service Worker Registration & PWA Install ──
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then((registration) => {
+      console.log('[PWA] Service Worker registered, scope:', registration.scope);
+      registration.update().catch(() => {});
+    }).catch((err) => {
+      console.warn('[PWA] Service Worker registration failed:', err);
+    });
+  });
+
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SW_UPDATED') {
+      Dialog.alert(
+        'WOW3 has been updated to version <b>' + event.data.version + '</b>.<br>The app will now reload to apply changes.',
+        'Update Applied'
+      ).then(() => {
+        window.location.reload();
+      });
+    }
+  });
+}
+
+/** PWA Install Prompt */
+let deferredInstallPrompt = null;
+const installBtnWrapper = document.getElementById('install-btn-wrapper');
+const installBtn = document.getElementById('install-btn');
+
+if (installBtnWrapper && installBtn) {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    installBtnWrapper.style.display = '';
+  });
+
+  installBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    installBtnWrapper.style.display = 'none';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    installBtnWrapper.style.display = 'none';
+  });
 }
 
 // Make app available globally
