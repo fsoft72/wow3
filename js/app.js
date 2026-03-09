@@ -9,13 +9,10 @@ import 'materialize-css/dist/css/materialize.min.css';
 import JSZip from 'jszip';
 import html2canvas from 'html2canvas';
 import { Peer } from 'peerjs';
-import QRCode from 'qrcodejs2';
-
 window.M = M;
 window.JSZip = JSZip;
 window.html2canvas = html2canvas;
 window.Peer = Peer;
-window.QRCode = QRCode;
 
 /* ── Fonts & Icons ── */
 import 'material-icons/iconfont/material-icons.css';

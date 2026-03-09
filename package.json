@@ -18,7 +18,7 @@
     "material-icons": "^1.13.0",
     "materialize-css": "^1.0.0",
     "peerjs": "^1.5.4",
-    "qrcodejs2": "^0.0.2"
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "vite": "^6.0.0"

@@ -5,6 +5,7 @@
  * and forwards next/prev commands to PlaybackController.
  */
 
+import QRCode from 'qrcode';
 import { toast } from '../utils/toasts.js';
 import { Dialog } from '../utils/dialog.js';
 
@@ -104,19 +105,18 @@ export class RemoteController {
         const container = box.querySelector('#remote-qr-container');
         if (!container) return;
 
-        try {
-          new QRCode(container, {
-            text: mobileUrl,
-            width: 220,
-            height: 220,
-            colorDark: '#000000',
-            colorLight: '#ffffff',
-            correctLevel: QRCode.CorrectLevel.H
-          });
-        } catch (err) {
+        const canvas = document.createElement('canvas');
+        container.appendChild(canvas);
+
+        QRCode.toCanvas(canvas, mobileUrl, {
+          width: 220,
+          margin: 1,
+          errorCorrectionLevel: 'H',
+          color: { dark: '#000000', light: '#ffffff' }
+        }).catch((err) => {
           console.error('[Remote] QR generation failed:', err);
           container.textContent = mobileUrl;
-        }
+        });
       }
     });
   }
