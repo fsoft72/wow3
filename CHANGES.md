@@ -2,6 +2,16 @@
 
 ## 2026-03-09
 
+### REFACTOR: Migrate service worker to vite-plugin-pwa + Workbox
+
+- **Replaced manual service worker** with `vite-plugin-pwa` (`injectManifest` strategy)
+- **Rewrote `sw.js`** to use Workbox: `precacheAndRoute(self.__WB_MANIFEST)` auto-precaches all build assets (511 entries), runtime caching for images (CacheFirst) and fonts (StaleWhileRevalidate)
+- **Updated `vite.config.js`** with `VitePWA` plugin, manifest config, glob patterns for precaching
+- **Updated `js/app.js`** to use `registerSW` from `virtual:pwa-register` instead of manual `navigator.serviceWorker.register()`
+- **Replaced `qrcodejs2` with `qrcode`** — qrcodejs2 used `this` in an IIFE expecting `window`, which is `undefined` in ESM strict mode, causing fatal TypeError in production builds
+- **Moved `icons/` and `favicon.ico` to `public/`** for stable PWA paths (no content hashing)
+- **Deleted `manifest.json`** — VitePWA auto-generates `manifest.webmanifest` from config
+
 ### ADD: Complete Vite Setup with npm Dependencies (Zero CDN)
 
 - **Created `package.json`** with Vite (dev) + all runtime deps as npm packages

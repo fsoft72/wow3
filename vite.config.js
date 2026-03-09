@@ -1,5 +1,6 @@
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   build: {
@@ -10,4 +11,50 @@ export default defineConfig({
       },
     },
   },
+  plugins: [
+    VitePWA({
+      strategies: 'injectManifest',
+      srcDir: '.',
+      filename: 'sw.js',
+      registerType: 'prompt',
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,woff,woff2}'],
+      },
+      manifest: {
+        name: 'WOW3 Presentation',
+        short_name: 'WOW3',
+        description: 'Web-based Presentation Software',
+        start_url: '.',
+        display: 'standalone',
+        orientation: 'landscape',
+        theme_color: '#1a1a2e',
+        background_color: '#1a1a2e',
+        icons: [
+          {
+            src: 'icons/icon-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+          {
+            src: 'icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+        categories: ['productivity', 'utilities'],
+        file_handlers: [
+          {
+            action: '.',
+            accept: { 'application/zip': ['.wow3'] },
+          },
+        ],
+      },
+    }),
+  ],
 });

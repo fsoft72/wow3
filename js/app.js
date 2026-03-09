@@ -472,29 +472,29 @@ if (document.readyState === 'loading') {
   window.app.init();
 }
 
-// ── Service Worker Registration & PWA Install ──
+// ── Service Worker Registration (vite-plugin-pwa) ──
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then((registration) => {
-      console.log('[PWA] Service Worker registered, scope:', registration.scope);
-      registration.update().catch(() => {});
-    }).catch((err) => {
-      console.warn('[PWA] Service Worker registration failed:', err);
+import { registerSW } from 'virtual:pwa-register';
+
+registerSW({
+  onNeedRefresh() {
+    Dialog.alert(
+      'WOW3 has been updated.<br>The app will now reload to apply changes.',
+      'Update Available'
+    ).then(() => {
+      window.location.reload();
     });
-  });
-
-  navigator.serviceWorker.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'SW_UPDATED') {
-      Dialog.alert(
-        'WOW3 has been updated to version <b>' + event.data.version + '</b>.<br>The app will now reload to apply changes.',
-        'Update Applied'
-      ).then(() => {
-        window.location.reload();
-      });
-    }
-  });
-}
+  },
+  onOfflineReady() {
+    console.log('[PWA] App ready to work offline');
+  },
+  onRegistered(registration) {
+    console.log('[PWA] Service Worker registered:', registration);
+  },
+  onRegisterError(error) {
+    console.warn('[PWA] Service Worker registration failed:', error);
+  },
+});
 
 /** PWA Install Prompt */
 let deferredInstallPrompt = null;
