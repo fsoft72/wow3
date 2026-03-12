@@ -1,5 +1,16 @@
 # WOW3 Development Changelog
 
+## 2026-03-12
+
+### FIX: PWA update flow, unbounded cache, and deploy script bugs
+
+- **Fixed SW update never activating**: `registerSW` now calls `updateSW(true)` instead of `window.location.reload()`, so the waiting SW actually takes control
+- **Added ExpirationPlugin to image cache** in `sw.js` — bounded to 100 entries / 30 days to prevent unbounded Cache Storage growth
+- **Set `maximumFileSizeToCacheInBytes: 5MB`** in `vite.config.js` to prevent Workbox from silently dropping large JS bundles
+- **Fixed dead `$?` check in deploy scripts** — `set -e` was already active, making the `if [ $? -ne 0 ]` block unreachable
+- **Removed stale `CACHE_VERSION` patching** from `new_version.sh` — Workbox handles versioning via the precache manifest hash
+- **Added `workbox-expiration`** to devDependencies
+
 ## 2026-03-09
 
 ### REFACTOR: Migrate service worker to vite-plugin-pwa + Workbox

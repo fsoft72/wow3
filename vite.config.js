@@ -20,6 +20,7 @@ export default defineConfig({
       registerType: 'prompt',
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,woff,woff2}'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },
       manifest: {
         name: 'WOW3 Presentation',

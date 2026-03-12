@@ -476,13 +476,13 @@ if (document.readyState === 'loading') {
 
 import { registerSW } from 'virtual:pwa-register';
 
-registerSW({
+const updateSW = registerSW({
   onNeedRefresh() {
     Dialog.alert(
       'WOW3 has been updated.<br>The app will now reload to apply changes.',
       'Update Available'
     ).then(() => {
-      window.location.reload();
+      updateSW(true);
     });
   },
   onOfflineReady() {
