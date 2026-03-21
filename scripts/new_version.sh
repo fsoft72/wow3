@@ -32,8 +32,5 @@ echo "Bumping version to $VERSION..."
 sed -i "s/v\. [0-9]\+\.[0-9]\+\.[0-9]\+/v. $VERSION/" "$UI_MANAGER"
 echo "  Updated $UI_MANAGER"
 
-# Update sw.js cache version
-sed -i "s/const CACHE_VERSION = 'wow3-v[^']*'/const CACHE_VERSION = 'wow3-v$VERSION'/" "$SW"
-echo "  Updated $SW"
 
 echo "Done! Version bumped to $VERSION"
