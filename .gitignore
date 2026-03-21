@@ -32,3 +32,4 @@ dist-ssr
 *.sln
 *.sw?
 pnpm-lock.yaml
+docs/plans/2026-03-07-vite-bundler-integration.md
