@@ -10,10 +10,9 @@
   <meta name="apple-mobile-web-app-title" content="WOW3">
   <title>WOW3 Presentation</title>
 
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!-- PWA icons (manifest injected by vite-plugin-pwa) -->
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
 
   <!-- Material Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
@@ -23,27 +22,27 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/animation-editor.css">
-  <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/editor.css">
-  <link rel="stylesheet" href="css/sidebar.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/media-manager.css">
-  <link rel="stylesheet" href="css/presentation-manager.css">
-  <link rel="stylesheet" href="css/template-manager.css">
-  <link rel="stylesheet" href="css/slide-importer.css">
-  <link rel="stylesheet" href="css/dialog.css">
-  <link rel="stylesheet" href="css/panels.css">
-  <link rel="stylesheet" href="css/gradient-manager.css">
-  <link rel="stylesheet" href="css/countdown-timer.css">
-  <link rel="stylesheet" href="css/settings.css">
-  <link rel="stylesheet" href="css/recording.css">
+  <link rel="stylesheet" href="./css/animation-editor.css">
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/editor.css">
+  <link rel="stylesheet" href="./css/sidebar.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/media-manager.css">
+  <link rel="stylesheet" href="./css/presentation-manager.css">
+  <link rel="stylesheet" href="./css/template-manager.css">
+  <link rel="stylesheet" href="./css/slide-importer.css">
+  <link rel="stylesheet" href="./css/dialog.css">
+  <link rel="stylesheet" href="./css/panels.css">
+  <link rel="stylesheet" href="./css/gradient-manager.css">
+  <link rel="stylesheet" href="./css/countdown-timer.css">
+  <link rel="stylesheet" href="./css/settings.css">
+  <link rel="stylesheet" href="./css/recording.css">
 </head>
 <body>
   <!-- Top Menu Bar -->
   <nav id="top-menu">
     <div class="nav-wrapper">
-      <a href="#" class="brand-logo" id="brand-logo"><img src="icons/icon-192x192.png" alt="WOW3" class="brand-icon"></a>
+      <a href="#" class="brand-logo" id="brand-logo"><img src="./icons/icon-192x192.png" alt="WOW3" class="brand-icon"></a>
       <input
         type="text"
         id="presentation-title-input"
@@ -293,45 +292,33 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Utilities & Managers (Must load before modules) -->
-  <script src="js/utils/presentations_db.js"></script>
-  <script src="js/utils/media_db.js"></script>
-  <script src="js/utils/recording_db.js"></script>
-  <script src="js/utils/dialog.js"></script>
-  <script src="js/utils/i18n.js"></script>
-  <script src="js/utils/panel_utils.js"></script>
-  <script src="js/components/context_menu.js"></script>
-  <script src="js/utils/media_manager.js"></script>
-  <script src="js/utils/presentation_manager.js"></script>
-  <script src="js/utils/templates_db.js"></script>
-  <script src="js/utils/template_manager.js"></script>
-  <script src="js/utils/slide_importer.js"></script>
-  <script src="js/utils/gradient_manager.js"></script>
-  <script src="js/components/range_input.js"></script>
-  <script src="js/components/image_selector.js" type="module"></script>
-  <script src="js/components/gradient_selector.js"></script>
+  <script src="./js/utils/presentations_db.js"></script>
+  <script src="./js/utils/media_db.js"></script>
+  <script src="./js/utils/recording_db.js"></script>
+  <script src="./js/utils/dialog.js"></script>
+  <script src="./js/utils/i18n.js"></script>
+  <script src="./js/utils/panel_utils.js"></script>
+  <script src="./js/components/context_menu.js"></script>
+  <script src="./js/utils/media_manager.js"></script>
+  <script src="./js/utils/presentation_manager.js"></script>
+  <script src="./js/utils/templates_db.js"></script>
+  <script src="./js/utils/template_manager.js"></script>
+  <script src="./js/utils/slide_importer.js"></script>
+  <script src="./js/utils/gradient_manager.js"></script>
+  <script src="./js/components/range_input.js"></script>
+  <script src="./js/components/image_selector.js" type="module"></script>
+  <script src="./js/components/gradient_selector.js"></script>
   <!-- Application JavaScript (ES6 Modules) -->
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="./js/app.js"></script>
 
-  <!-- Service Worker Registration & PWA Install -->
+  <!-- PWA Install Prompt & Update Listener -->
   <script>
-    // Service Worker Registration & Auto-Update
+    // Listen for update notification from the service worker
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then((registration) => {
-          console.log('[PWA] Service Worker registered, scope:', registration.scope);
-
-          // Check for updates immediately on startup
-          registration.update().catch(() => {});
-        }).catch((err) => {
-          console.warn('[PWA] Service Worker registration failed:', err);
-        });
-      });
-
-      // Listen for update notification from the new service worker
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data && event.data.type === 'SW_UPDATED') {
           Dialog.alert(
-            'WOW3 has been updated to version <b>' + event.data.version + '</b>.<br>The app will now reload to apply changes.',
+            'WOW3 has been updated.<br>The app will now reload to apply changes.',
             'Update Applied'
           ).then(() => {
             window.location.reload();

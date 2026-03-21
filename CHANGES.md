@@ -1,5 +1,27 @@
 # WOW3 Development Changelog
 
+## 2026-03-21
+
+### Migration: Vite + PWA (vite-plugin-pwa + Workbox)
+
+- Added `package.json` with Vite scripts (`dev`, `build`, `preview`)
+- Added `vite.config.js` with:
+  - `base: './'` for relative paths
+  - `vite-plugin-pwa` using `injectManifest` strategy
+  - PWA manifest (migrated from `manifest.json`)
+  - Custom `copyClassicScripts` plugin to copy non-module JS to dist
+- Created `src/sw.js` — Workbox-based service worker replacing the hand-written `sw.js`
+  - Uses `precacheAndRoute` for build assets (auto-injected by vite-plugin-pwa)
+  - CacheFirst for images, Google Fonts
+  - StaleWhileRevalidate for CDN resources
+  - Keeps SW_UPDATED client messaging
+- Moved static assets to `public/` (favicon.ico, icons/, mobile/, manifest.json removed — now generated)
+- Updated `index.html`:
+  - All paths use `./` prefix
+  - Removed manual SW registration (handled by vite-plugin-pwa)
+  - Kept PWA install prompt and SW_UPDATED listener
+- Dev dependencies: vite, vite-plugin-pwa, workbox-core, workbox-precaching, workbox-routing, workbox-strategies, workbox-expiration, workbox-cacheable-response
+
 ## 2026-02-27
 
 ### Feature: Slide Importer (Cherry-Picker)
