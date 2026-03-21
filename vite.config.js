@@ -21,6 +21,16 @@ function copyClassicScripts() {
 export default defineConfig({
   base: './',
 
+  build: {
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    }
+  },
+
   plugins: [
     copyClassicScripts(),
     VitePWA({

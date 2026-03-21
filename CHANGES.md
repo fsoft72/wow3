@@ -10,6 +10,7 @@
   - `vite-plugin-pwa` using `injectManifest` strategy
   - PWA manifest (migrated from `manifest.json`)
   - Custom `copyClassicScripts` plugin to copy non-module JS to dist
+  - Terser minification with `drop_console` and `drop_debugger` for production builds
 - Created `src/sw.js` — Workbox-based service worker replacing the hand-written `sw.js`
   - Uses `precacheAndRoute` for build assets (auto-injected by vite-plugin-pwa)
   - CacheFirst for images, Google Fonts
