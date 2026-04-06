@@ -79,6 +79,31 @@ export class KaraokeElement extends Element {
     const nextLine = dom.querySelector('.karaoke-next');
     if (!prevLine || !currentLine || !nextLine) return;
 
+    // Apply current colors (may have been changed from panel)
+    const colorPrev = this.properties.colorPrev || '#888888';
+    const colorCurrent = this.properties.colorCurrent || '#ff9800';
+
+    prevLine.style.color = colorPrev;
+    nextLine.style.color = colorPrev;
+    this._applyHighlightColor(currentLine, colorCurrent);
+
+    // Update font styles
+    const font = this.properties.font || {};
+    const baseStyle = `
+      font-family: ${font.family || 'Roboto'}, sans-serif;
+      font-size: ${font.size || 36}px;
+      font-weight: ${font.weight || 'bold'};
+      text-align: ${font.alignment || 'center'};
+      line-height: 1.4;
+    `;
+    for (const line of [prevLine, currentLine, nextLine]) {
+      line.style.fontFamily = `${font.family || 'Roboto'}, sans-serif`;
+      line.style.fontSize = (font.size || 36) + 'px';
+      line.style.fontWeight = font.weight || 'bold';
+      line.style.fontStyle = font.style || 'normal';
+      line.style.textAlign = font.alignment || 'center';
+    }
+
     if (!cues || cues.length === 0) {
       prevLine.textContent = '';
       currentLine.textContent = 'Karaoke';
@@ -89,29 +114,45 @@ export class KaraokeElement extends Element {
     const activeIdx = findActiveCue(cues, relativeMs);
 
     if (activeIdx >= 0) {
-      // Active cue found
       prevLine.textContent = activeIdx > 0 ? cues[activeIdx - 1].text : '';
       currentLine.textContent = cues[activeIdx].text;
       nextLine.textContent = activeIdx < cues.length - 1 ? cues[activeIdx + 1].text : '';
     } else {
-      // Between cues — find the next upcoming cue
       let nextIdx = cues.findIndex(c => c.startMs > relativeMs);
       if (nextIdx === -1) {
-        // Past all cues
         prevLine.textContent = cues[cues.length - 1].text;
         currentLine.textContent = '';
         nextLine.textContent = '';
       } else if (nextIdx === 0) {
-        // Before first cue
         prevLine.textContent = '';
         currentLine.textContent = '';
         nextLine.textContent = cues[0].text;
       } else {
-        // Between two cues
         prevLine.textContent = cues[nextIdx - 1].text;
         currentLine.textContent = '';
         nextLine.textContent = cues[nextIdx].text;
       }
+    }
+  }
+
+  /**
+   * Apply highlight color — supports both solid colors and CSS gradients.
+   * @param {HTMLElement} el
+   * @param {string} color - CSS color or gradient string
+   */
+  _applyHighlightColor(el, color) {
+    if (color.includes('gradient')) {
+      el.style.background = color;
+      el.style.webkitBackgroundClip = 'text';
+      el.style.webkitTextFillColor = 'transparent';
+      el.style.backgroundClip = 'text';
+      el.style.color = '';
+    } else {
+      el.style.background = '';
+      el.style.webkitBackgroundClip = '';
+      el.style.webkitTextFillColor = '';
+      el.style.backgroundClip = '';
+      el.style.color = color;
     }
   }
 }
