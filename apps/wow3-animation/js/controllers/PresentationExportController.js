@@ -29,10 +29,12 @@ export class PresentationExportController {
 
   /**
    * Export the whole project as a browser-recorded video file.
-   * Prefers MP4 when MediaRecorder supports it, otherwise falls back to WebM.
+   * Uses a two-phase approach for accurate frame rate and audio sync:
+   *   Phase 1 – Capture every frame offline (slow but frame-accurate)
+   *   Phase 2 – Play captured frames back in real-time with audio
    *
    * @param {Object} [opts]
-   * @param {(payload: {progress: number, timeMs: number, durationMs: number}) => void} [opts.onProgress]
+   * @param {(payload: {progress: number}) => void} [opts.onProgress]
    * @returns {Promise<{blob: Blob, filename: string, mimeType: string}>}
    */
   async export(opts = {}) {
@@ -52,9 +54,13 @@ export class PresentationExportController {
     this.isExporting = true;
     const project = this.timeline.project;
     const durationMs = this._getExportDurationMs(project);
+    const frameDurationMs = 1000 / EXPORT_FPS;
+    const totalFrames = Math.ceil(durationMs / frameDurationMs) + 1;
     const mimeType = this._getSupportedMimeType();
     const filename = this._buildFilename(project.title, mimeType);
 
+    /** @type {Blob[]} */
+    const capturedFrames = [];
     /** @type {Blob[]} */
     const chunks = [];
     /** @type {MediaStream|null} */
@@ -72,28 +78,50 @@ export class PresentationExportController {
 
     try {
       toast.info('Preloading assets…');
-
-      if (this.playback.isPlaying) {
-        this.playback.pause();
-      }
+      if (this.playback.isPlaying) this.playback.pause();
       this.clipController.deselectAll();
-
       await this._preloadAssets(project);
-      toast.info('Export started');
 
+      // ── Phase 1: capture every frame offline ──
+      toast.info('Capturing frames…');
       this.canvasRenderer.clear();
       this.canvasRenderer.setExportMode(true);
 
-      exportCanvas = document.createElement('canvas');
-      exportCanvas.width = project.width;
-      exportCanvas.height = project.height;
-      const exportCtx = exportCanvas.getContext('2d', { alpha: false });
-      if (!exportCtx) {
-        throw new Error('Could not create export canvas context');
+      let previousActiveIds = new Set();
+      const { width, height } = project;
+
+      for (let i = 0; i < totalFrames; i++) {
+        const timeMs = Math.min(durationMs, i * frameDurationMs);
+        await this._renderAtTime(timeMs);
+
+        const activeIds = this._getActiveVisualClipIds(timeMs);
+        if (!this._sameSet(activeIds, previousActiveIds)) {
+          await this._waitForRenderableMedia(slideCanvas, 500);
+          previousActiveIds = activeIds;
+        }
+
+        const canvas = await this._captureFrame(slideCanvas, width, height);
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.92));
+        capturedFrames.push(blob);
+
+        if (onProgress) {
+          onProgress({ progress: (i / totalFrames) * 0.7 });
+        }
       }
+
+      this.canvasRenderer.setExportMode(false);
+
+      // ── Phase 2: real-time playback + recording ──
+      toast.info('Recording video…');
+      exportCanvas = document.createElement('canvas');
+      exportCanvas.width = width;
+      exportCanvas.height = height;
+      const exportCtx = exportCanvas.getContext('2d', { alpha: false });
+      if (!exportCtx) throw new Error('Could not create export canvas context');
 
       exportStream = exportCanvas.captureStream(EXPORT_FPS);
 
+      // Create audio mix right before recording so timing aligns
       const audioMix = await this._createAudioMix(project, durationMs, EXPORT_START_DELAY_MS / 1000);
       mixAudioCtx = audioMix.ctx;
       audioDestination = audioMix.destination;
@@ -108,58 +136,67 @@ export class PresentationExportController {
       });
 
       const recorderStopped = new Promise((resolve, reject) => {
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data && event.data.size > 0) chunks.push(event.data);
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data?.size > 0) chunks.push(e.data);
         };
-        mediaRecorder.onerror = (event) => reject(event.error ?? new Error('MediaRecorder error'));
+        mediaRecorder.onerror = (e) => reject(e.error ?? new Error('MediaRecorder error'));
         mediaRecorder.onstop = resolve;
       });
 
-      await this._renderAtTime(0);
-      await this._waitForRenderableMedia(slideCanvas, 1000);
-      await this._drawSlideFrame(slideCanvas, exportCtx, project.width, project.height);
+      // Draw the first frame before starting the recorder
+      const firstBmp = await createImageBitmap(capturedFrames[0]);
+      exportCtx.drawImage(firstBmp, 0, 0, width, height);
+      firstBmp.close();
 
       mediaRecorder.start(RECORDER_TIMESLICE_MS);
 
-      const startAt = performance.now() + EXPORT_START_DELAY_MS;
-      let nextFrameAt = startAt;
-      let previousActiveIds = this._getActiveVisualClipIds(0);
+      // Real-time playback loop – audio and frames are both real-time, so they stay in sync
+      await new Promise((resolve) => {
+        const playbackStart = performance.now() + EXPORT_START_DELAY_MS;
+        let lastDrawn = 0;
+        let decoding = false;
 
-      while (true) {
-        const elapsedMs = Math.max(0, performance.now() - startAt);
-        if (elapsedMs >= durationMs) break;
+        const tick = () => {
+          const elapsed = performance.now() - playbackStart;
 
-        await this._renderAtTime(elapsedMs);
+          if (elapsed >= durationMs) {
+            // Draw the very last frame and finish
+            createImageBitmap(capturedFrames[capturedFrames.length - 1]).then(bmp => {
+              exportCtx.drawImage(bmp, 0, 0, width, height);
+              bmp.close();
+              resolve();
+            });
+            return;
+          }
 
-        const activeIds = this._getActiveVisualClipIds(elapsedMs);
-        if (!this._sameSet(activeIds, previousActiveIds)) {
-          await this._waitForRenderableMedia(slideCanvas, 250);
-          previousActiveIds = activeIds;
-        }
+          const targetFrame = Math.min(
+            capturedFrames.length - 1,
+            Math.floor(elapsed / frameDurationMs)
+          );
 
-        await this._drawSlideFrame(slideCanvas, exportCtx, project.width, project.height);
-        if (onProgress) {
-          onProgress({
-            progress: durationMs > 0 ? Math.min(1, elapsedMs / durationMs) : 1,
-            timeMs: elapsedMs,
-            durationMs,
-          });
-        }
+          if (targetFrame > lastDrawn && !decoding) {
+            decoding = true;
+            createImageBitmap(capturedFrames[targetFrame]).then(bmp => {
+              exportCtx.drawImage(bmp, 0, 0, width, height);
+              bmp.close();
+              lastDrawn = targetFrame;
+              decoding = false;
+            });
+          }
 
-        nextFrameAt += 1000 / EXPORT_FPS;
-        const waitMs = nextFrameAt - performance.now();
-        if (waitMs > 0) {
-          await this._sleep(waitMs);
-        }
-      }
+          if (onProgress) {
+            onProgress({ progress: 0.7 + (elapsed / durationMs) * 0.3 });
+          }
 
-      await this._renderAtTime(durationMs);
-      await this._drawSlideFrame(slideCanvas, exportCtx, project.width, project.height);
-      if (onProgress) {
-        onProgress({ progress: 1, timeMs: durationMs, durationMs });
-      }
+          requestAnimationFrame(tick);
+        };
 
-      await this._sleep(150);
+        requestAnimationFrame(tick);
+      });
+
+      if (onProgress) onProgress({ progress: 1 });
+
+      await this._sleep(200);
       mediaRecorder.stop();
       await recorderStopped;
 
@@ -201,6 +238,7 @@ export class PresentationExportController {
         }
       }
 
+      capturedFrames.length = 0;
       this.canvasRenderer.setExportMode(false);
       this.isExporting = false;
     }
@@ -296,15 +334,15 @@ export class PresentationExportController {
   }
 
   /**
+   * Capture a single frame from the slide DOM using html2canvas.
    * @param {HTMLElement} slideCanvas
-   * @param {CanvasRenderingContext2D} exportCtx
    * @param {number} width
    * @param {number} height
-   * @returns {Promise<void>}
+   * @returns {Promise<HTMLCanvasElement>}
    * @private
    */
-  async _drawSlideFrame(slideCanvas, exportCtx, width, height) {
-    const captured = await html2canvas(slideCanvas, {
+  async _captureFrame(slideCanvas, width, height) {
+    return html2canvas(slideCanvas, {
       scale: 1,
       width,
       height,
@@ -348,9 +386,6 @@ export class PresentationExportController {
         });
       }
     });
-
-    exportCtx.clearRect(0, 0, width, height);
-    exportCtx.drawImage(captured, 0, 0, width, height);
   }
 
   /**

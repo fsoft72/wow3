@@ -44,8 +44,8 @@ export class CanvasRenderer {
     this._srtPending = new Set();
     /** @type {boolean} Whether export-mode deterministic rendering is active */
     this._exportMode = false;
-    /** @type {Map<string, Animation>} clipId → paused export animation */
-    this._exportAnimations = new Map();
+    /** @type {Map<string, {dom: HTMLElement, savedCssText: string}>} clipId → saved style */
+    this._exportStyleBackups = new Map();
 
     this._bindEvents();
   }
@@ -418,58 +418,55 @@ export class CanvasRenderer {
   }
 
   /**
-   * Sync paused WAAPI animations to the exact timeline time for export frames.
+   * Sync FX state at the exact timeline time by committing animation styles
+   * as inline CSS so foreignObject-based capture (html2canvas) can see them.
    * @param {number} timeMs
    * @param {import('../models/Project.js').Project} project
    * @private
    */
   _syncExportEffects(timeMs, project) {
-    const syncedIds = new Set();
+    // Restore inline styles that were committed on the previous frame
+    for (const [, { dom, savedCssText }] of this._exportStyleBackups) {
+      if (dom) dom.style.cssText = savedCssText;
+    }
+    this._exportStyleBackups.clear();
 
     for (const track of project.tracks) {
       if (track.type !== 'visual' || !track.visible) continue;
 
       for (const clip of track.clips) {
         const effect = this._getExportEffectForClip(clip, timeMs);
-        const existing = this._exportAnimations.get(clip.id);
-
-        if (!effect) {
-          existing?.cancel();
-          this._exportAnimations.delete(clip.id);
-          continue;
-        }
+        if (!effect) continue;
 
         const element = this._activeElements.get(clip.id);
         if (!element) continue;
         const dom = document.getElementById(element.id);
         if (!dom) continue;
 
-        existing?.cancel();
+        // Save original inline styles before mutation
+        this._exportStyleBackups.set(clip.id, { dom, savedCssText: dom.style.cssText });
+
+        // Create a paused animation at the target time, commit its
+        // computed values to the element's inline style, then discard it.
         const anim = dom.animate(effect.keyframes, {
           duration: effect.duration,
           easing: effect.easing,
-          fill: 'both'
+          fill: 'both',
         });
         anim.pause();
         anim.currentTime = effect.currentTime;
-        this._exportAnimations.set(clip.id, anim);
-        syncedIds.add(clip.id);
+        try { anim.commitStyles(); } catch { /* ignore */ }
+        anim.cancel();
       }
-    }
-
-    for (const [clipId, anim] of this._exportAnimations) {
-      if (syncedIds.has(clipId)) continue;
-      anim.cancel();
-      this._exportAnimations.delete(clipId);
     }
   }
 
   /** @private */
   _clearExportEffects() {
-    for (const [, anim] of this._exportAnimations) {
-      anim.cancel();
+    for (const [, { dom, savedCssText }] of this._exportStyleBackups) {
+      if (dom) dom.style.cssText = savedCssText;
     }
-    this._exportAnimations.clear();
+    this._exportStyleBackups.clear();
   }
 
   /**
