@@ -6,6 +6,7 @@ import { PlaybackEngine } from './controllers/PlaybackEngine.js';
 import { ClipController } from './controllers/ClipController.js';
 import { TimelineView } from './views/TimelineView.js';
 import { CanvasRenderer } from './views/CanvasRenderer.js';
+import { PropertiesPanel } from './views/PropertiesPanel.js';
 import { VisualClip } from './models/VisualClip.js';
 import { AudioClip } from './models/AudioClip.js';
 
@@ -26,6 +27,8 @@ class WOW3AnimationApp {
     this.canvasRenderer = null;
     /** @type {TimelineView} */
     this.timelineView = null;
+    /** @type {PropertiesPanel} */
+    this.propertiesPanel = null;
   }
 
   async init() {
@@ -58,6 +61,14 @@ class WOW3AnimationApp {
     this.canvasRenderer = new CanvasRenderer(this.timeline);
     this.clipController = new ClipController(this.timeline, this.canvasRenderer);
     this.clipController.init();
+
+    this.propertiesPanel = new PropertiesPanel(this.timeline, this.clipController);
+
+    this.clipController.onSelectionChanged = (clipId, element) => {
+      this.propertiesPanel.show(clipId, element);
+      // Also highlight on timeline
+      this.timelineView.render();
+    };
 
     // Click on canvas background deselects
     const canvas = document.getElementById('slide-canvas');
