@@ -5,7 +5,7 @@
  * Follows the same object-literal singleton pattern as MediaManager/PanelUtils.
  */
 
-const STORAGE_KEY = 'wow3_gradients';
+let STORAGE_KEY = 'wow3_gradients';
 
 /** Default gradient presets seeded on first init */
 const DEFAULT_PRESETS = [
@@ -79,6 +79,14 @@ const GradientManager = {
   _editors: {},
 
   // ─── Core API ───────────────────────────────────────────────
+
+  /**
+   * Override the storage key before calling init().
+   * @param {string} key - e.g. 'wow3-anim_gradients'
+   */
+  setStorageKey(key) {
+    STORAGE_KEY = key;
+  },
 
   /**
    * Initialize the gradient manager. Loads saved gradients or seeds defaults.

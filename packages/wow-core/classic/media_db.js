@@ -3,7 +3,7 @@
  * Handles binary file storage to avoid data URL bloat in presentations
  */
 
-const MEDIA_DB_NAME = 'wow3_media';
+let MEDIA_DB_NAME = 'wow3_media';
 const MEDIA_DB_VERSION = 5;
 const STORE_MEDIA = 'media_items';
 const STORE_FOLDERS = 'media_folders';
@@ -12,6 +12,18 @@ const STORE_THUMBNAILS = 'slide_thumbnails';
 let mediaDbPromise = null;
 
 const MediaDB = {
+  /**
+   * Override the database name before calling init().
+   * @param {string} name - e.g. 'wow3-anim_media'
+   */
+  setDatabaseName: function(name) {
+    if (mediaDbPromise) {
+      console.warn('MediaDB.setDatabaseName() must be called before init()');
+      return;
+    }
+    MEDIA_DB_NAME = name;
+  },
+
   /**
    * Initialize Media IndexedDB
    * @returns {Promise<IDBDatabase>}

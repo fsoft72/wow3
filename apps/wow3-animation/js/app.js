@@ -172,6 +172,9 @@ class WOW3AnimationApp {
 
   /** @private */
   _initMediaManager() {
+    if (typeof MediaDB !== 'undefined') {
+      MediaDB.setDatabaseName('wow3-anim_media');
+    }
     if (typeof MediaManager !== 'undefined') {
       MediaManager.init();
       document.getElementById('btn-media-manager')?.addEventListener('click', () => {
@@ -179,6 +182,7 @@ class WOW3AnimationApp {
       });
     }
     if (typeof GradientManager !== 'undefined') {
+      GradientManager.setStorageKey('wow3-anim_gradients');
       GradientManager.init();
     }
   }
