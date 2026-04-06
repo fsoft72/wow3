@@ -183,6 +183,14 @@ export class ClipController {
       });
     }
 
+    // Double-click image/video to pick media
+    if (element.type === 'image' || element.type === 'video') {
+      dom.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        this._openMediaManagerFor(element);
+      });
+    }
+
     this._attachDrag(dom, element);
   }
 
@@ -287,6 +295,52 @@ export class ClipController {
     };
 
     textContent.addEventListener('blur', finish);
+  }
+
+  /**
+   * Open MediaManager to pick media for an image or video element.
+   * @param {import('@wow/core/models/Element.js').Element} element
+   */
+  _openMediaManagerFor(element) {
+    if (typeof MediaManager === 'undefined') return;
+
+    MediaManager.open(async (data) => {
+      const mediaId = data.localUrl
+        ? data.localUrl.replace('local://', '')
+        : data.originalItem?.id;
+      if (!mediaId) return;
+      await this.updateMediaUrl(element, mediaId);
+    });
+  }
+
+  /**
+   * Update media element URL (handles both File objects and media IDs).
+   * Called by wow-core panels via window.app.editor.elementController.updateMediaUrl().
+   * @param {import('@wow/core/models/Element.js').Element} element
+   * @param {string|File} source - URL, media ID, or File object
+   */
+  async updateMediaUrl(element, source) {
+    if (!element || !element.setUrl) return;
+
+    try {
+      await element.setUrl(source);
+
+      const clipId = this.canvasRenderer.getClipIdForElement(element.id);
+      if (clipId) {
+        this._syncElementToClip(clipId, element);
+        const result = this.canvasRenderer.rerenderClip(clipId);
+        if (result) {
+          this._selectedElements.clear();
+          this._selectedElements.add(result.element);
+          result.dom.classList.add('selected');
+          this._addHandles(result.dom, result.element);
+        }
+      }
+
+      this.editor.recordHistory();
+    } catch (error) {
+      console.error('Failed to update media URL:', error);
+    }
   }
 
   /**
