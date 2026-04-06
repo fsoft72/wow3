@@ -330,7 +330,11 @@ export class TimelineView {
     const onMouseMove = (e) => {
       const dx = e.clientX - startX;
       if (Math.abs(dx) < 3 && !hasMoved) return;
-      hasMoved = true;
+      if (!hasMoved) {
+        hasMoved = true;
+        clipEl.classList.add('dragging');
+        this._isDragging = true;
+      }
 
       const dMs = dx / this.timeline.pxPerMs;
       let newStart = Math.max(0, startMs + dMs);
@@ -359,16 +363,25 @@ export class TimelineView {
     const onMouseUp = (e) => {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
-      clipEl.classList.remove('dragging');
-      this._isDragging = false;
-      this._clearTrackDragOver();
 
       if (hasMoved) {
+        clipEl.classList.remove('dragging');
+        this._isDragging = false;
+        this._clearTrackDragOver();
+
+        // After a real drag, suppress the synthetic click that can land on the
+        // underlying row/body because the dragged clip temporarily has
+        // pointer-events:none.
+        const suppress = (ev) => ev.stopImmediatePropagation();
+        this._timelineBody.addEventListener('click', suppress, { capture: true, once: true });
+
         const targetRow = this._getTrackRowAt(e.clientX, e.clientY);
         if (targetRow && targetRow !== sourceTrackRow) {
           this.timeline.moveClipToTrack(clip.id, targetRow.dataset.trackId);
         }
         this.render();
+      } else {
+        this._clearTrackDragOver();
       }
     };
 
@@ -379,8 +392,6 @@ export class TimelineView {
       startMs = clip.startMs;
       hasMoved = false;
       sourceTrackRow = clipEl.closest('.track-row');
-      clipEl.classList.add('dragging');
-      this._isDragging = true;
 
       // Select the clip
       this.timeline.selectClip(clip.id);
