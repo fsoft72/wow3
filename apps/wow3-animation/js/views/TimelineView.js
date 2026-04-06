@@ -305,6 +305,14 @@ export class TimelineView {
       });
     }
 
+    // Double-click image/video clip to pick media
+    if (clip.elementType === 'image' || clip.elementType === 'video') {
+      el.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        if (this.onMediaClipDblClick) this.onMediaClipDblClick(clip);
+      });
+    }
+
     // Render waveform for audio clips (async, non-blocking)
     if (clip.type === 'audio' && (clip.mediaId || clip.src)) {
       requestAnimationFrame(() => {
