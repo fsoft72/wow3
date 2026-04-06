@@ -314,7 +314,21 @@ export class ClipController {
       this._syncElementToClip(clipId, element);
     }
 
-    // Re-render element on canvas
+    // Karaoke: update in-place without DOM reconstruction
+    if (element.type === 'karaoke' && typeof element.updateAtTime === 'function') {
+      const clip = this._findClip(clipId);
+      if (clip) {
+        const relativeMs = this.timeline.currentTimeMs - clip.startMs;
+        const src = clip.properties.srtMediaId || clip.properties.srtUrl;
+        const cues = src ? this.canvasRenderer._srtCache.get(src) : null;
+        element.updateAtTime(relativeMs, cues || []);
+      }
+      this.editor.recordHistory();
+      appEvents.emit(AppEvents.ELEMENT_UPDATED, element);
+      return;
+    }
+
+    // Re-render element on canvas (non-karaoke)
     if (clipId) {
       const result = this.canvasRenderer.rerenderClip(clipId);
       if (result) {

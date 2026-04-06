@@ -98,12 +98,24 @@ export class KaraokeElement extends Element {
       text-align: ${font.alignment || 'center'};
       line-height: 1.4;
     `;
+    // Build shadow/stroke CSS
+    const sh = font.shadow;
+    const textShadow = sh?.enabled
+      ? `${sh.offsetX ?? 2}px ${sh.offsetY ?? 2}px ${sh.blur ?? 4}px ${sh.color || '#000000'}`
+      : 'none';
+    const st = font.stroke;
+    const textStroke = st?.enabled
+      ? `${st.width ?? 1}px ${st.color || '#000000'}`
+      : '';
+
     for (const line of [prevLine, currentLine, nextLine]) {
       line.style.fontFamily = `${font.family || 'Roboto'}, sans-serif`;
       line.style.fontSize = (font.size || 36) + 'px';
       line.style.fontWeight = font.weight || 'bold';
       line.style.fontStyle = font.style || 'normal';
       line.style.textAlign = font.alignment || 'center';
+      line.style.textShadow = textShadow;
+      line.style.webkitTextStroke = textStroke;
     }
 
     if (!cues || cues.length === 0) {
