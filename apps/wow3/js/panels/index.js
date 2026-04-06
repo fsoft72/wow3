@@ -1,10 +1,7 @@
 /**
  * WOW3 Element Panels Index
- * Central export point for all panel classes
+ * Re-exports from @wow/core + wow3-specific panels
  */
 
-export { TextPanel } from './TextPanel.js';
-export { ImagePanel } from './ImagePanel.js';
-export { VideoPanel } from './VideoPanel.js';
-export { AudioPanel } from './AudioPanel.js';
+export { TextPanel, ImagePanel, VideoPanel, AudioPanel } from '@wow/core/panels';
 export { CountdownTimerPanel } from './CountdownTimerPanel.js';
