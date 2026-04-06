@@ -131,6 +131,27 @@ export class TimelineController {
     }
   }
 
+  /** Zoom levels: px per ms */
+  static ZOOM_MIN = 0.01;
+  static ZOOM_MAX = 2.0;
+  static ZOOM_STEP = 1.3;
+
+  /**
+   * Zoom in by one step.
+   */
+  zoomIn() {
+    this.pxPerMs = Math.min(this.pxPerMs * TimelineController.ZOOM_STEP, TimelineController.ZOOM_MAX);
+    appEvents.emit(AppEvents.UI_ZOOM_CHANGED, { pxPerMs: this.pxPerMs });
+  }
+
+  /**
+   * Zoom out by one step.
+   */
+  zoomOut() {
+    this.pxPerMs = Math.max(this.pxPerMs / TimelineController.ZOOM_STEP, TimelineController.ZOOM_MIN);
+    appEvents.emit(AppEvents.UI_ZOOM_CHANGED, { pxPerMs: this.pxPerMs });
+  }
+
   /**
    * Finds a clip and its parent track by clip id.
    * @param {string} clipId

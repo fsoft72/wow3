@@ -34,6 +34,25 @@ export class TimelineView {
     this._timeRuler.addEventListener('mousedown', (e) => {
       this._onRulerMouseDown(e);
     });
+
+    // Wheel zoom on timeline body
+    this._timelineBody.addEventListener('wheel', (e) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      if (e.deltaY < 0) this.timeline.zoomIn();
+      else this.timeline.zoomOut();
+      this.render();
+    }, { passive: false });
+
+    // Zoom buttons
+    document.getElementById('btn-zoom-in')?.addEventListener('click', () => {
+      this.timeline.zoomIn();
+      this.render();
+    });
+    document.getElementById('btn-zoom-out')?.addEventListener('click', () => {
+      this.timeline.zoomOut();
+      this.render();
+    });
   }
 
   /**
