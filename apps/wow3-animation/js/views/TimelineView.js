@@ -25,7 +25,10 @@ export class TimelineView {
 
   /** @private */
   _bindEvents() {
-    appEvents.on(AppEvents.PLAYHEAD_MOVED, () => this._updatePlayhead());
+    appEvents.on(AppEvents.PLAYHEAD_MOVED, ({ timeMs }) => {
+      this._updatePlayhead();
+      this._autoScrollToPlayhead(timeMs);
+    });
     appEvents.on(AppEvents.SLIDE_UPDATED, () => this.render());
 
     this._timelineBody.addEventListener('click', this._onBodyClick.bind(this));
@@ -256,6 +259,23 @@ export class TimelineView {
     }
     this.timeline.selectClip(null);
     this.render();
+  }
+
+  /** @private */
+  _autoScrollToPlayhead(timeMs) {
+    const playheadX = timeMs * this.timeline.pxPerMs;
+    const scrollLeft = this._timelineBody.scrollLeft;
+    const visibleWidth = this._timelineBody.clientWidth;
+
+    // If playhead is past 80% of visible area, scroll to keep it in view
+    const rightEdge = scrollLeft + visibleWidth * 0.8;
+    const leftEdge = scrollLeft + visibleWidth * 0.1;
+
+    if (playheadX > rightEdge) {
+      this._timelineBody.scrollLeft = playheadX - visibleWidth * 0.3;
+    } else if (playheadX < leftEdge && scrollLeft > 0) {
+      this._timelineBody.scrollLeft = Math.max(0, playheadX - visibleWidth * 0.3);
+    }
   }
 
   /** @private */
