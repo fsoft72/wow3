@@ -139,6 +139,12 @@ export const AppEvents = {
   HISTORY_REDO: 'history:redo',
   HISTORY_CHANGED: 'history:changed',
 
+  // Playback events (timeline)
+  PLAYHEAD_MOVED: 'playback:playhead:moved',
+  PLAYBACK_STARTED: 'playback:started',
+  PLAYBACK_STOPPED: 'playback:stopped',
+  SLIDE_UPDATED: 'slide:updated',
+
   // Error events
   ERROR: 'error',
   WARNING: 'warning',
