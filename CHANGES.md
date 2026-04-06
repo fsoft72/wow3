@@ -2,6 +2,28 @@
 
 ## 2026-04-06
 
+### wow3-animation: Full Timeline Editor implementation
+
+Implemented the interactive Timeline Editor with all planned features:
+
+**New files:**
+- `js/views/CanvasRenderer.js` — renders visual clips onto `#slide-canvas` at current playhead time
+- `js/controllers/ClipController.js` — bridges wow-core interaction handlers (drag/resize/rotate/crop/marquee) with clip model
+- `js/views/PropertiesPanel.js` — right sidebar with timing controls, position inputs, and wow-core type-specific panels
+- `js/views/WaveformRenderer.js` — decodes audio via Web Audio API and draws waveforms in timeline clips
+- `js/controllers/HistoryManager.js` — undo/redo via JSON project snapshots
+
+**Enhanced files:**
+- `js/app.js` — full rewrite: initializes all new controllers/views, toolbar buttons (click + drag), keyboard shortcuts, window.app global
+- `js/controllers/TimelineController.js` — added: addClipToTrack, removeClip, track CRUD, zoom in/out
+- `js/views/TimelineView.js` — added: clip drag/resize, ruler scrub, auto-scroll, track management (rename/delete/reorder), drop zones, waveform integration
+- `js/models/VisualClip.js` — added `createDefault()` factory with sensible defaults per element type
+- `index.html` — zoom buttons, split add-track into visual/audio
+- `css/main.css` — canvas selection/handles, properties panel, alignment guides
+- `css/timeline.css` — track management, clip drag, waveform, drop indicator styles
+
+## 2026-04-06
+
 ### Update ES module imports to @wow/core
 
 Updated 13 files under `apps/wow3/js/` to import shared modules from the
