@@ -78,6 +78,7 @@ export class PropertiesPanel {
     }
 
     if (clip.type === 'audio') {
+      const hasMedia = !!(clip.mediaId || clip.src);
       html += `<div class="props-section">
         <div class="props-section-title">Audio</div>
         <div class="props-row">
@@ -92,6 +93,7 @@ export class PropertiesPanel {
           <label>Fade Out (ms)</label>
           <input type="number" id="prop-fadeout" class="props-input" value="${clip.fadeOutMs}">
         </div>
+        ${hasMedia ? `<button id="btn-auto-width" class="props-btn">Auto Width</button>` : ''}
       </div>`;
     }
 
@@ -178,6 +180,47 @@ export class PropertiesPanel {
     fi?.addEventListener('change', () => { clip.fadeInMs = parseInt(fi.value) || 0; });
     const fo = document.getElementById('prop-fadeout');
     fo?.addEventListener('change', () => { clip.fadeOutMs = parseInt(fo.value) || 0; });
+
+    document.getElementById('btn-auto-width')?.addEventListener('click', () => {
+      this._autoWidthAudioClip(clip);
+    });
+  }
+
+  /**
+   * Set audio clip duration to match its audio file duration.
+   * @param {import('../models/AudioClip.js').AudioClip} clip
+   */
+  async _autoWidthAudioClip(clip) {
+    const src = clip.mediaId || clip.src;
+    if (!src) return;
+
+    try {
+      let arrayBuffer;
+
+      if (src.startsWith('media_') && typeof MediaDB !== 'undefined') {
+        const item = await MediaDB.getMediaItem(src);
+        if (item?.blob) arrayBuffer = await item.blob.arrayBuffer();
+      }
+
+      if (!arrayBuffer) {
+        const resp = await fetch(src);
+        arrayBuffer = await resp.arrayBuffer();
+      }
+
+      const audioCtx = new AudioContext();
+      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+      const durationMs = Math.round(audioBuffer.duration * 1000);
+      audioCtx.close();
+
+      clip.endMs = clip.startMs + durationMs;
+      this.timeline.project.touch();
+      appEvents.emit(AppEvents.SLIDE_UPDATED);
+
+      // Refresh panel to show updated duration
+      this.show(clip.id, null);
+    } catch (err) {
+      console.error('Failed to get audio duration:', err);
+    }
   }
 
   /** @private */
