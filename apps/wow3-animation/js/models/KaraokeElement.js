@@ -90,13 +90,6 @@ export class KaraokeElement extends Element {
 
     // Update font styles
     const font = this.properties.font || {};
-    const baseStyle = `
-      font-family: ${font.family || 'Roboto'}, sans-serif;
-      font-size: ${font.size || 36}px;
-      font-weight: ${font.weight || 'bold'};
-      text-align: ${font.alignment || 'center'};
-      line-height: 1.4;
-    `;
     // Build shadow/stroke CSS
     const sh = font.shadow;
     const textShadow = sh?.enabled

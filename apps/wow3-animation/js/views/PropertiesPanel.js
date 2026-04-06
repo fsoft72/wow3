@@ -1,6 +1,8 @@
 import { appEvents, AppEvents } from '@wow/core/utils/events.js';
 import { TextPanel, ImagePanel, VideoPanel, AudioPanel } from '@wow/core/panels';
 import { KaraokePanel } from '../panels/KaraokePanel.js';
+import { formatTime, parseTime } from '../utils/time.js';
+import { fetchMediaArrayBuffer } from '../utils/media.js';
 
 /**
  * PropertiesPanel — right sidebar.
@@ -41,15 +43,15 @@ export class PropertiesPanel {
       <div class="props-section-title">Timing</div>
       <div class="props-row">
         <label>Start</label>
-        <input type="text" id="prop-start" class="props-input time-input" value="${this._formatTime(clip.startMs)}">
+        <input type="text" id="prop-start" class="props-input time-input" value="${formatTime(clip.startMs)}">
       </div>
       <div class="props-row">
         <label>End</label>
-        <input type="text" id="prop-end" class="props-input time-input" value="${clip.endMs !== null ? this._formatTime(clip.endMs) : '∞'}">
+        <input type="text" id="prop-end" class="props-input time-input" value="${clip.endMs !== null ? formatTime(clip.endMs) : '∞'}">
       </div>
       <div class="props-row">
         <label>Duration</label>
-        <input type="text" id="prop-duration" class="props-input time-input" value="${clip.endMs !== null ? this._formatTime(clip.endMs - clip.startMs) : '∞'}" readonly>
+        <input type="text" id="prop-duration" class="props-input time-input" value="${clip.endMs !== null ? formatTime(clip.endMs - clip.startMs) : '∞'}" readonly>
       </div>
       <div class="props-row">
         <label>Name</label>
@@ -146,7 +148,7 @@ export class PropertiesPanel {
     const nameInput = document.getElementById('prop-name');
 
     startInput?.addEventListener('change', () => {
-      const ms = this._parseTime(startInput.value);
+      const ms = parseTime(startInput.value);
       if (ms !== null) {
         const dur = clip.endMs !== null ? clip.endMs - clip.startMs : null;
         clip.startMs = ms;
@@ -157,7 +159,7 @@ export class PropertiesPanel {
     });
 
     endInput?.addEventListener('change', () => {
-      const ms = this._parseTime(endInput.value);
+      const ms = parseTime(endInput.value);
       if (ms !== null) {
         clip.endMs = Math.max(clip.startMs + 100, ms);
         this.timeline.project.touch();
@@ -214,17 +216,8 @@ export class PropertiesPanel {
     if (!src) return;
 
     try {
-      let arrayBuffer;
-
-      if (src.startsWith('media_') && typeof MediaDB !== 'undefined') {
-        const item = await MediaDB.getMediaItem(src);
-        if (item?.blob) arrayBuffer = await item.blob.arrayBuffer();
-      }
-
-      if (!arrayBuffer) {
-        const resp = await fetch(src);
-        arrayBuffer = await resp.arrayBuffer();
-      }
+      const arrayBuffer = await fetchMediaArrayBuffer(src);
+      if (!arrayBuffer) return;
 
       const audioCtx = new AudioContext();
       const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
@@ -256,42 +249,6 @@ export class PropertiesPanel {
 
   /** @private */
   _findClip(clipId) {
-    for (const track of this.timeline.project.tracks) {
-      const clip = track.clips.find(c => c.id === clipId);
-      if (clip) return clip;
-    }
-    return null;
-  }
-
-  /**
-   * Parse "hh:mm:ss.fff" or "ss.fff" or "ss" to ms.
-   * @param {string} str
-   * @returns {number|null}
-   */
-  _parseTime(str) {
-    const parts = str.split(':');
-    let totalS = 0;
-    if (parts.length === 3) {
-      totalS = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseFloat(parts[2]);
-    } else if (parts.length === 2) {
-      totalS = parseInt(parts[0]) * 60 + parseFloat(parts[1]);
-    } else {
-      totalS = parseFloat(parts[0]);
-    }
-    if (isNaN(totalS)) return null;
-    return Math.round(totalS * 1000);
-  }
-
-  /**
-   * @param {number} ms
-   * @returns {string} hh:mm:ss.fff
-   */
-  _formatTime(ms) {
-    const totalS = Math.floor(ms / 1000);
-    const h = Math.floor(totalS / 3600);
-    const m = Math.floor((totalS % 3600) / 60);
-    const s = totalS % 60;
-    const frac = String(Math.floor(ms % 1000)).padStart(3, '0');
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${frac}`;
+    return this.timeline.project.findClip(clipId).clip;
   }
 }

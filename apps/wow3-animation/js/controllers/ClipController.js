@@ -187,7 +187,7 @@ export class ClipController {
     if (element.type === 'image' || element.type === 'video') {
       dom.addEventListener('dblclick', (e) => {
         e.stopPropagation();
-        this._openMediaManagerFor(element);
+        this.openMediaManagerFor(element);
       });
     }
 
@@ -301,7 +301,7 @@ export class ClipController {
    * Open MediaManager to pick media for an image or video element.
    * @param {import('@wow/core/models/Element.js').Element} element
    */
-  _openMediaManagerFor(element) {
+  openMediaManagerFor(element) {
     if (typeof MediaManager === 'undefined') return;
 
     MediaManager.open(async (data) => {
@@ -374,7 +374,7 @@ export class ClipController {
       if (clip) {
         const relativeMs = this.timeline.currentTimeMs - clip.startMs;
         const src = clip.properties.srtMediaId || clip.properties.srtUrl;
-        const cues = src ? this.canvasRenderer._srtCache.get(src) : null;
+        const cues = src ? this.canvasRenderer.getSrtCues(src) : null;
         element.updateAtTime(relativeMs, cues || []);
       }
       this.editor.recordHistory();
@@ -468,11 +468,7 @@ export class ClipController {
 
   /** @private */
   _findClip(clipId) {
-    for (const track of this.timeline.project.tracks) {
-      const clip = track.clips.find(c => c.id === clipId);
-      if (clip) return clip;
-    }
-    return null;
+    return this.timeline.project.findClip(clipId).clip;
   }
 
   /** @private */
@@ -498,14 +494,14 @@ export class ClipController {
       getActiveSlide() {
         // Return a mock slide with the currently visible elements
         return {
-          elements: [...self.canvasRenderer._activeElements.values()]
+          elements: self.canvasRenderer.getActiveElements()
         };
       },
       get presentation() {
         return {
           getCurrentSlide() {
             return {
-              elements: [...self.canvasRenderer._activeElements.values()]
+              elements: self.canvasRenderer.getActiveElements()
             };
           }
         };

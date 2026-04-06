@@ -11,6 +11,7 @@ import { CanvasRenderer } from './views/CanvasRenderer.js';
 import { PropertiesPanel } from './views/PropertiesPanel.js';
 import { VisualClip } from './models/VisualClip.js';
 import { AudioClip } from './models/AudioClip.js';
+import { formatTime } from './utils/time.js';
 
 /**
  * WOW3AnimationApp — main application bootstrap.
@@ -103,7 +104,7 @@ class WOW3AnimationApp {
         clip.name = data.alt || clip.name;
         this.timeline.project.touch();
         // Clear cached SRT so it reloads
-        this.canvasRenderer._srtCache.delete(mediaId);
+        this.canvasRenderer.invalidateSrtCache(mediaId);
         this.canvasRenderer.renderAtCurrentTime();
         this.timelineView.render();
       });
@@ -168,7 +169,7 @@ class WOW3AnimationApp {
         clip.properties.srtMediaId = mediaId;
         clip.name = data.alt || clip.name;
         this.timeline.project.touch();
-        this.canvasRenderer._srtCache.delete(mediaId);
+        this.canvasRenderer.invalidateSrtCache(mediaId);
         this.canvasRenderer.renderAtCurrentTime();
         this.timelineView.render();
       });
@@ -178,7 +179,7 @@ class WOW3AnimationApp {
       if (typeof MediaManager === 'undefined') return;
       const element = this.canvasRenderer.getElement(clip.id);
       if (element) {
-        this.clipController._openMediaManagerFor(element);
+        this.clipController.openMediaManagerFor(element);
       }
     };
 
@@ -309,20 +310,8 @@ class WOW3AnimationApp {
     });
 
     // Undo/Redo buttons
-    document.getElementById('btn-undo')?.addEventListener('click', () => {
-      this.historyManager.undo();
-      this.clipController.deselectAll();
-      this.canvasRenderer.clear();
-      this.canvasRenderer.renderAtCurrentTime();
-      this.timelineView.render();
-    });
-    document.getElementById('btn-redo')?.addEventListener('click', () => {
-      this.historyManager.redo();
-      this.clipController.deselectAll();
-      this.canvasRenderer.clear();
-      this.canvasRenderer.renderAtCurrentTime();
-      this.timelineView.render();
-    });
+    document.getElementById('btn-undo')?.addEventListener('click', () => this._applyUndo());
+    document.getElementById('btn-redo')?.addEventListener('click', () => this._applyRedo());
 
     // Make toolbar buttons draggable
     const makeDraggable = (btnId, type) => {
@@ -354,13 +343,13 @@ class WOW3AnimationApp {
   /** @private */
   _updateDurationDisplay() {
     const dur = this.project.getEffectiveDuration();
-    document.getElementById('playback-duration').textContent = '/ ' + this._formatTime(dur);
+    document.getElementById('playback-duration').textContent = '/ ' + formatTime(dur);
   }
 
   /** @private */
   _updateTimeDisplay() {
     document.getElementById('playback-time').textContent =
-      this._formatTime(this.timeline.currentTimeMs);
+      formatTime(this.timeline.currentTimeMs);
   }
 
   /** @private */
@@ -379,19 +368,11 @@ class WOW3AnimationApp {
       // Undo/Redo
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
-        this.historyManager.undo();
-        this.clipController.deselectAll();
-        this.canvasRenderer.clear();
-        this.canvasRenderer.renderAtCurrentTime();
-        this.timelineView.render();
+        this._applyUndo();
       }
       if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
         e.preventDefault();
-        this.historyManager.redo();
-        this.clipController.deselectAll();
-        this.canvasRenderer.clear();
-        this.canvasRenderer.renderAtCurrentTime();
-        this.timelineView.render();
+        this._applyRedo();
       }
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -406,30 +387,31 @@ class WOW3AnimationApp {
     });
   }
 
+  /** @private */
+  _applyUndo() {
+    this.historyManager.undo();
+    this.clipController.deselectAll();
+    this.canvasRenderer.clear();
+    this.canvasRenderer.renderAtCurrentTime();
+    this.timelineView.render();
+  }
+
+  /** @private */
+  _applyRedo() {
+    this.historyManager.redo();
+    this.clipController.deselectAll();
+    this.canvasRenderer.clear();
+    this.canvasRenderer.renderAtCurrentTime();
+    this.timelineView.render();
+  }
+
   /**
    * Find a clip by id across all tracks.
    * @param {string} clipId
    * @returns {import('./models/Clip.js').Clip|null}
    */
   _findClip(clipId) {
-    for (const track of this.project.tracks) {
-      const clip = track.clips.find(c => c.id === clipId);
-      if (clip) return clip;
-    }
-    return null;
-  }
-
-  /**
-   * @param {number} ms
-   * @returns {string} hh:mm:ss.fff
-   */
-  _formatTime(ms) {
-    const totalS = Math.floor(ms / 1000);
-    const h = Math.floor(totalS / 3600);
-    const m = Math.floor((totalS % 3600) / 60);
-    const s = totalS % 60;
-    const frac = String(Math.floor(ms % 1000)).padStart(3, '0');
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${frac}`;
+    return this.project.findClip(clipId).clip;
   }
 }
 

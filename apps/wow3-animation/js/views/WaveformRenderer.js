@@ -1,3 +1,5 @@
+import { fetchMediaArrayBuffer } from '../utils/media.js';
+
 /**
  * Decodes audio files and draws waveforms inside timeline clip elements.
  * Only draws the portion of the waveform visible within the clip's time window.
@@ -86,17 +88,8 @@ export class WaveformRenderer {
         this._audioCtx = new AudioContext();
       }
 
-      let arrayBuffer;
-
-      if (src.startsWith('media_') && typeof MediaDB !== 'undefined') {
-        const item = await MediaDB.getMediaItem(src);
-        if (item?.blob) arrayBuffer = await item.blob.arrayBuffer();
-      }
-
-      if (!arrayBuffer) {
-        const resp = await fetch(src);
-        arrayBuffer = await resp.arrayBuffer();
-      }
+      const arrayBuffer = await fetchMediaArrayBuffer(src);
+      if (!arrayBuffer) return null;
 
       const audioBuffer = await this._audioCtx.decodeAudioData(arrayBuffer);
       const channel = audioBuffer.getChannelData(0);

@@ -1,4 +1,5 @@
 import { appEvents, AppEvents } from '@wow/core/utils/events.js';
+import { fetchMediaArrayBuffer } from '../utils/media.js';
 
 /**
  * Manages Web Audio playback of AudioClip instances in sync with the timeline.
@@ -52,8 +53,10 @@ export class AudioPlaybackManager {
 
   /** @private */
   _onStop() {
-    for (const [clipId, { source }] of this._activeSources) {
+    for (const [clipId, { source, gain }] of this._activeSources) {
       try { source.stop(); } catch (_) {}
+      source.disconnect();
+      gain.disconnect();
     }
     this._activeSources.clear();
   }
@@ -120,18 +123,8 @@ export class AudioPlaybackManager {
    */
   async _decodeAudio(src) {
     try {
-      let arrayBuffer;
-
-      if (src.startsWith('media_') && typeof MediaDB !== 'undefined') {
-        const item = await MediaDB.getMediaItem(src);
-        if (item?.blob) arrayBuffer = await item.blob.arrayBuffer();
-      }
-
-      if (!arrayBuffer) {
-        const resp = await fetch(src);
-        arrayBuffer = await resp.arrayBuffer();
-      }
-
+      const arrayBuffer = await fetchMediaArrayBuffer(src);
+      if (!arrayBuffer) return null;
       return await this._ctx.decodeAudioData(arrayBuffer);
     } catch (err) {
       console.warn('AudioPlaybackManager: failed to decode audio:', err);

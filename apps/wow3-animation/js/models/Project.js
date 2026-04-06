@@ -57,6 +57,19 @@ export class Project {
   }
 
   /**
+   * Finds a clip and its parent track by clip id.
+   * @param {string} clipId
+   * @returns {{track: Track|null, clip: import('./Clip.js').Clip|null}}
+   */
+  findClip(clipId) {
+    for (const track of this.tracks) {
+      const clip = track.clips.find(c => c.id === clipId);
+      if (clip) return { track, clip };
+    }
+    return { track: null, clip: null };
+  }
+
+  /**
    * Adds a new track to the project.
    * @param {'visual'|'audio'} type
    * @param {Object} [opts]

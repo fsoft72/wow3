@@ -2,6 +2,7 @@ import { appEvents, AppEvents } from '@wow/core/utils/events.js';
 import { TextElement, ImageElement, VideoElement, AudioElement, ShapeElement } from '@wow/core/models';
 import { KaraokeElement } from '../models/KaraokeElement.js';
 import { parseSRT } from '../utils/srt-parser.js';
+import { fetchMediaText } from '../utils/media.js';
 
 const ELEMENT_CLASS_MAP = {
   text: TextElement,
@@ -32,6 +33,8 @@ export class CanvasRenderer {
     this.onElementRemoved = null;
     /** @type {Map<string, Array>} srt src → parsed cues cache */
     this._srtCache = new Map();
+    /** @type {Set<string>} SRT sources currently being loaded */
+    this._srtPending = new Set();
 
     this._bindEvents();
   }
@@ -94,7 +97,7 @@ export class CanvasRenderer {
 
   /**
    * Update all active karaoke elements with the current playhead time.
-   * @param {number} timeMs - Global playhead time
+   * @param {number} timeMs
    * @param {import('../models/Project.js').Project} project
    */
   _updateKaraokeElements(timeMs, project) {
@@ -103,58 +106,76 @@ export class CanvasRenderer {
       for (const clip of track.clips) {
         if (clip.elementType !== 'karaoke') continue;
         if (!clip.isActiveAt(timeMs)) continue;
-
         const element = this._activeElements.get(clip.id);
-        if (!element || typeof element.updateAtTime !== 'function') continue;
-
-        const relativeMs = timeMs - clip.startMs;
-        const src = clip.properties.srtMediaId || clip.properties.srtUrl;
-
-        if (!src) {
-          element.updateAtTime(relativeMs, []);
-          continue;
-        }
-
-        const cues = this._srtCache.get(src);
-        if (cues) {
-          element.updateAtTime(relativeMs, cues);
-        } else {
-          // Load and cache asynchronously, then update
-          this._loadSRT(src).then(parsedCues => {
-            if (parsedCues) {
-              this._srtCache.set(src, parsedCues);
-              element.updateAtTime(relativeMs, parsedCues);
-            }
-          });
-        }
+        if (element) this.syncKaraokeCues(element, clip, timeMs);
       }
     }
   }
 
   /**
-   * Load and parse an SRT file from MediaDB or URL.
-   * @param {string} src - mediaId or URL
-   * @returns {Promise<Array|null>}
+   * Sync karaoke element with SRT cues at the given time.
+   * Loads SRT from cache or fetches asynchronously.
+   * @param {import('../models/KaraokeElement.js').KaraokeElement} element
+   * @param {import('../models/VisualClip.js').VisualClip} clip
+   * @param {number} timeMs - Global playhead time
    */
-  async _loadSRT(src) {
-    try {
-      let text;
+  syncKaraokeCues(element, clip, timeMs) {
+    if (typeof element.updateAtTime !== 'function') return;
 
-      if (src.startsWith('media_') && typeof MediaDB !== 'undefined') {
-        const item = await MediaDB.getMediaItem(src);
-        if (item?.blob) text = await item.blob.text();
-      }
+    const relativeMs = timeMs - clip.startMs;
+    const src = clip.properties.srtMediaId || clip.properties.srtUrl;
 
-      if (!text) {
-        const resp = await fetch(src);
-        text = await resp.text();
-      }
-
-      return parseSRT(text);
-    } catch (err) {
-      console.warn('Failed to load SRT:', err);
-      return null;
+    if (!src) {
+      element.updateAtTime(relativeMs, []);
+      return;
     }
+
+    const cues = this._srtCache.get(src);
+    if (cues) {
+      element.updateAtTime(relativeMs, cues);
+    } else if (!this._srtPending.has(src)) {
+      // Load once, avoid duplicate fetches per frame
+      this._srtPending.add(src);
+      this._loadSRT(src).then(parsed => {
+        this._srtPending.delete(src);
+        if (parsed) {
+          this._srtCache.set(src, parsed);
+          element.updateAtTime(relativeMs, parsed);
+        }
+      });
+    }
+  }
+
+  /**
+   * Invalidate cached SRT cues for a source.
+   * @param {string} src - mediaId or URL
+   */
+  invalidateSrtCache(src) {
+    this._srtCache.delete(src);
+    this._srtPending.delete(src);
+  }
+
+  /**
+   * Get cached SRT cues for a source, or null.
+   * @param {string} src
+   * @returns {Array|null}
+   */
+  getSrtCues(src) {
+    return this._srtCache.get(src) ?? null;
+  }
+
+  /**
+   * Get all currently active Element instances.
+   * @returns {Array<import('@wow/core/models/Element.js').Element>}
+   */
+  getActiveElements() {
+    return [...this._activeElements.values()];
+  }
+
+  /** @private */
+  async _loadSRT(src) {
+    const text = await fetchMediaText(src);
+    return text ? parseSRT(text) : null;
   }
 
   /**
@@ -191,23 +212,8 @@ export class CanvasRenderer {
     }
 
     // Immediately sync karaoke cues so the element doesn't show placeholder
-    if (clip.elementType === 'karaoke' && typeof element.updateAtTime === 'function') {
-      const timeMs = this.timeline.currentTimeMs;
-      const relativeMs = timeMs - clip.startMs;
-      const src = clip.properties.srtMediaId || clip.properties.srtUrl;
-      if (src) {
-        const cues = this._srtCache.get(src);
-        if (cues) {
-          element.updateAtTime(relativeMs, cues);
-        } else {
-          this._loadSRT(src).then(parsed => {
-            if (parsed) {
-              this._srtCache.set(src, parsed);
-              element.updateAtTime(relativeMs, parsed);
-            }
-          });
-        }
-      }
+    if (clip.elementType === 'karaoke') {
+      this.syncKaraokeCues(element, clip, this.timeline.currentTimeMs);
     }
 
     return { element, dom };
@@ -288,10 +294,6 @@ export class CanvasRenderer {
 
   /** @private */
   _findClip(clipId) {
-    for (const track of this.timeline.project.tracks) {
-      const clip = track.clips.find(c => c.id === clipId);
-      if (clip) return clip;
-    }
-    return null;
+    return this.timeline.project.findClip(clipId).clip;
   }
 }
