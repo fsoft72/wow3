@@ -114,6 +114,21 @@ class WOW3AnimationApp {
       this._updateDurationDisplay();
     };
 
+    this.timelineView.onClipSelected = (clipId) => {
+      if (clipId) {
+        // Select the corresponding canvas element
+        const element = this.canvasRenderer.getElement(clipId);
+        if (element) {
+          this.clipController.selectElement(element);
+        } else {
+          // Clip not visible on canvas (e.g. audio) — show properties directly
+          this.propertiesPanel.show(clipId, null);
+        }
+      } else {
+        this.clipController.deselectAll();
+      }
+    };
+
     this.timelineView.render();
     this._bindToolbar();
     this._updateTitleInput();
@@ -262,7 +277,8 @@ class WOW3AnimationApp {
   /** @private */
   _bindKeyboard() {
     document.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' ||
+          e.target.contentEditable === 'true') return;
 
       if (e.code === 'Space') {
         e.preventDefault();

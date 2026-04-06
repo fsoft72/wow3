@@ -162,9 +162,54 @@ export class ClipController {
       }
     });
 
+    // Double-click to edit text
+    if (element.type === 'text') {
+      dom.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        this.enableTextEditing(dom, element);
+      });
+    }
+
     if (this.dragHandler) {
       this.dragHandler.attach(dom, element);
     }
+  }
+
+  /**
+   * Enable inline text editing on a text element.
+   * @param {HTMLElement} dom
+   * @param {import('@wow/core/models/Element.js').Element} element
+   */
+  enableTextEditing(dom, element) {
+    const textContent = dom.querySelector('.text-content');
+    if (!textContent) return;
+
+    textContent.contentEditable = true;
+    textContent.focus();
+
+    // Select all text
+    const range = document.createRange();
+    range.selectNodeContents(textContent);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    const finish = () => {
+      textContent.contentEditable = false;
+      element.updateText(textContent.innerText);
+
+      // Sync back to clip model
+      const clipId = this.canvasRenderer.getClipIdForElement(element.id);
+      if (clipId) {
+        this._syncElementToClip(clipId, element);
+      }
+
+      this.editor.recordHistory();
+      textContent.removeEventListener('blur', finish);
+      appEvents.emit(AppEvents.ELEMENT_UPDATED, element);
+    };
+
+    textContent.addEventListener('blur', finish);
   }
 
   /**

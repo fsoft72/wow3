@@ -29,6 +29,13 @@ export class TimelineView {
      */
     this.onClipDropped = null;
 
+    /**
+     * Callback for when a clip is selected on the timeline.
+     * Set by app.js.
+     * @type {Function|null}
+     */
+    this.onClipSelected = null;
+
     this._bindEvents();
   }
 
@@ -310,6 +317,7 @@ export class TimelineView {
 
       // Select the clip
       this.timeline.selectClip(clip.id);
+      if (this.onClipSelected) this.onClipSelected(clip.id);
 
       document.addEventListener('mousemove', onMouseMove);
       document.addEventListener('mouseup', onMouseUp);
@@ -363,11 +371,14 @@ export class TimelineView {
   _onBodyClick(e) {
     const clipEl = e.target.closest('.timeline-clip');
     if (clipEl) {
-      this.timeline.selectClip(clipEl.dataset.clipId);
+      const clipId = clipEl.dataset.clipId;
+      this.timeline.selectClip(clipId);
+      if (this.onClipSelected) this.onClipSelected(clipId);
       this.render();
       return;
     }
     this.timeline.selectClip(null);
+    if (this.onClipSelected) this.onClipSelected(null);
     this.render();
   }
 
