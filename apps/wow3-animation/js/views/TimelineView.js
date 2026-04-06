@@ -45,6 +45,13 @@ export class TimelineView {
      */
     this.onAudioClipDblClick = null;
 
+    /**
+     * Callback for double-click on a karaoke clip.
+     * Set by app.js.
+     * @type {Function|null}
+     */
+    this.onKaraokeClipDblClick = null;
+
     this._bindEvents();
   }
 
@@ -287,6 +294,14 @@ export class TimelineView {
       el.addEventListener('dblclick', (e) => {
         e.stopPropagation();
         if (this.onAudioClipDblClick) this.onAudioClipDblClick(clip);
+      });
+    }
+
+    // Double-click karaoke clip to pick SRT
+    if (clip.elementType === 'karaoke') {
+      el.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        if (this.onKaraokeClipDblClick) this.onKaraokeClipDblClick(clip);
       });
     }
 

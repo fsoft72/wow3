@@ -154,6 +154,20 @@ class WOW3AnimationApp {
       }
     };
 
+    this.timelineView.onKaraokeClipDblClick = (clip) => {
+      if (typeof MediaManager === 'undefined') return;
+      MediaManager.open(async (data) => {
+        const mediaId = data.localUrl ? data.localUrl.replace('local://', '') : data.originalItem?.id;
+        if (!mediaId) return;
+        clip.properties.srtMediaId = mediaId;
+        clip.name = data.alt || clip.name;
+        this.timeline.project.touch();
+        this.canvasRenderer._srtCache.delete(mediaId);
+        this.canvasRenderer.renderAtCurrentTime();
+        this.timelineView.render();
+      });
+    };
+
     this.timelineView.onAudioClipDblClick = (clip) => {
       if (typeof MediaManager === 'undefined') return;
       MediaManager.open(async (data) => {
