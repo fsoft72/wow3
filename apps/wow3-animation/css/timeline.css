@@ -1,3 +1,21 @@
+/* ── Thin scrollbars ── */
+#timeline-body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+#timeline-body::-webkit-scrollbar { width: 6px; height: 6px; }
+#timeline-body::-webkit-scrollbar-track { background: transparent; }
+#timeline-body::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+#timeline-body::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+
+#timeline-labels {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+#timeline-labels::-webkit-scrollbar { width: 4px; }
+#timeline-labels::-webkit-scrollbar-track { background: transparent; }
+#timeline-labels::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+
 /* ── Track rows ── */
 .track-row {
   height: 48px;

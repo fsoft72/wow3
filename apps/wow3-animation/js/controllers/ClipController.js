@@ -1,5 +1,5 @@
 import { appEvents, AppEvents } from '@wow/core/utils/events.js';
-import { DragHandler, ResizeHandler, RotateHandler, MarqueeHandler, CropHandler } from '@wow/core/interactions';
+import { ResizeHandler, RotateHandler, MarqueeHandler, CropHandler } from '@wow/core/interactions';
 
 /**
  * Bridges wow-core interaction handlers with the clip-based model.
@@ -40,7 +40,6 @@ export class ClipController {
    * Initialize interaction handlers and connect to canvas.
    */
   init() {
-    this.dragHandler = new DragHandler(this);
     this.resizeHandler = new ResizeHandler(this);
     this.rotateHandler = new RotateHandler(this);
     this.cropHandler = new CropHandler(this);
@@ -170,9 +169,64 @@ export class ClipController {
       });
     }
 
-    if (this.dragHandler) {
-      this.dragHandler.attach(dom, element);
-    }
+    this._attachDrag(dom, element);
+  }
+
+  /**
+   * Custom drag handler that constrains to project canvas dimensions
+   * instead of wow-core's hardcoded CANVAS constant.
+   * @param {HTMLElement} dom
+   * @param {import('@wow/core/models/Element.js').Element} element
+   */
+  _attachDrag(dom, element) {
+    if (dom._customDragAttached) return;
+    dom._customDragAttached = true;
+
+    dom.addEventListener('mousedown', (e) => {
+      if (e.target.classList.contains('resize-handle') ||
+          e.target.classList.contains('rotate-handle')) return;
+      if (e.target.contentEditable === 'true') return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (!this.isSelected(element)) {
+        this.selectElement(element);
+      }
+
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startPos = { x: element.position.x, y: element.position.y };
+      const { width, height } = this.timeline.project;
+
+      dom.classList.add('dragging');
+
+      const onMouseMove = (ev) => {
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        const newX = Math.max(0, Math.min(startPos.x + dx, width - element.position.width));
+        const newY = Math.max(0, Math.min(startPos.y + dy, height - element.position.height));
+
+        element.updatePosition({ x: newX, y: newY });
+        dom.style.left = newX + 'px';
+        dom.style.top = newY + 'px';
+
+        if (this.editor.uiManager?.rightSidebar) {
+          this.editor.uiManager.rightSidebar.updatePositionValues(element);
+        }
+        appEvents.emit(AppEvents.ELEMENT_MOVED, element);
+      };
+
+      const onMouseUp = () => {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        dom.classList.remove('dragging');
+        this.editor.recordHistory();
+      };
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
   }
 
   /**

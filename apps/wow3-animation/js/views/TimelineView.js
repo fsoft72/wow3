@@ -21,6 +21,8 @@ export class TimelineView {
     this._playhead       = document.getElementById('playhead');
     this._timelineBody   = document.getElementById('timeline-body');
     this._waveformRenderer = new WaveformRenderer();
+    /** @type {boolean} Suppresses re-render during clip drag/resize */
+    this._isDragging = false;
 
     /**
      * Callback for when a clip is dropped on the timeline.
@@ -45,7 +47,9 @@ export class TimelineView {
       this._updatePlayhead();
       this._autoScrollToPlayhead(timeMs);
     });
-    appEvents.on(AppEvents.SLIDE_UPDATED, () => this.render());
+    appEvents.on(AppEvents.SLIDE_UPDATED, () => {
+      if (!this._isDragging) this.render();
+    });
 
     this._timelineBody.addEventListener('click', this._onBodyClick.bind(this));
 
@@ -305,7 +309,8 @@ export class TimelineView {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
       clipEl.classList.remove('dragging');
-      this.render(); // Full re-render to update all visuals
+      this._isDragging = false;
+      this.render();
     };
 
     clipEl.addEventListener('mousedown', (e) => {
@@ -314,6 +319,7 @@ export class TimelineView {
       startX = e.clientX;
       startMs = clip.startMs;
       clipEl.classList.add('dragging');
+      this._isDragging = true;
 
       // Select the clip
       this.timeline.selectClip(clip.id);
@@ -348,11 +354,13 @@ export class TimelineView {
     const onMouseUp = () => {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
+      this._isDragging = false;
       this.render();
     };
 
     handleEl.addEventListener('mousedown', (e) => {
       e.stopPropagation();
+      this._isDragging = true;
       startX = e.clientX;
       startEndMs = clip.endMs ?? (clip.startMs + 5000);
       if (clip.endMs === null) clip.endMs = startEndMs;
