@@ -9,3 +9,8 @@ TODO.md
 .playwright-mcp
 dist/
 docs/plans/
+
+# Monorepo
+apps/*/node_modules
+apps/*/dist
+packages/*/node_modules
