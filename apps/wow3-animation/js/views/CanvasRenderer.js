@@ -1,12 +1,15 @@
 import { appEvents, AppEvents } from '@wow/core/utils/events.js';
 import { TextElement, ImageElement, VideoElement, AudioElement, ShapeElement } from '@wow/core/models';
+import { KaraokeElement } from '../models/KaraokeElement.js';
+import { parseSRT } from '../utils/srt-parser.js';
 
 const ELEMENT_CLASS_MAP = {
   text: TextElement,
   image: ImageElement,
   video: VideoElement,
   audio: AudioElement,
-  shape: ShapeElement
+  shape: ShapeElement,
+  karaoke: KaraokeElement
 };
 
 /**
@@ -27,6 +30,8 @@ export class CanvasRenderer {
     this.onElementCreated = null;
     /** @type {Function|null} onElementRemoved callback */
     this.onElementRemoved = null;
+    /** @type {Map<string, Array>} srt src → parsed cues cache */
+    this._srtCache = new Map();
 
     this._bindEvents();
   }
@@ -81,6 +86,74 @@ export class CanvasRenderer {
       if (this.onElementRemoved) {
         this.onElementRemoved(clipId, element);
       }
+    }
+
+    // Update karaoke elements at current time
+    this._updateKaraokeElements(timeMs, project);
+  }
+
+  /**
+   * Update all active karaoke elements with the current playhead time.
+   * @param {number} timeMs - Global playhead time
+   * @param {import('../models/Project.js').Project} project
+   */
+  _updateKaraokeElements(timeMs, project) {
+    for (const track of project.tracks) {
+      if (track.type !== 'visual') continue;
+      for (const clip of track.clips) {
+        if (clip.elementType !== 'karaoke') continue;
+        if (!clip.isActiveAt(timeMs)) continue;
+
+        const element = this._activeElements.get(clip.id);
+        if (!element || typeof element.updateAtTime !== 'function') continue;
+
+        const relativeMs = timeMs - clip.startMs;
+        const src = clip.properties.srtMediaId || clip.properties.srtUrl;
+
+        if (!src) {
+          element.updateAtTime(relativeMs, []);
+          continue;
+        }
+
+        const cues = this._srtCache.get(src);
+        if (cues) {
+          element.updateAtTime(relativeMs, cues);
+        } else {
+          // Load and cache asynchronously, then update
+          this._loadSRT(src).then(parsedCues => {
+            if (parsedCues) {
+              this._srtCache.set(src, parsedCues);
+              element.updateAtTime(relativeMs, parsedCues);
+            }
+          });
+        }
+      }
+    }
+  }
+
+  /**
+   * Load and parse an SRT file from MediaDB or URL.
+   * @param {string} src - mediaId or URL
+   * @returns {Promise<Array|null>}
+   */
+  async _loadSRT(src) {
+    try {
+      let text;
+
+      if (src.startsWith('media_') && typeof MediaDB !== 'undefined') {
+        const item = await MediaDB.getMediaItem(src);
+        if (item?.blob) text = await item.blob.text();
+      }
+
+      if (!text) {
+        const resp = await fetch(src);
+        text = await resp.text();
+      }
+
+      return parseSRT(text);
+    } catch (err) {
+      console.warn('Failed to load SRT:', err);
+      return null;
     }
   }
 

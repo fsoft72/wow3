@@ -172,6 +172,17 @@ export class ClipController {
       });
     }
 
+    // Double-click karaoke to pick SRT file
+    if (element.type === 'karaoke') {
+      dom.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        if (this.onKaraokeDblClick) {
+          const clipId = this.canvasRenderer.getClipIdForElement(element.id);
+          this.onKaraokeDblClick(clipId);
+        }
+      });
+    }
+
     this._attachDrag(dom, element);
   }
 

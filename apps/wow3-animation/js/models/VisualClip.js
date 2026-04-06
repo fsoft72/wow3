@@ -75,6 +75,14 @@ export class VisualClip extends Clip {
       shape: {
         position: { x: 100, y: 100, width: 200, height: 200, rotation: 0 },
         properties: { shapeType: 'rectangle', fillColor: '#2196F3', strokeColor: '#000000', strokeWidth: 2 }
+      },
+      karaoke: {
+        position: { x: 100, y: 600, width: 800, height: 200, rotation: 0 },
+        properties: {
+          srtMediaId: null, srtUrl: '',
+          colorPrev: '#888888', colorCurrent: '#ff9800', colorNext: '#888888',
+          font: { family: 'Roboto', size: 36, weight: 'bold', alignment: 'center' }
+        }
       }
     };
 

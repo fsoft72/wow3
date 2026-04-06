@@ -91,6 +91,24 @@ class WOW3AnimationApp {
       this.propertiesPanel.updatePosition(element);
     };
 
+    this.clipController.onKaraokeDblClick = (clipId) => {
+      if (!clipId || typeof MediaManager === 'undefined') return;
+      const clip = this._findClip(clipId);
+      if (!clip) return;
+
+      MediaManager.open(async (data) => {
+        const mediaId = data.localUrl ? data.localUrl.replace('local://', '') : data.originalItem?.id;
+        if (!mediaId) return;
+        clip.properties.srtMediaId = mediaId;
+        clip.name = data.alt || clip.name;
+        this.timeline.project.touch();
+        // Clear cached SRT so it reloads
+        this.canvasRenderer._srtCache.delete(mediaId);
+        this.canvasRenderer.renderAtCurrentTime();
+        this.timelineView.render();
+      });
+    };
+
     // Click on canvas background deselects
     const canvas = document.getElementById('slide-canvas');
     canvas.addEventListener('click', (e) => {
@@ -230,7 +248,7 @@ class WOW3AnimationApp {
     });
 
     // Add clip buttons — each creates a new track + clip at current time
-    const TRACK_NAMES = { text: 'Text Layer', image: 'Image Layer', video: 'Video Layer', shape: 'Shape Layer' };
+    const TRACK_NAMES = { text: 'Text Layer', image: 'Image Layer', video: 'Video Layer', shape: 'Shape Layer', karaoke: 'Karaoke Layer' };
 
     const addClip = (type) => {
       const track = this.timeline.addTrack('visual', TRACK_NAMES[type]);
@@ -245,6 +263,7 @@ class WOW3AnimationApp {
     document.getElementById('btn-add-image').addEventListener('click', () => addClip('image'));
     document.getElementById('btn-add-video').addEventListener('click', () => addClip('video'));
     document.getElementById('btn-add-shape').addEventListener('click', () => addClip('shape'));
+    document.getElementById('btn-add-karaoke').addEventListener('click', () => addClip('karaoke'));
 
     // Audio clip — creates a new audio track + clip
     document.getElementById('btn-add-audio').addEventListener('click', () => {
@@ -288,6 +307,7 @@ class WOW3AnimationApp {
     makeDraggable('btn-add-image', 'image');
     makeDraggable('btn-add-video', 'video');
     makeDraggable('btn-add-shape', 'shape');
+    makeDraggable('btn-add-karaoke', 'karaoke');
     makeDraggable('btn-add-audio', 'audio');
   }
 
@@ -354,6 +374,19 @@ class WOW3AnimationApp {
         }
       }
     });
+  }
+
+  /**
+   * Find a clip by id across all tracks.
+   * @param {string} clipId
+   * @returns {import('./models/Clip.js').Clip|null}
+   */
+  _findClip(clipId) {
+    for (const track of this.project.tracks) {
+      const clip = track.clips.find(c => c.id === clipId);
+      if (clip) return clip;
+    }
+    return null;
   }
 
   /**

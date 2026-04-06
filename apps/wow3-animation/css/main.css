@@ -299,6 +299,10 @@ body {
   z-index: 20;
 }
 
+/* ── Karaoke element ── */
+.karaoke-element { pointer-events: auto; }
+.karaoke-line { padding: 2px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 /* ── Canvas element selection ── */
 #slide-canvas .element { position: absolute; cursor: move; }
 #slide-canvas .element.selected { outline: 2px solid var(--color-accent); outline-offset: 0; }
