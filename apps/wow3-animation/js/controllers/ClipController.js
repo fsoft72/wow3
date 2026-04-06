@@ -400,8 +400,11 @@ export class ClipController {
     clip.position.height = element.position.height;
     clip.position.rotation = element.position.rotation;
 
-    // Merge element properties into clip (preserves clip-only keys like srtMediaId)
+    // Merge element properties into clip.
+    // Remove clip-only keys from element props so they can't overwrite clip values.
     const elementProps = structuredClone(element.properties);
+    delete elementProps.srtMediaId;
+    delete elementProps.srtUrl;
     clip.properties = { ...clip.properties, ...elementProps };
     this.timeline.project.touch();
   }

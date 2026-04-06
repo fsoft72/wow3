@@ -5,14 +5,16 @@
 export class KaraokePanel {
   /**
    * @param {import('@wow/core/models/Element.js').Element} element
+   * @param {import('../models/VisualClip.js').VisualClip} [clip]
    * @returns {string} HTML
    */
-  static render(element) {
+  static render(element, clip) {
     const font = element.properties.font || {};
     const colorPrev = element.properties.colorPrev || '#888888';
     const colorCurrent = element.properties.colorCurrent || '#ff9800';
 
-    const srtValue = element.properties.srtMediaId || element.properties.srtUrl || '';
+    // srtMediaId lives on the clip, not the element
+    const srtValue = clip?.properties?.srtMediaId || clip?.properties?.srtUrl || '';
 
     return `
       <div id="karaoke-srt-selector"></div>
@@ -96,14 +98,15 @@ export class KaraokePanel {
 
   /**
    * @param {import('@wow/core/models/Element.js').Element} element
+   * @param {import('../models/VisualClip.js').VisualClip} [clip]
    */
-  static bindEvents(element) {
+  static bindEvents(element, clip) {
     const updateProperty = (path, value) => {
       window.app.editor.elementController.updateElementProperty(path, value);
     };
 
-    // SRT source selector
-    const srtValue = element.properties.srtMediaId || element.properties.srtUrl || '';
+    // SRT source — read from clip (the source of truth), update clip directly
+    const srtValue = clip?.properties?.srtMediaId || clip?.properties?.srtUrl || '';
     new ImageSelector('karaoke-srt-selector', {
       label: 'SRT Source',
       accept: '.srt,text/plain',
@@ -111,20 +114,20 @@ export class KaraokePanel {
       placeholder: 'Enter URL or media ID',
       value: srtValue,
       onMediaChange: (value) => {
+        if (!clip) return;
         if (typeof value === 'object' && value instanceof File) {
-          // File upload — store via MediaDB
           if (typeof MediaDB !== 'undefined') {
             MediaDB.addMedia(value).then(id => {
-              updateProperty('properties.srtMediaId', id);
-              updateProperty('properties.srtUrl', '');
+              clip.properties.srtMediaId = id;
+              clip.properties.srtUrl = '';
             });
           }
         } else if (value.startsWith('media_')) {
-          updateProperty('properties.srtMediaId', value);
-          updateProperty('properties.srtUrl', '');
+          clip.properties.srtMediaId = value;
+          clip.properties.srtUrl = '';
         } else {
-          updateProperty('properties.srtUrl', value);
-          updateProperty('properties.srtMediaId', null);
+          clip.properties.srtUrl = value;
+          clip.properties.srtMediaId = null;
         }
       }
     });

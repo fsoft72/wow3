@@ -106,10 +106,10 @@ export class PropertiesPanel {
       if (panelContainer) {
         const Panel = this._getPanelForType(clip.elementType);
         if (Panel) {
-          panelContainer.innerHTML = Panel.render(element);
+          panelContainer.innerHTML = Panel.render(element, clip);
           // Defer binding so DOM is attached
           setTimeout(() => {
-            if (Panel.bindEvents) Panel.bindEvents(element);
+            if (Panel.bindEvents) Panel.bindEvents(element, clip);
           }, 0);
         }
       }

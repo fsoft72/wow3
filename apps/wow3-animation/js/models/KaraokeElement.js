@@ -13,8 +13,7 @@ export class KaraokeElement extends Element {
   constructor(properties = {}) {
     super('karaoke', properties);
 
-    this.properties.srtMediaId = properties.properties?.srtMediaId ?? null;
-    this.properties.srtUrl = properties.properties?.srtUrl ?? '';
+    // srtMediaId and srtUrl live on the clip only, not on the element
     this.properties.colorPrev = properties.properties?.colorPrev ?? '#888888';
     this.properties.colorCurrent = properties.properties?.colorCurrent ?? '#ff9800';
     this.properties.colorNext = properties.properties?.colorNext ?? '#888888';
