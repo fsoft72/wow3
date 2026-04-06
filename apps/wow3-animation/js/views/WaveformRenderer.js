@@ -1,16 +1,17 @@
 /**
  * Decodes audio files and draws waveforms inside timeline clip elements.
- * Uses Web Audio API's decodeAudioData + canvas drawing.
+ * Only draws the portion of the waveform visible within the clip's time window.
  */
 export class WaveformRenderer {
   constructor() {
-    /** @type {Map<string, Float32Array>} mediaId/src → cached peaks */
+    /** @type {Map<string, {peaks: Float32Array, durationMs: number}>} src → cached data */
     this._cache = new Map();
     this._audioCtx = null;
   }
 
   /**
    * Renders a waveform into a clip element.
+   * Only the portion of the audio within [clip.startMs .. clip.endMs] is drawn.
    * @param {HTMLElement} clipEl - The .timeline-clip DOM element
    * @param {import('../models/AudioClip.js').AudioClip} clip
    * @param {number} pxPerMs - Current zoom level
@@ -19,20 +20,30 @@ export class WaveformRenderer {
     const src = clip.mediaId || clip.src;
     if (!src) return;
 
-    const width = Math.max(1, Math.round((clip.endMs - clip.startMs) * pxPerMs));
-    const height = clipEl.offsetHeight - 8; // leave padding
+    const clipDurationMs = clip.endMs - clip.startMs;
+    const width = Math.max(1, Math.round(clipDurationMs * pxPerMs));
+    const height = clipEl.offsetHeight - 8;
     if (width < 2 || height < 2) return;
 
-    let peaks;
-    if (this._cache.has(src)) {
-      peaks = this._cache.get(src);
-    } else {
-      peaks = await this._decodePeaks(src);
-      if (!peaks) return;
-      this._cache.set(src, peaks);
+    let data = this._cache.get(src);
+    if (!data) {
+      data = await this._decodeAudio(src);
+      if (!data) return;
+      this._cache.set(src, data);
     }
 
-    // Draw waveform on a canvas element
+    const { peaks, durationMs } = data;
+
+    // Calculate which portion of the peaks array corresponds to the clip window.
+    // The clip covers [0 .. clipDurationMs] of the audio (from the start of the file).
+    // If the clip is shorter than the audio, we only show that initial portion.
+    const startFraction = 0; // clips always start from beginning of audio file
+    const endFraction = Math.min(1, clipDurationMs / durationMs);
+    const startIdx = Math.floor(startFraction * peaks.length);
+    const endIdx = Math.floor(endFraction * peaks.length);
+    const visiblePeaks = endIdx - startIdx;
+
+    // Draw
     let canvas = clipEl.querySelector('.waveform-canvas');
     if (!canvas) {
       canvas = document.createElement('canvas');
@@ -57,7 +68,7 @@ export class WaveformRenderer {
     const mid = height / 2;
 
     for (let i = 0; i < width; i++) {
-      const idx = Math.floor(i * peaks.length / width);
+      const idx = startIdx + Math.floor(i * visiblePeaks / width);
       const val = peaks[idx] || 0;
       const barH = val * mid;
       ctx.fillRect(i, mid - barH, 1, barH * 2);
@@ -65,11 +76,11 @@ export class WaveformRenderer {
   }
 
   /**
-   * Decode audio and extract peaks.
+   * Decode audio and extract peaks + duration.
    * @param {string} src - media ID or URL
-   * @returns {Promise<Float32Array|null>}
+   * @returns {Promise<{peaks: Float32Array, durationMs: number}|null>}
    */
-  async _decodePeaks(src) {
+  async _decodeAudio(src) {
     try {
       if (!this._audioCtx) {
         this._audioCtx = new AudioContext();
@@ -77,27 +88,24 @@ export class WaveformRenderer {
 
       let arrayBuffer;
 
-      // Try MediaDB first (for media_xxx IDs)
       if (src.startsWith('media_') && typeof MediaDB !== 'undefined') {
         const item = await MediaDB.getMediaItem(src);
-        if (item?.blob) {
-          arrayBuffer = await item.blob.arrayBuffer();
-        }
+        if (item?.blob) arrayBuffer = await item.blob.arrayBuffer();
       }
 
       if (!arrayBuffer) {
-        // Try as URL
         const resp = await fetch(src);
         arrayBuffer = await resp.arrayBuffer();
       }
 
       const audioBuffer = await this._audioCtx.decodeAudioData(arrayBuffer);
       const channel = audioBuffer.getChannelData(0);
+      const durationMs = Math.round(audioBuffer.duration * 1000);
 
-      // Downsample to ~2000 peaks
-      const numPeaks = 2000;
+      // Downsample to ~4000 peaks for good resolution even on long files
+      const numPeaks = 4000;
       const peaks = new Float32Array(numPeaks);
-      const blockSize = Math.floor(channel.length / numPeaks);
+      const blockSize = Math.max(1, Math.floor(channel.length / numPeaks));
 
       for (let i = 0; i < numPeaks; i++) {
         let max = 0;
@@ -109,7 +117,7 @@ export class WaveformRenderer {
         peaks[i] = max;
       }
 
-      return peaks;
+      return { peaks, durationMs };
     } catch (err) {
       console.warn('Failed to decode audio for waveform:', err);
       return null;
