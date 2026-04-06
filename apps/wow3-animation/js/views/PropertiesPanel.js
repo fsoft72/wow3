@@ -104,10 +104,10 @@ export class PropertiesPanel {
         const Panel = this._getPanelForType(clip.elementType);
         if (Panel) {
           panelContainer.innerHTML = Panel.render(element);
-          // Defer binding so DOM is ready
-          requestAnimationFrame(() => {
+          // Defer binding so DOM is attached
+          setTimeout(() => {
             if (Panel.bindEvents) Panel.bindEvents(element);
-          });
+          }, 0);
         }
       }
     }
