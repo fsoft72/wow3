@@ -141,6 +141,12 @@ class WOW3AnimationApp {
 
     this.timelineView.onClipSelected = (clipId) => {
       if (clipId) {
+        // Move playhead to clip start
+        const clip = this._findClip(clipId);
+        if (clip) {
+          this.timeline.seekTo(clip.startMs);
+        }
+
         // Select the corresponding canvas element
         const element = this.canvasRenderer.getElement(clipId);
         if (element) {
