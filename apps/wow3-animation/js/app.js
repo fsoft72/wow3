@@ -130,6 +130,19 @@ class WOW3AnimationApp {
       }
     };
 
+    this.timelineView.onAudioClipDblClick = (clip) => {
+      if (typeof MediaManager === 'undefined') return;
+      MediaManager.open(async (data) => {
+        const mediaId = data.localUrl ? data.localUrl.replace('local://', '') : data.originalItem?.id;
+        if (!mediaId) return;
+        clip.mediaId = mediaId;
+        clip.name = data.alt || clip.name;
+        this.timeline.project.touch();
+        this.timelineView.render();
+        this.propertiesPanel.show(clip.id, null);
+      });
+    };
+
     this.timelineView.render();
     this._bindToolbar();
     this._updateTitleInput();

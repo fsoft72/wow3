@@ -38,6 +38,13 @@ export class TimelineView {
      */
     this.onClipSelected = null;
 
+    /**
+     * Callback for double-click on an audio clip.
+     * Set by app.js.
+     * @type {Function|null}
+     */
+    this.onAudioClipDblClick = null;
+
     this._bindEvents();
   }
 
@@ -274,6 +281,14 @@ export class TimelineView {
 
     // Right-edge resize
     this._initClipResize(handleR, clip);
+
+    // Double-click audio clip to pick media
+    if (clip.type === 'audio') {
+      el.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        if (this.onAudioClipDblClick) this.onAudioClipDblClick(clip);
+      });
+    }
 
     // Render waveform for audio clips (async, non-blocking)
     if (clip.type === 'audio' && (clip.mediaId || clip.src)) {
