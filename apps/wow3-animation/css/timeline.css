@@ -91,3 +91,7 @@
   pointer-events: none;
   white-space: nowrap;
 }
+
+/* ── Clip drag ── */
+.timeline-clip.dragging { opacity: 0.6; z-index: 100; }
+.clip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; pointer-events: none; }

@@ -114,19 +114,106 @@ export class TimelineView {
     const el = document.createElement('div');
     el.className = 'timeline-clip ' + (clip.elementType ?? clip.type ?? '');
     el.dataset.clipId = clip.id;
-    el.style.left  = x + 'px';
+    el.style.left = x + 'px';
     el.style.width = Math.max(8, w) + 'px';
     if (clip.id === this.timeline.selectedClipId) el.classList.add('selected');
-    el.textContent = clip.name || clip.elementType || clip.type;
 
-    const handleL = document.createElement('div');
-    handleL.className = 'clip-handle clip-handle-left';
+    const label = document.createElement('span');
+    label.className = 'clip-label';
+    label.textContent = clip.name || clip.elementType || clip.type;
+    el.appendChild(label);
+
+    // Right resize handle
     const handleR = document.createElement('div');
     handleR.className = 'clip-handle clip-handle-right';
-    el.prepend(handleL);
     el.appendChild(handleR);
 
+    // Clip drag (horizontal move)
+    this._initClipDrag(el, clip);
+
+    // Right-edge resize
+    this._initClipResize(handleR, clip);
+
     return el;
+  }
+
+  /** @private */
+  _initClipDrag(clipEl, clip) {
+    let startX, startMs;
+
+    const onMouseMove = (e) => {
+      const dx = e.clientX - startX;
+      const dMs = dx / this.timeline.pxPerMs;
+      let newStart = Math.max(0, startMs + dMs);
+
+      // Snap to grid (1s intervals)
+      const snapInterval = 1000;
+      const snapped = Math.round(newStart / snapInterval) * snapInterval;
+      if (Math.abs(newStart - snapped) * this.timeline.pxPerMs < 6) {
+        newStart = snapped;
+      }
+
+      this.timeline.moveClip(clip.id, newStart);
+      clipEl.style.left = (clip.startMs * this.timeline.pxPerMs) + 'px';
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      clipEl.classList.remove('dragging');
+      this.render(); // Full re-render to update all visuals
+    };
+
+    clipEl.addEventListener('mousedown', (e) => {
+      if (e.target.classList.contains('clip-handle')) return;
+      e.stopPropagation();
+      startX = e.clientX;
+      startMs = clip.startMs;
+      clipEl.classList.add('dragging');
+
+      // Select the clip
+      this.timeline.selectClip(clip.id);
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
+  }
+
+  /** @private */
+  _initClipResize(handleEl, clip) {
+    let startX, startEndMs;
+
+    const onMouseMove = (e) => {
+      const dx = e.clientX - startX;
+      const dMs = dx / this.timeline.pxPerMs;
+      let newEnd = Math.max(clip.startMs + 200, startEndMs + dMs);
+
+      // Snap to grid
+      const snapInterval = 1000;
+      const snapped = Math.round(newEnd / snapInterval) * snapInterval;
+      if (Math.abs(newEnd - snapped) * this.timeline.pxPerMs < 6) {
+        newEnd = snapped;
+      }
+
+      this.timeline.resizeClipEnd(clip.id, newEnd);
+      const clipEl = handleEl.parentElement;
+      clipEl.style.width = Math.max(8, (clip.endMs - clip.startMs) * this.timeline.pxPerMs) + 'px';
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      this.render();
+    };
+
+    handleEl.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      startX = e.clientX;
+      startEndMs = clip.endMs ?? (clip.startMs + 5000);
+      if (clip.endMs === null) clip.endMs = startEndMs;
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
   }
 
   /** @private */
