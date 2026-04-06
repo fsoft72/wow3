@@ -226,6 +226,9 @@ export class TimelineController {
     if (hasOverlap) return false;
 
     sourceTrack.removeClip(clipId);
+    if (sourceTrack.clips.length === 0) {
+      this.project.removeTrack(sourceTrack.id);
+    }
     targetTrack.addClip(clip);
     this.project.touch();
     appEvents.emit(AppEvents.SLIDE_UPDATED);
