@@ -229,6 +229,11 @@ export class ClipController {
         document.removeEventListener('mouseup', onMouseUp);
         dom.classList.remove('dragging');
         this.editor.recordHistory();
+
+        // Suppress the next click on canvas so it doesn't trigger deselectAll()
+        const canvas = document.getElementById('slide-canvas');
+        const suppress = (ev) => { ev.stopImmediatePropagation(); };
+        canvas.addEventListener('click', suppress, { capture: true, once: true });
       };
 
       document.addEventListener('mousemove', onMouseMove);
