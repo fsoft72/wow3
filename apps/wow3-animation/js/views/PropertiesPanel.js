@@ -245,6 +245,7 @@ export class PropertiesPanel {
   _getPanelForType(elementType) {
     switch (elementType) {
       case 'text': return TextPanel;
+      case 'karaoke': return TextPanel;
       case 'image': return ImagePanel;
       case 'video': return VideoPanel;
       case 'audio': return AudioPanel;
