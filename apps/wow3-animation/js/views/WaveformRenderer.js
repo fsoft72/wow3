@@ -42,8 +42,8 @@ export class WaveformRenderer {
 
     canvas.width = width;
     canvas.height = height;
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
     canvas.style.position = 'absolute';
     canvas.style.top = '4px';
     canvas.style.left = '0';
