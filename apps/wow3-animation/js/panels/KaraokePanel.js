@@ -12,7 +12,11 @@ export class KaraokePanel {
     const colorPrev = element.properties.colorPrev || '#888888';
     const colorCurrent = element.properties.colorCurrent || '#ff9800';
 
+    const srtValue = element.properties.srtMediaId || element.properties.srtUrl || '';
+
     return `
+      <div id="karaoke-srt-selector"></div>
+
       <div class="control-group">
         <label>Font Family</label>
         ${PanelUtils.renderFontFamilyPicker('font-family', font.family)}
@@ -97,6 +101,33 @@ export class KaraokePanel {
     const updateProperty = (path, value) => {
       window.app.editor.elementController.updateElementProperty(path, value);
     };
+
+    // SRT source selector
+    const srtValue = element.properties.srtMediaId || element.properties.srtUrl || '';
+    new ImageSelector('karaoke-srt-selector', {
+      label: 'SRT Source',
+      accept: '.srt,text/plain',
+      mediaType: 'subtitle',
+      placeholder: 'Enter URL or media ID',
+      value: srtValue,
+      onMediaChange: (value) => {
+        if (typeof value === 'object' && value instanceof File) {
+          // File upload — store via MediaDB
+          if (typeof MediaDB !== 'undefined') {
+            MediaDB.addMedia(value).then(id => {
+              updateProperty('properties.srtMediaId', id);
+              updateProperty('properties.srtUrl', '');
+            });
+          }
+        } else if (value.startsWith('media_')) {
+          updateProperty('properties.srtMediaId', value);
+          updateProperty('properties.srtUrl', '');
+        } else {
+          updateProperty('properties.srtUrl', value);
+          updateProperty('properties.srtMediaId', null);
+        }
+      }
+    });
 
     // Font family
     PanelUtils.bindFontFamilyPicker('font-family', (value) => {
