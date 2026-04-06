@@ -1,0 +1,93 @@
+/* ── Track rows ── */
+.track-row {
+  height: 48px;
+  border-bottom: 1px solid var(--color-border);
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.track-row.audio-track { height: 36px; background: rgba(88, 166, 255, 0.04); }
+.track-row:hover { background: rgba(255, 255, 255, 0.02); }
+
+/* ── Track labels (left panel) ── */
+.track-label {
+  height: 48px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text);
+  cursor: pointer;
+  user-select: none;
+}
+.track-label.audio-track { height: 36px; }
+.track-label:hover { background: rgba(255, 255, 255, 0.04); }
+.track-label .material-icons { font-size: 16px; color: var(--color-text-muted); }
+.track-label-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Clip blocks ── */
+.timeline-clip {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  border-radius: 4px;
+  background: var(--color-accent);
+  opacity: 0.85;
+  cursor: pointer;
+  overflow: hidden;
+  font-size: 11px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  user-select: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  min-width: 8px;
+}
+.timeline-clip:hover { opacity: 1; }
+.timeline-clip.selected { border: 1.5px solid #fff; opacity: 1; }
+.timeline-clip.audio { background: #3fb950; }
+.timeline-clip.image { background: #8957e5; }
+.timeline-clip.video { background: #d29922; }
+.timeline-clip.text  { background: #58a6ff; }
+.timeline-clip.shape { background: #da3633; }
+.timeline-clip.karaoke { background: #f778ba; }
+
+/* ── Clip resize handles ── */
+.clip-handle {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 6px;
+  cursor: ew-resize;
+  background: rgba(255, 255, 255, 0.3);
+  opacity: 0;
+}
+.clip-handle-left  { left: 0; border-radius: 4px 0 0 4px; }
+.clip-handle-right { right: 0; border-radius: 0 4px 4px 0; }
+.timeline-clip:hover .clip-handle { opacity: 1; }
+
+/* ── Time ruler ── */
+.ruler-tick {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  background: var(--color-border);
+  pointer-events: none;
+}
+.ruler-tick.major { height: 100%; }
+.ruler-tick.minor { height: 40%; top: auto; bottom: 0; }
+.ruler-label {
+  position: absolute;
+  top: 4px;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  white-space: nowrap;
+}

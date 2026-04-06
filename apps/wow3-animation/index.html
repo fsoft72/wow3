@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="WOW3 Animation - Timeline Editor">
+  <meta name="theme-color" content="#0d1117">
+  <title>WOW3 Animation</title>
+
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+  <!-- Shared CSS from wow-core -->
+  <link rel="stylesheet" href="../../packages/wow-core/css/components.css">
+  <link rel="stylesheet" href="../../packages/wow-core/css/media-manager.css">
+  <link rel="stylesheet" href="../../packages/wow-core/css/dialog.css">
+  <link rel="stylesheet" href="../../packages/wow-core/css/panels.css">
+  <link rel="stylesheet" href="../../packages/wow-core/css/gradient-manager.css">
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/timeline.css">
+</head>
+<body>
+
+  <!-- Top toolbar -->
+  <header id="top-bar">
+    <div id="top-bar-left">
+      <img src="./icons/icon-192x192.png" alt="WOW3-A" class="brand-icon">
+      <input type="text" id="project-title-input" placeholder="Untitled Project">
+    </div>
+    <div id="top-bar-center">
+      <button id="btn-add-text"    title="Add Text"><i class="material-icons">text_fields</i></button>
+      <button id="btn-add-image"   title="Add Image"><i class="material-icons">image</i></button>
+      <button id="btn-add-video"   title="Add Video"><i class="material-icons">videocam</i></button>
+      <button id="btn-add-audio"   title="Add Audio Track"><i class="material-icons">music_note</i></button>
+      <button id="btn-add-shape"   title="Add Shape"><i class="material-icons">crop_square</i></button>
+      <span class="toolbar-sep"></span>
+      <button id="btn-undo" title="Undo (Ctrl+Z)"><i class="material-icons">undo</i></button>
+      <button id="btn-redo" title="Redo (Ctrl+Y)"><i class="material-icons">redo</i></button>
+    </div>
+    <div id="top-bar-right">
+      <button id="btn-save"   title="Save"><i class="material-icons">save</i></button>
+      <button id="btn-export" title="Export MP4"><i class="material-icons">movie</i></button>
+    </div>
+  </header>
+
+  <!-- Main area: canvas + properties -->
+  <main id="workspace">
+
+    <!-- Canvas preview area -->
+    <section id="canvas-area">
+      <div id="canvas-wrapper">
+        <div id="slide-canvas"></div>
+      </div>
+    </section>
+
+    <!-- Right properties panel -->
+    <aside id="properties-panel">
+      <div id="properties-content">
+        <p class="no-selection">Select a clip to edit properties.</p>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- Playback controls bar -->
+  <div id="playback-bar">
+    <button id="btn-rewind"  title="Rewind"><i class="material-icons">skip_previous</i></button>
+    <button id="btn-play"    title="Play / Pause"><i class="material-icons">play_arrow</i></button>
+    <button id="btn-stop"    title="Stop"><i class="material-icons">stop</i></button>
+    <span id="playback-time">00:00:00.000</span>
+    <span id="playback-duration">/ 00:00:00.000</span>
+  </div>
+
+  <!-- Timeline area -->
+  <section id="timeline-area">
+    <!-- Left: track labels -->
+    <div id="timeline-labels">
+      <div id="timeline-labels-header">
+        <button id="btn-add-track" title="Add Track"><i class="material-icons">add</i></button>
+      </div>
+      <div id="track-labels-list"></div>
+    </div>
+    <!-- Right: track clips + time ruler -->
+    <div id="timeline-body">
+      <div id="time-ruler"></div>
+      <div id="tracks-container"></div>
+      <div id="playhead"></div>
+    </div>
+  </section>
+
+  <!-- Shared classic scripts from wow-core -->
+  <script src="../../packages/wow-core/classic/dialog.js"></script>
+  <script src="../../packages/wow-core/classic/media_db.js"></script>
+  <script src="../../packages/wow-core/classic/i18n.js"></script>
+  <script src="../../packages/wow-core/classic/panel_utils.js"></script>
+  <script src="../../packages/wow-core/classic/context_menu.js"></script>
+  <script src="../../packages/wow-core/classic/media_manager.js"></script>
+  <script src="../../packages/wow-core/classic/gradient_manager.js"></script>
+  <script src="../../packages/wow-core/classic/range_input.js"></script>
+  <script src="../../packages/wow-core/classic/gradient_selector.js"></script>
+
+  <!-- External libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <!-- App entry -->
+  <script type="module" src="./js/app.js"></script>
+
+</body>
+</html>

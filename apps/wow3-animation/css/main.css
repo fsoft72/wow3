@@ -1,0 +1,173 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --color-bg: #0d1117;
+  --color-surface: #161b22;
+  --color-border: #30363d;
+  --color-text: #c9d1d9;
+  --color-text-muted: #8b949e;
+  --color-accent: #58a6ff;
+  --top-bar-h: 52px;
+  --playback-bar-h: 36px;
+  --timeline-h: 220px;
+  --properties-w: 280px;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Roboto', sans-serif;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: var(--top-bar-h) 1fr var(--playback-bar-h) var(--timeline-h);
+  grid-template-areas:
+    "topbar"
+    "workspace"
+    "playback"
+    "timeline";
+  overflow: hidden;
+}
+
+/* ── Top bar ── */
+#top-bar {
+  grid-area: topbar;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  gap: 8px;
+}
+#top-bar-left { display: flex; align-items: center; gap: 8px; }
+#top-bar-center { display: flex; align-items: center; gap: 4px; }
+#top-bar-right { display: flex; align-items: center; gap: 4px; }
+#top-bar button {
+  background: none; border: none; color: var(--color-text);
+  cursor: pointer; padding: 6px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+}
+#top-bar button:hover { background: rgba(255, 255, 255, 0.08); }
+.brand-icon { width: 28px; height: 28px; }
+.toolbar-sep { width: 1px; height: 20px; background: var(--color-border); margin: 0 4px; }
+#project-title-input {
+  background: none; border: 1px solid transparent; color: var(--color-text);
+  padding: 4px 8px; border-radius: 4px; font-size: 14px; width: 220px;
+}
+#project-title-input:hover { border-color: var(--color-border); }
+#project-title-input:focus { border-color: var(--color-accent); outline: none; }
+
+/* ── Workspace ── */
+#workspace {
+  grid-area: workspace;
+  display: grid;
+  grid-template-columns: 1fr var(--properties-w);
+  overflow: hidden;
+}
+
+/* ── Canvas area ── */
+#canvas-area {
+  background: #1a1a2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+#canvas-wrapper {
+  position: relative;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+#slide-canvas {
+  position: relative;
+  background: #000;
+  overflow: hidden;
+}
+
+/* ── Properties panel ── */
+#properties-panel {
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  overflow-y: auto;
+  padding: 12px;
+}
+.no-selection { color: var(--color-text-muted); font-size: 13px; text-align: center; margin-top: 24px; }
+
+/* ── Playback bar ── */
+#playback-bar {
+  grid-area: playback;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+}
+#playback-bar button {
+  background: none; border: none; color: var(--color-text);
+  cursor: pointer; padding: 4px; border-radius: 4px;
+  display: flex; align-items: center;
+}
+#playback-bar button:hover { background: rgba(255, 255, 255, 0.08); }
+#playback-time { font-family: monospace; font-size: 13px; color: var(--color-accent); }
+#playback-duration { font-family: monospace; font-size: 13px; color: var(--color-text-muted); }
+
+/* ── Timeline area ── */
+#timeline-area {
+  grid-area: timeline;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  overflow: hidden;
+}
+#timeline-labels {
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+#timeline-labels-header {
+  height: 24px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+}
+#timeline-labels-header button {
+  background: none; border: none; color: var(--color-text-muted);
+  cursor: pointer; padding: 2px; border-radius: 3px;
+  display: flex; align-items: center;
+}
+#timeline-labels-header button:hover { color: var(--color-accent); }
+#timeline-labels-header button .material-icons { font-size: 18px; }
+#timeline-body {
+  position: relative;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+#time-ruler {
+  height: 24px;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+}
+#tracks-container {
+  flex: 1;
+  position: relative;
+}
+#playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-accent);
+  pointer-events: none;
+  z-index: 20;
+}
