@@ -1,6 +1,6 @@
 import { appEvents, AppEvents } from '@wow/core/utils/events.js';
 import { TextElement, ImageElement, VideoElement, AudioElement, ShapeElement } from '@wow/core/models';
-import { ANIMATION_DEFINITIONS } from '@wow/core/animations';
+import { ANIMATION_DEFINITIONS, EASING_MAP } from '@wow/core/animations';
 import { KaraokeElement } from '../models/KaraokeElement.js';
 import { parseSRT } from '../utils/srt-parser.js';
 import { fetchMediaText } from '../utils/media.js';
@@ -334,9 +334,10 @@ export class CanvasRenderer {
   _playInAnimation(dom, cfg) {
     const def = ANIMATION_DEFINITIONS[cfg.name];
     if (!def) return;
+    const rawEasing = cfg.easing ?? def.options.easing;
     dom.animate(def.keyframes, {
       duration: cfg.duration ?? def.options.duration,
-      easing: cfg.easing ?? def.options.easing,
+      easing: EASING_MAP[rawEasing] ?? rawEasing,
       fill: 'backwards'
     });
   }
@@ -352,9 +353,10 @@ export class CanvasRenderer {
   _playOutAnimation(dom, cfg, onDone) {
     const def = ANIMATION_DEFINITIONS[cfg.name];
     if (!def) { onDone(); return null; }
+    const rawEasing = cfg.easing ?? def.options.easing;
     const anim = dom.animate(def.keyframes, {
       duration: cfg.duration ?? def.options.duration,
-      easing: cfg.easing ?? def.options.easing,
+      easing: EASING_MAP[rawEasing] ?? rawEasing,
       fill: 'forwards'
     });
     anim.onfinish = onDone;
