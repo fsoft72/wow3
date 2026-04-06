@@ -6,6 +6,7 @@ import { PlaybackEngine } from './controllers/PlaybackEngine.js';
 import { ClipController } from './controllers/ClipController.js';
 import { HistoryManager } from './controllers/HistoryManager.js';
 import { AudioPlaybackManager } from './controllers/AudioPlaybackManager.js';
+import { PresentationExportController } from './controllers/PresentationExportController.js';
 import { TimelineView } from './views/TimelineView.js';
 import { CanvasRenderer } from './views/CanvasRenderer.js';
 import { PropertiesPanel } from './views/PropertiesPanel.js';
@@ -38,6 +39,8 @@ class WOW3AnimationApp {
     this.historyManager = null;
     /** @type {JsonEditorModal} */
     this._jsonEditorModal = null;
+    /** @type {PresentationExportController|null} */
+    this.exportController = null;
   }
 
   async init() {
@@ -152,6 +155,12 @@ class WOW3AnimationApp {
     this.clipController.onRecordHistory = () => this.historyManager.recordHistory();
 
     this.propertiesPanel = new PropertiesPanel(this.timeline, this.clipController);
+    this.exportController = new PresentationExportController({
+      timeline: this.timeline,
+      canvasRenderer: this.canvasRenderer,
+      clipController: this.clipController,
+      playback: this.playback,
+    });
 
     this.clipController.onSelectionChanged = (clipId, element) => {
       this.propertiesPanel.show(clipId, element);
@@ -397,16 +406,15 @@ class WOW3AnimationApp {
   /** @private */
   _bindToolbar() {
     const btnPlay = document.getElementById('btn-play');
-    const playIcon = btnPlay.querySelector('i');
 
     btnPlay.addEventListener('click', () => {
       this.playback.toggle();
-      playIcon.textContent = this.playback.isPlaying ? 'pause' : 'play_arrow';
+      this._updatePlaybackButton();
     });
 
     document.getElementById('btn-stop').addEventListener('click', () => {
       this.playback.stop();
-      playIcon.textContent = 'play_arrow';
+      this._updatePlaybackButton();
     });
 
     document.getElementById('btn-rewind').addEventListener('click', () => {
@@ -448,6 +456,33 @@ class WOW3AnimationApp {
     document.getElementById('btn-undo')?.addEventListener('click', () => this._applyUndo());
     document.getElementById('btn-redo')?.addEventListener('click', () => this._applyRedo());
     document.getElementById('btn-save')?.addEventListener('click', () => this._saveProject(true));
+    document.getElementById('btn-export')?.addEventListener('click', async () => {
+      if (!this.exportController || this.exportController.isExporting) return;
+
+      const btn = document.getElementById('btn-export');
+      const icon = btn.querySelector('i');
+      const state = this._captureEditorState();
+
+      btn.disabled = true;
+      icon.textContent = 'hourglass_top';
+      btn.title = 'Exporting video...';
+
+      try {
+        await this.exportController.export({
+          onProgress: ({ progress }) => {
+            this._showSaveStatus(`Export ${Math.round(progress * 100)}%`);
+          },
+        });
+      } catch (err) {
+        console.error('Presentation export failed:', err);
+      } finally {
+        await this._restoreEditorState(state);
+        btn.disabled = false;
+        icon.textContent = 'movie';
+        btn.title = 'Export MP4 / WebM';
+        this._showSaveStatus('');
+      }
+    });
 
     // Make toolbar buttons draggable
     const makeDraggable = (btnId, type) => {
@@ -482,10 +517,70 @@ class WOW3AnimationApp {
     document.getElementById('playback-duration').textContent = '/ ' + formatTime(dur);
   }
 
+  /**
+   * Capture enough editor state to restore the UI after export.
+   * @returns {{timeMs: number, selectedClipId: string|null}}
+   * @private
+   */
+  _captureEditorState() {
+    return {
+      timeMs: this.timeline.currentTimeMs,
+      selectedClipId: this.timeline.selectedClipId,
+    };
+  }
+
+  /**
+   * Restore playhead + selection after export.
+   * @param {{timeMs: number, selectedClipId: string|null}} state
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _restoreEditorState(state) {
+    this.playback.pause();
+    this._updatePlaybackButton();
+    this.timeline.seekTo(state.timeMs);
+    this.canvasRenderer.clear();
+    this.canvasRenderer.renderAtCurrentTime();
+    this.timelineView.render();
+
+    if (!state.selectedClipId) {
+      this.clipController.deselectAll();
+      this.timelineView.updateSelection(null);
+      return;
+    }
+
+    const clip = this._findClip(state.selectedClipId);
+    if (!clip) {
+      this.clipController.deselectAll();
+      this.timelineView.updateSelection(null);
+      return;
+    }
+
+    const element = this.canvasRenderer.getElement(state.selectedClipId);
+    if (element) {
+      this.clipController.selectElement(element);
+      return;
+    }
+
+    const { track } = this.project.findClip(state.selectedClipId);
+    this.timeline.selectedClipId = state.selectedClipId;
+    this.timeline.selectedTrackId = track?.id ?? null;
+    this.propertiesPanel.show(state.selectedClipId, null);
+    this.timelineView.updateSelection(state.selectedClipId);
+  }
+
   /** @private */
   _updateTimeDisplay() {
     document.getElementById('playback-time').textContent =
       formatTime(this.timeline.currentTimeMs);
+  }
+
+  /** @private */
+  _updatePlaybackButton() {
+    const icon = document.getElementById('btn-play')?.querySelector('i');
+    if (icon) {
+      icon.textContent = this.playback.isPlaying ? 'pause' : 'play_arrow';
+    }
   }
 
   /** @private */
@@ -497,8 +592,7 @@ class WOW3AnimationApp {
       if (e.code === 'Space') {
         e.preventDefault();
         this.playback.toggle();
-        document.getElementById('btn-play').querySelector('i').textContent =
-          this.playback.isPlaying ? 'pause' : 'play_arrow';
+        this._updatePlaybackButton();
       }
 
       // Save
