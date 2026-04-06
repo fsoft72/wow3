@@ -1,0 +1,24 @@
+{
+  "name": "@wow/core",
+  "version": "1.0.0",
+  "description": "Shared core library for WOW applications",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./models": "./src/models/index.js",
+    "./models/*": "./src/models/*.js",
+    "./interactions": "./src/interactions/index.js",
+    "./interactions/*": "./src/interactions/*.js",
+    "./panels": "./src/panels/index.js",
+    "./panels/*": "./src/panels/*.js",
+    "./utils": "./src/utils/index.js",
+    "./utils/*": "./src/utils/*.js",
+    "./animations": "./src/animations/index.js",
+    "./animations/*": "./src/animations/*.js",
+    "./managers": "./src/managers/index.js",
+    "./managers/*": "./src/managers/*.js",
+    "./classic/*": "./classic/*",
+    "./css/*": "./css/*"
+  }
+}
