@@ -157,9 +157,12 @@ class WOW3AnimationApp {
 
   /** @private */
   _initMediaManager() {
-    if (typeof MediaManager !== 'undefined') {
-      MediaManager.init();
-    }
+    if (typeof MediaManager === 'undefined') return;
+    MediaManager.init();
+
+    document.getElementById('btn-media-manager')?.addEventListener('click', () => {
+      MediaManager.open();
+    });
   }
 
   /** @private */

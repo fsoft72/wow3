@@ -48,7 +48,7 @@ export class VisualClip extends Clip {
           editable: true,
           backgroundImage: { url: '', direction: 'none', speed: 0 },
           font: {
-            family: 'Roboto', size: 48, color: '#000000',
+            family: 'Roboto', size: 48, color: '#ffffff',
             style: 'normal', weight: 'normal', decoration: 'none',
             alignment: 'left', verticalAlign: 'top',
             shadow: { enabled: false, color: '#000000', offsetX: 2, offsetY: 2, blur: 4 },

@@ -40,10 +40,15 @@ function serveWowCore() {
       });
     },
 
-    transformIndexHtml(html) {
-      return html
-        .replace(/\/__wow_core__\/classic\//g, './js/')
-        .replace(/\/__wow_core__\/css\//g, './css/');
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html, ctx) {
+        // Only rewrite paths for production build, not dev
+        if (ctx.server) return html;
+        return html
+          .replace(/\/__wow_core__\/classic\//g, './js/')
+          .replace(/\/__wow_core__\/css\//g, './css/');
+      }
     }
   };
 }
