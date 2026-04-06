@@ -5,7 +5,7 @@
  */
 
 import { RecordingDialog } from '../components/RecordingDialog.js';
-import { toast } from '../utils/toasts.js';
+import { toast } from '@wow/core/utils/toasts.js';
 
 // ─── Constants ───────────────────────────────────────────
 

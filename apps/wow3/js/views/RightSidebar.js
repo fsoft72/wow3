@@ -3,9 +3,9 @@
  * Property panels for slides and elements
  */
 
-import { TEXT_ALIGNMENTS } from '../utils/constants.js';
+import { TEXT_ALIGNMENTS } from '@wow/core/utils/constants.js';
 import { TextPanel, ImagePanel, VideoPanel, AudioPanel, CountdownTimerPanel } from '../panels/index.js';
-import { toast } from '../utils/toasts.js';
+import { toast } from '@wow/core/utils/toasts.js';
 
 export class RightSidebar {
   constructor() {

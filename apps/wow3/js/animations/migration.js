@@ -4,9 +4,9 @@
  * to the new slide-level animationSequence format.
  */
 
-import { AnimationType, AnimationTrigger } from '../utils/constants.js';
-import { ANIMATION_CATEGORY, ANIMATION_TRIGGER } from './definitions.js';
-import { generateId } from '../utils/dom.js';
+import { AnimationType, AnimationTrigger } from '@wow/core/utils/constants.js';
+import { ANIMATION_CATEGORY, ANIMATION_TRIGGER } from '@wow/core/animations/definitions.js';
+import { generateId } from '@wow/core/utils/dom.js';
 
 /**
  * Map old bitwise animation flag + direction to new animation type string

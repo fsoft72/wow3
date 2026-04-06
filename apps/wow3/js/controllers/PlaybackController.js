@@ -3,8 +3,8 @@
  * Handles presentation playback mode
  */
 
-import { appEvents, AppEvents } from '../utils/events.js';
-import { toast } from '../utils/toasts.js';
+import { appEvents, AppEvents } from '@wow/core/utils/events.js';
+import { toast } from '@wow/core/utils/toasts.js';
 import { CountdownTimerElement } from '../models/CountdownTimerElement.js';
 import { AnimationManager } from '../animations/AnimationManager.js';
 

@@ -9,7 +9,7 @@ import {
   ANIMATION_CATEGORY,
   ANIMATION_TRIGGER,
   EASING_MAP
-} from './definitions.js';
+} from '@wow/core/animations/definitions.js';
 
 export class AnimationManager {
   /**

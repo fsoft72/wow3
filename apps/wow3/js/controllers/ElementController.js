@@ -15,11 +15,11 @@ import {
   CountdownTimerElement,
   EmptyElement
 } from '../models/index.js';
-import { generateId } from '../utils/dom.js';
-import { appEvents, AppEvents } from '../utils/events.js';
-import { centerOnCanvas } from '../utils/positioning.js';
-import { toast } from '../utils/toasts.js';
-import { CANVAS } from '../utils/constants.js';
+import { generateId } from '@wow/core/utils/dom.js';
+import { appEvents, AppEvents } from '@wow/core/utils/events.js';
+import { centerOnCanvas } from '@wow/core/utils/positioning.js';
+import { toast } from '@wow/core/utils/toasts.js';
+import { CANVAS } from '@wow/core/utils/constants.js';
 
 export class ElementController {
   /**

@@ -4,7 +4,7 @@
  */
 
 import { UIManager } from './views/UIManager.js';
-import { toast } from './utils/toasts.js';
+import { toast } from '@wow/core/utils/toasts.js';
 import {
   EditorController,
   SlideController,
@@ -15,7 +15,7 @@ import {
   RecordingController,
   RemoteController
 } from './controllers/index.js';
-import { loadSettings } from './utils/settings.js';
+import { loadSettings } from '@wow/core/utils/settings.js';
 import {
   DragHandler,
   ResizeHandler,
@@ -24,7 +24,7 @@ import {
   CropHandler,
   CanvasDropHandler
 } from './interactions/index.js';
-import './managers/AudioManager.js';
+import '@wow/core/managers/AudioManager.js';
 
 class WOW3App {
   constructor() {

@@ -14,8 +14,8 @@ import {
   importPresentation,
   clearSnapshot
 } from '../utils/storage.js';
-import { appEvents, AppEvents } from '../utils/events.js';
-import { toast } from '../utils/toasts.js';
+import { appEvents, AppEvents } from '@wow/core/utils/events.js';
+import { toast } from '@wow/core/utils/toasts.js';
 
 export class EditorController {
   /**

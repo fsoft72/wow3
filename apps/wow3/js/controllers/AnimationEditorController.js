@@ -9,11 +9,11 @@ import {
   ANIMATION_DEFINITIONS,
   EASING_MAP,
   getDefinitionsForCategory
-} from '../animations/definitions.js';
+} from '@wow/core/animations/definitions.js';
 import { AnimationManager } from '../animations/AnimationManager.js';
-import { generateId } from '../utils/dom.js';
-import { appEvents, AppEvents } from '../utils/events.js';
-import { toast } from '../utils/toasts.js';
+import { generateId } from '@wow/core/utils/dom.js';
+import { appEvents, AppEvents } from '@wow/core/utils/events.js';
+import { toast } from '@wow/core/utils/toasts.js';
 
 export class AnimationEditorController {
   /**

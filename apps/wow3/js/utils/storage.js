@@ -5,7 +5,7 @@
  * - localStorage: Snapshots for auto-save and crash recovery
  */
 
-import { STORAGE_KEYS } from './constants.js';
+import { STORAGE_KEYS } from '@wow/core/utils/constants.js';
 
 // PresentationsDB is loaded globally via script tag
 const PresentationsDB = window.PresentationsDB;

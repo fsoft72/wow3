@@ -3,8 +3,8 @@
  * Manages slide operations and rendering
  */
 
-import { appEvents, AppEvents } from '../utils/events.js';
-import { toast } from '../utils/toasts.js';
+import { appEvents, AppEvents } from '@wow/core/utils/events.js';
+import { toast } from '@wow/core/utils/toasts.js';
 import { CountdownTimerElement } from '../models/CountdownTimerElement.js';
 
 export class SlideController {

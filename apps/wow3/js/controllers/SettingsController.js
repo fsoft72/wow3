@@ -4,7 +4,7 @@
  * Follows the same pattern as AnimationEditorController.
  */
 
-import { loadSettings, setSetting, getSetting, DEFAULT_SETTINGS } from '../utils/settings.js';
+import { loadSettings, setSetting, getSetting, DEFAULT_SETTINGS } from '@wow/core/utils/settings.js';
 
 class SettingsController {
   /**
