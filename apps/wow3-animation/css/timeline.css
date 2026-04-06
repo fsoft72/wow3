@@ -139,7 +139,7 @@
 #timeline-labels-header button { margin-right: 2px; }
 
 /* ── Clip drag ── */
-.timeline-clip.dragging { opacity: 0.6; z-index: 100; }
+.timeline-clip.dragging { opacity: 0.6; z-index: 100; pointer-events: none; }
 .clip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; pointer-events: none; }
 .track-row.drag-over { background: rgba(88, 166, 255, 0.1); outline: 1px dashed var(--color-accent); }
 .waveform-canvas { border-radius: 4px; }

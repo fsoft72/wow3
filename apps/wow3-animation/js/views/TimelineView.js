@@ -325,7 +325,7 @@ export class TimelineView {
 
   /** @private */
   _initClipDrag(clipEl, clip) {
-    let startX, startMs, hasMoved;
+    let startX, startMs, hasMoved, sourceTrackRow;
 
     const onMouseMove = (e) => {
       const dx = e.clientX - startX;
@@ -344,15 +344,32 @@ export class TimelineView {
 
       this.timeline.moveClip(clip.id, newStart);
       clipEl.style.left = (clip.startMs * this.timeline.pxPerMs) + 'px';
+
+      // Highlight compatible cross-track target
+      const targetRow = this._getTrackRowAt(e.clientX, e.clientY);
+      this._clearTrackDragOver();
+      if (targetRow && targetRow !== sourceTrackRow) {
+        const isCompatible = sourceTrackRow?.classList.contains('audio-track')
+          ? targetRow.classList.contains('audio-track')
+          : !targetRow.classList.contains('audio-track');
+        if (isCompatible) targetRow.classList.add('drag-over');
+      }
     };
 
-    const onMouseUp = () => {
+    const onMouseUp = (e) => {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
       clipEl.classList.remove('dragging');
       this._isDragging = false;
-      // Only re-render if there was actual movement (preserves DOM for dblclick)
-      if (hasMoved) this.render();
+      this._clearTrackDragOver();
+
+      if (hasMoved) {
+        const targetRow = this._getTrackRowAt(e.clientX, e.clientY);
+        if (targetRow && targetRow !== sourceTrackRow) {
+          this.timeline.moveClipToTrack(clip.id, targetRow.dataset.trackId);
+        }
+        this.render();
+      }
     };
 
     clipEl.addEventListener('mousedown', (e) => {
@@ -361,6 +378,7 @@ export class TimelineView {
       startX = e.clientX;
       startMs = clip.startMs;
       hasMoved = false;
+      sourceTrackRow = clipEl.closest('.track-row');
       clipEl.classList.add('dragging');
       this._isDragging = true;
 
@@ -371,6 +389,23 @@ export class TimelineView {
       document.addEventListener('mousemove', onMouseMove);
       document.addEventListener('mouseup', onMouseUp);
     });
+  }
+
+  /**
+   * Returns the .track-row element under the given client coordinates, or null.
+   * @private
+   */
+  _getTrackRowAt(clientX, clientY) {
+    return document.elementFromPoint(clientX, clientY)?.closest('.track-row') ?? null;
+  }
+
+  /**
+   * Removes drag-over highlight from all track rows.
+   * @private
+   */
+  _clearTrackDragOver() {
+    this._tracksContainer.querySelectorAll('.track-row.drag-over')
+      .forEach(r => r.classList.remove('drag-over'));
   }
 
   /** @private */

@@ -206,7 +206,33 @@ export class TimelineController {
   }
 
   /**
-   * Finds a clip and its parent track by clip id.
+   * Moves a clip to a different track, keeping its current timing.
+   * Returns false if the target track is incompatible or the clip would
+   * overlap an existing clip on the target track.
+   * @param {string} clipId
+   * @param {string} targetTrackId
+   * @returns {boolean}
+   */
+  moveClipToTrack(clipId, targetTrackId) {
+    const { track: sourceTrack, clip } = this._findClip(clipId);
+    if (!sourceTrack || sourceTrack.id === targetTrackId) return false;
+
+    const targetTrack = this.project.tracks.find(t => t.id === targetTrackId);
+    if (!targetTrack || targetTrack.type !== sourceTrack.type) return false;
+
+    const hasOverlap = targetTrack.clips.some(
+      c => c.startMs < clip.endMs && c.endMs > clip.startMs
+    );
+    if (hasOverlap) return false;
+
+    sourceTrack.removeClip(clipId);
+    targetTrack.addClip(clip);
+    this.project.touch();
+    appEvents.emit(AppEvents.SLIDE_UPDATED);
+    return true;
+  }
+
+  /**
    * @param {string} clipId
    * @returns {{track: import('../models/Track.js').Track|null, clip: import('../models/Clip.js').Clip|null}}
    */
