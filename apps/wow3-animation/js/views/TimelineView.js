@@ -1,4 +1,5 @@
 import { appEvents, AppEvents } from '@wow/core/utils/events.js';
+import { WaveformRenderer } from './WaveformRenderer.js';
 
 const TRACK_HEIGHT_VISUAL = 48;
 const TRACK_HEIGHT_AUDIO  = 36;
@@ -19,6 +20,7 @@ export class TimelineView {
     this._timeRuler      = document.getElementById('time-ruler');
     this._playhead       = document.getElementById('playhead');
     this._timelineBody   = document.getElementById('timeline-body');
+    this._waveformRenderer = new WaveformRenderer();
 
     /**
      * Callback for when a clip is dropped on the timeline.
@@ -261,6 +263,13 @@ export class TimelineView {
 
     // Right-edge resize
     this._initClipResize(handleR, clip);
+
+    // Render waveform for audio clips (async, non-blocking)
+    if (clip.type === 'audio' && (clip.mediaId || clip.src)) {
+      requestAnimationFrame(() => {
+        this._waveformRenderer.render(el, clip, this.timeline.pxPerMs);
+      });
+    }
 
     return el;
   }
