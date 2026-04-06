@@ -134,10 +134,11 @@ export class TimelineController {
   /**
    * Adds a new track. Visual tracks are inserted at the top.
    * @param {'visual'|'audio'} type
+   * @param {string} [name] - Track name. Defaults to type-based name.
    * @returns {import('../models/Track.js').Track}
    */
-  addTrack(type) {
-    const track = this.project.addTrack(type, { position: 'top' });
+  addTrack(type, name) {
+    const track = this.project.addTrack(type, { position: 'top', name });
     appEvents.emit(AppEvents.SLIDE_UPDATED);
     return track;
   }

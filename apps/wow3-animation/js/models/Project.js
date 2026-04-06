@@ -64,7 +64,7 @@ export class Project {
    * @returns {Track}
    */
   addTrack(type, opts = {}) {
-    const track = new Track(type);
+    const track = new Track(type, { name: opts.name });
     if (opts.position === 'top') {
       this.tracks.unshift(track);
     } else {
