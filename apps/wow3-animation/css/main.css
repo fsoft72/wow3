@@ -129,21 +129,81 @@ body {
 .time-input { font-family: monospace; width: 110px; }
 #type-panel-content { font-size: 12px; }
 
-/* Override wow-core panel colors for dark mode */
+/* ── Override wow-core panel colors for dark mode ── */
+
+/* Labels & section titles */
 #properties-panel .control-group label { color: var(--color-text-muted); }
+#properties-panel .section-title { color: var(--color-text-muted); border-bottom-color: var(--color-border); }
+#properties-panel .range-field > label { color: var(--color-text-muted); }
+#properties-panel .unit-label { color: var(--color-text-muted); }
+
+/* Inputs, selects, textareas */
 #properties-panel .panel-input,
 #properties-panel .panel-select,
-#properties-panel .panel-textarea {
+#properties-panel .panel-textarea,
+#properties-panel .number-input,
+#properties-panel .color-text-input {
   background: var(--color-bg);
   border-color: var(--color-border);
   color: var(--color-text);
 }
-#properties-panel .section-title { color: var(--color-text-muted); }
-#properties-panel .btn-icon { color: var(--color-text-muted); background: none; border: none; cursor: pointer; }
-#properties-panel .btn-icon:hover { color: var(--color-accent); }
-#properties-panel .btn-upload { color: var(--color-text-muted); background: var(--color-bg); border: 1px dashed var(--color-border); }
+
+/* Slider track */
+#properties-panel .slider { background: var(--color-border); }
+
+/* Color picker */
+#properties-panel .color-preview { border-color: var(--color-border); }
+
+/* Font picker */
+#properties-panel .font-picker-trigger {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+#properties-panel .font-picker-trigger:hover { border-color: var(--color-text-muted); }
+#properties-panel .font-picker-arrow { color: var(--color-text-muted); }
+#properties-panel .font-picker-dropdown {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+#properties-panel .font-picker-option { color: var(--color-text); }
+#properties-panel .font-picker-option:hover { background: rgba(255, 255, 255, 0.06); }
+#properties-panel .font-picker-option--selected { background: rgba(88, 166, 255, 0.15); color: var(--color-accent); }
+#properties-panel .font-picker-option--selected:hover { background: rgba(88, 166, 255, 0.25); }
+
+/* Icon toggle buttons (text style, alignment) */
+#properties-panel .icon-toggle-group { background: var(--color-bg); }
+#properties-panel .icon-toggle-btn { color: var(--color-text-muted); }
+#properties-panel .icon-toggle-btn:hover { background: rgba(255, 255, 255, 0.08); }
+#properties-panel .icon-toggle-btn.active { background: var(--color-accent); color: #fff; }
+#properties-panel .icon-toggle-row .icon-toggle-btn { color: var(--color-text-muted); }
+#properties-panel .icon-toggle-row .icon-toggle-btn:hover { background: rgba(255, 255, 255, 0.08); }
+#properties-panel .icon-toggle-row .icon-toggle-btn.active { background: var(--color-accent); color: #fff; }
+#properties-panel .weight-preview { color: var(--color-text); }
+
+/* Direction grid */
+#properties-panel .direction-grid .icon-toggle-btn { background: var(--color-bg); border-color: var(--color-border); color: var(--color-text-muted); }
+#properties-panel .direction-grid .icon-toggle-btn:hover { background: rgba(255, 255, 255, 0.08); }
+#properties-panel .direction-grid .icon-toggle-btn.active { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+
+/* Media input / upload */
+#properties-panel .btn-icon { background: var(--color-bg); border: 1px solid var(--color-border); }
+#properties-panel .btn-icon:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--color-accent); }
+#properties-panel .btn-icon i { color: var(--color-text-muted); }
 #properties-panel .upload-area { border-color: var(--color-border); }
-#properties-panel .placeholder-tag { color: var(--color-text-muted); background: var(--color-bg); border: 1px solid var(--color-border); }
+#properties-panel .upload-area.drag-over { border-color: var(--color-accent); background: rgba(88, 166, 255, 0.08); }
+#properties-panel .btn-upload { background: var(--color-bg); border-color: var(--color-border); color: var(--color-text-muted); }
+#properties-panel .btn-upload:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--color-accent); color: var(--color-accent); }
+
+/* Placeholder tags */
+#properties-panel .placeholder-hint { color: var(--color-text-muted); }
+#properties-panel .placeholder-tag { background: var(--color-bg); color: var(--color-text-muted); border: 1px solid var(--color-border); }
+#properties-panel .placeholder-tag:hover { background: var(--color-accent); color: #fff; }
+
+/* Checkboxes */
+#properties-panel input[type="checkbox"] { accent-color: var(--color-accent); }
+#properties-panel input[type="checkbox"] + span { color: var(--color-text-muted); }
 
 /* ── Playback bar ── */
 #playback-bar {
