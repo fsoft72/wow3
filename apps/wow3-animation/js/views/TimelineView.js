@@ -47,9 +47,7 @@ export class TimelineView {
       this._updatePlayhead();
       this._autoScrollToPlayhead(timeMs);
     });
-    appEvents.on(AppEvents.SLIDE_UPDATED, () => {
-      if (!this._isDragging) this.render();
-    });
+    appEvents.on(AppEvents.SLIDE_UPDATED, () => this.render());
 
     this._timelineBody.addEventListener('click', this._onBodyClick.bind(this));
 
@@ -90,8 +88,10 @@ export class TimelineView {
 
   /**
    * Renders the full timeline (tracks + ruler).
+   * Skipped while a clip is being dragged/resized to preserve DOM references.
    */
   render() {
+    if (this._isDragging) return;
     const { project } = this.timeline;
     const duration = project.getEffectiveDuration();
     const totalWidth = Math.max(800, Math.ceil(duration * this.timeline.pxPerMs));
