@@ -63,7 +63,7 @@ const MediaManager = {
                             </div>
                         </div>
                     </div>
-                    <div id="mm-preview-overlay" onclick="this.classList.remove('active')">
+                    <div id="mm-preview-overlay" onclick="this.classList.remove('active'); this.querySelectorAll('audio, video').forEach(el => { el.pause(); el.src = ''; })">
                         <img id="mm-preview-img" src="">
                         <div id="mm-audio-preview-container" onclick="event.stopPropagation()"></div>
                     </div>
@@ -90,7 +90,17 @@ const MediaManager = {
     },
 
     close: function() {
-        document.getElementById('media-manager-overlay').classList.remove('active');
+        // Stop any playing audio/video previews
+        const previewOverlay = document.getElementById('mm-preview-overlay');
+        if (previewOverlay) {
+            previewOverlay.classList.remove('active');
+            previewOverlay.querySelectorAll('audio, video').forEach(el => { el.pause(); el.src = ''; });
+        }
+        const overlay = document.getElementById('media-manager-overlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+            overlay.querySelectorAll('video').forEach(el => { el.pause(); el.src = ''; });
+        }
         this.onSelectCallback = null;
     },
 
