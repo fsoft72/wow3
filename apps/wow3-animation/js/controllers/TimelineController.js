@@ -83,6 +83,35 @@ export class TimelineController {
   }
 
   /**
+   * Adds a clip at the playhead position on the first matching track.
+   * @param {import('../models/VisualClip.js').VisualClip|import('../models/AudioClip.js').AudioClip} clip
+   * @param {string} [trackId] - Specific track. If omitted, uses first matching type.
+   * @returns {string|null} The track ID the clip was added to, or null.
+   */
+  addClipToTrack(clip, trackId) {
+    let track;
+    if (trackId) {
+      track = this.project.tracks.find(t => t.id === trackId);
+    } else {
+      const wantType = clip.type === 'audio' ? 'audio' : 'visual';
+      track = this.project.tracks.find(t => t.type === wantType);
+    }
+    if (!track) return null;
+
+    // Place at playhead, default 5s duration
+    clip.startMs = this.currentTimeMs;
+    if (clip.endMs === null) {
+      clip.endMs = clip.startMs + 5000;
+    }
+
+    track.addClip(clip);
+    this.project.touch();
+    this.selectClip(clip.id);
+    appEvents.emit(AppEvents.SLIDE_UPDATED);
+    return track.id;
+  }
+
+  /**
    * Removes a clip by id from its track.
    * @param {string} clipId
    */

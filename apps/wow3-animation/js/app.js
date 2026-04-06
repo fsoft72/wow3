@@ -6,6 +6,8 @@ import { PlaybackEngine } from './controllers/PlaybackEngine.js';
 import { ClipController } from './controllers/ClipController.js';
 import { TimelineView } from './views/TimelineView.js';
 import { CanvasRenderer } from './views/CanvasRenderer.js';
+import { VisualClip } from './models/VisualClip.js';
+import { AudioClip } from './models/AudioClip.js';
 
 /**
  * WOW3AnimationApp — main application bootstrap.
@@ -130,6 +132,32 @@ class WOW3AnimationApp {
 
     document.getElementById('btn-rewind').addEventListener('click', () => {
       this.timeline.seekTo(0);
+    });
+
+    // Add clip buttons
+    const addClip = (type) => {
+      const clip = VisualClip.createDefault(type);
+      this.timeline.addClipToTrack(clip);
+      this.canvasRenderer.renderAtCurrentTime();
+      this.timelineView.render();
+      this._updateDurationDisplay();
+    };
+
+    document.getElementById('btn-add-text').addEventListener('click', () => addClip('text'));
+    document.getElementById('btn-add-image').addEventListener('click', () => addClip('image'));
+    document.getElementById('btn-add-video').addEventListener('click', () => addClip('video'));
+    document.getElementById('btn-add-shape').addEventListener('click', () => addClip('shape'));
+
+    // Audio clip
+    document.getElementById('btn-add-audio').addEventListener('click', () => {
+      const clip = new AudioClip({
+        name: 'Audio',
+        startMs: this.timeline.currentTimeMs,
+        endMs: this.timeline.currentTimeMs + 10000
+      });
+      this.timeline.addClipToTrack(clip);
+      this.timelineView.render();
+      this._updateDurationDisplay();
     });
   }
 
