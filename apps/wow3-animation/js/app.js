@@ -13,6 +13,7 @@ import { JsonEditorModal } from './components/JsonEditorModal.js';
 import { VisualClip } from './models/VisualClip.js';
 import { AudioClip } from './models/AudioClip.js';
 import { exportProject, importProject } from './utils/projectStorage.js';
+import { formatTime } from './utils/time.js';
 
 /**
  * WOW3AnimationApp — main application bootstrap.
