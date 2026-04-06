@@ -356,6 +356,7 @@ class WOW3AnimationApp {
   }
 
   /** @private */
+  _initMediaManager() {
     if (typeof MediaDB !== 'undefined') {
       MediaDB.setDatabaseName('wow3-anim_media');
     }
