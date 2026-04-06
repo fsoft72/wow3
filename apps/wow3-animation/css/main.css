@@ -129,6 +129,22 @@ body {
 .time-input { font-family: monospace; width: 110px; }
 #type-panel-content { font-size: 12px; }
 
+/* Override wow-core panel colors for dark mode */
+#properties-panel .control-group label { color: var(--color-text-muted); }
+#properties-panel .panel-input,
+#properties-panel .panel-select,
+#properties-panel .panel-textarea {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+#properties-panel .section-title { color: var(--color-text-muted); }
+#properties-panel .btn-icon { color: var(--color-text-muted); background: none; border: none; cursor: pointer; }
+#properties-panel .btn-icon:hover { color: var(--color-accent); }
+#properties-panel .btn-upload { color: var(--color-text-muted); background: var(--color-bg); border: 1px dashed var(--color-border); }
+#properties-panel .upload-area { border-color: var(--color-border); }
+#properties-panel .placeholder-tag { color: var(--color-text-muted); background: var(--color-bg); border: 1px solid var(--color-border); }
+
 /* ── Playback bar ── */
 #playback-bar {
   grid-area: playback;
