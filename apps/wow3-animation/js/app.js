@@ -44,14 +44,79 @@ class WOW3AnimationApp {
     this._setupGlobals();
     this._bindKeyboard();
     this._initMediaManager();
+    this._startAutoSave();
+    this.canvasRenderer.renderAtCurrentTime();
     console.log('WOW3 Animation Editor initialized');
   }
 
   /** @private */
   _initProject() {
-    this.project = new Project({ title: 'Untitled Project', orientation: 'landscape' });
-    this.project.addTrack('visual');
-    this.project.addTrack('audio');
+    const saved = this._loadProjectFromStorage();
+    if (saved) {
+      this.project = saved;
+    } else {
+      this.project = new Project({ title: 'Untitled Project', orientation: 'landscape' });
+      this.project.addTrack('visual');
+      this.project.addTrack('audio');
+    }
+  }
+
+  /**
+   * Attempts to restore a project from localStorage.
+   * @returns {Project|null}
+   * @private
+   */
+  _loadProjectFromStorage() {
+    try {
+      const raw = localStorage.getItem('wow3-animation-project');
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      return Project.fromJSON(data);
+    } catch (err) {
+      console.warn('Could not restore project from localStorage:', err);
+      return null;
+    }
+  }
+
+  /**
+   * Saves the current project to localStorage and updates the status indicator.
+   * @param {boolean} [force=false] - Skip change detection and always save.
+   * @private
+   */
+  _saveProject(force = false) {
+    try {
+      const json = JSON.stringify(this.project.toJSON());
+      if (!force && json === this._lastSavedJson) return;
+      localStorage.setItem('wow3-animation-project', json);
+      this._lastSavedJson = json;
+      console.log('Project auto-saved');
+      this._showSaveStatus('Saved');
+    } catch (err) {
+      console.error('Failed to save project:', err);
+      this._showSaveStatus('Save failed');
+    }
+  }
+
+  /**
+   * Starts the 10-second auto-save interval.
+   * @private
+   */
+  _startAutoSave() {
+    this._lastSavedJson = JSON.stringify(this.project.toJSON());
+    setInterval(() => this._saveProject(), 5_000);
+  }
+
+  /**
+   * Briefly shows a status message next to the save button.
+   * @param {string} msg
+   * @private
+   */
+  _showSaveStatus(msg) {
+    const el = document.getElementById('save-status');
+    if (!el) return;
+    el.textContent = msg;
+    clearTimeout(this._saveStatusTimeout);
+    this._saveStatusTimeout = setTimeout(() => { el.textContent = ''; }, 2000);
   }
 
   /** @private */
@@ -312,6 +377,7 @@ class WOW3AnimationApp {
     // Undo/Redo buttons
     document.getElementById('btn-undo')?.addEventListener('click', () => this._applyUndo());
     document.getElementById('btn-redo')?.addEventListener('click', () => this._applyRedo());
+    document.getElementById('btn-save')?.addEventListener('click', () => this._saveProject(true));
 
     // Make toolbar buttons draggable
     const makeDraggable = (btnId, type) => {
@@ -363,6 +429,12 @@ class WOW3AnimationApp {
         this.playback.toggle();
         document.getElementById('btn-play').querySelector('i').textContent =
           this.playback.isPlaying ? 'pause' : 'play_arrow';
+      }
+
+      // Save
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        this._saveProject(true);
       }
 
       // Undo/Redo

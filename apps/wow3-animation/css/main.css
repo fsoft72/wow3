@@ -50,6 +50,14 @@ body {
 #top-bar button:hover { background: rgba(255, 255, 255, 0.08); }
 .brand-icon { width: 28px; height: 28px; }
 .toolbar-sep { width: 1px; height: 20px; background: var(--color-border); margin: 0 4px; }
+
+#save-status {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  min-width: 60px;
+  text-align: right;
+}
 #project-title-input {
   background: none; border: 1px solid transparent; color: var(--color-text);
   padding: 4px 8px; border-radius: 4px; font-size: 14px; width: 220px;

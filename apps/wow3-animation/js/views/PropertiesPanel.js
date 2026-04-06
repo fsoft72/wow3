@@ -77,6 +77,12 @@ export class PropertiesPanel {
           <label>W</label><input type="number" id="prop-w" class="props-input" value="${Math.round(clip.position.width)}">
           <label>H</label><input type="number" id="prop-h" class="props-input" value="${Math.round(clip.position.height)}">
         </div>
+        ${clip.elementType === 'image' ? `
+        <div class="props-row">
+          <button id="btn-expand-canvas" class="props-btn">
+            <i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">fullscreen</i>Expand to Canvas
+          </button>
+        </div>` : ''}
       </div>`;
     }
 
@@ -191,6 +197,20 @@ export class PropertiesPanel {
     bind('prop-y', 'y');
     bind('prop-w', 'width');
     bind('prop-h', 'height');
+
+    document.getElementById('btn-expand-canvas')?.addEventListener('click', () => {
+      const { width, height } = this.timeline.project;
+      clip.position.x = 0;
+      clip.position.y = 0;
+      clip.position.width = width;
+      clip.position.height = height;
+      this.timeline.project.touch();
+      this.clipController.canvasRenderer.rerenderClip(clip.id);
+      appEvents.emit(AppEvents.SLIDE_UPDATED);
+      // Refresh panel so position inputs reflect the new values
+      const element = this.clipController.canvasRenderer.getElement(clip.id);
+      this.show(clip.id, element);
+    });
   }
 
   /** @private */
