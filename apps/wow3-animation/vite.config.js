@@ -1,7 +1,52 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { resolve } from 'path';
-import { cpSync, existsSync } from 'fs';
+import { cpSync, existsSync, readFileSync } from 'fs';
+
+const WOW_CORE_ROOT = resolve(__dirname, '../../packages/wow-core');
+
+/**
+ * Serves wow-core assets during dev and rewrites paths for production build.
+ * In dev: /__wow_core__/classic/dialog.js → packages/wow-core/classic/dialog.js
+ * In build: /__wow_core__/classic/dialog.js → ./js/dialog.js
+ *           /__wow_core__/css/dialog.css    → ./css/dialog.css
+ */
+function serveWowCore() {
+  return {
+    name: 'serve-wow-core',
+
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (!req.url.startsWith('/__wow_core__/')) return next();
+
+        const relPath = req.url.replace('/__wow_core__/', '');
+        const filePath = resolve(WOW_CORE_ROOT, relPath);
+
+        if (!existsSync(filePath)) {
+          res.statusCode = 404;
+          res.end('Not found');
+          return;
+        }
+
+        const ext = filePath.split('.').pop();
+        const mimeTypes = {
+          js: 'application/javascript',
+          css: 'text/css',
+          json: 'application/json'
+        };
+
+        res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+        res.end(readFileSync(filePath));
+      });
+    },
+
+    transformIndexHtml(html) {
+      return html
+        .replace(/\/__wow_core__\/classic\//g, './js/')
+        .replace(/\/__wow_core__\/css\//g, './css/');
+    }
+  };
+}
 
 /**
  * Copies classic global scripts from wow-core to dist/js/.
@@ -11,7 +56,7 @@ function copyClassicScripts() {
     name: 'copy-classic-scripts',
     closeBundle() {
       const dest = resolve(__dirname, 'dist/js');
-      const coreClassic = resolve(__dirname, '../../packages/wow-core/classic');
+      const coreClassic = resolve(WOW_CORE_ROOT, 'classic');
       if (existsSync(coreClassic)) cpSync(coreClassic, dest, { recursive: true });
     }
   };
@@ -25,7 +70,7 @@ function copyCoreCss() {
     name: 'copy-core-css',
     closeBundle() {
       const dest = resolve(__dirname, 'dist/css');
-      const coreCss = resolve(__dirname, '../../packages/wow-core/css');
+      const coreCss = resolve(WOW_CORE_ROOT, 'css');
       if (existsSync(coreCss)) cpSync(coreCss, dest, { recursive: true });
     }
   };
@@ -48,11 +93,12 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      '@wow/core': resolve(__dirname, '../../packages/wow-core/src')
+      '@wow/core': resolve(WOW_CORE_ROOT, 'src')
     }
   },
 
   plugins: [
+    serveWowCore(),
     copyClassicScripts(),
     copyCoreCss(),
     VitePWA({
