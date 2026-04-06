@@ -120,6 +120,24 @@ export class PropertiesPanel {
     this._bindAudioInputs(clip);
   }
 
+  /**
+   * Lightweight update of position inputs only (no full re-render).
+   * Called during canvas drag to avoid panel flickering.
+   * @param {import('@wow/core/models/Element.js').Element} element
+   */
+  updatePosition(element) {
+    if (!element) return;
+    const pos = element.position;
+    const x = document.getElementById('prop-x');
+    const y = document.getElementById('prop-y');
+    const w = document.getElementById('prop-w');
+    const h = document.getElementById('prop-h');
+    if (x) x.value = Math.round(pos.x);
+    if (y) y.value = Math.round(pos.y);
+    if (w) w.value = Math.round(pos.width);
+    if (h) h.value = Math.round(pos.height);
+  }
+
   /** @private */
   _bindTimingInputs(clip) {
     const startInput = document.getElementById('prop-start');

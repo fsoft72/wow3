@@ -87,6 +87,10 @@ class WOW3AnimationApp {
       this.timelineView.render();
     };
 
+    this.clipController.onPositionChanged = (element) => {
+      this.propertiesPanel.updatePosition(element);
+    };
+
     // Click on canvas background deselects
     const canvas = document.getElementById('slide-canvas');
     canvas.addEventListener('click', (e) => {

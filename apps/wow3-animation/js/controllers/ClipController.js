@@ -32,6 +32,9 @@ export class ClipController {
     /** @type {Function|null} Set by app.js to update properties panel */
     this.onSelectionChanged = null;
 
+    /** @type {Function|null} Set by app.js for lightweight position-only updates */
+    this.onPositionChanged = null;
+
     // Editor facade — the interface wow-core handlers expect
     this.editor = this._createEditorFacade();
   }
@@ -211,9 +214,13 @@ export class ClipController {
         dom.style.left = newX + 'px';
         dom.style.top = newY + 'px';
 
-        if (this.editor.uiManager?.rightSidebar) {
-          this.editor.uiManager.rightSidebar.updatePositionValues(element);
-        }
+        // Sync position to clip model
+        const clipId = this.canvasRenderer.getClipIdForElement(element.id);
+        if (clipId) this.canvasRenderer.syncElementToClip(clipId);
+
+        // Lightweight position update (no full panel re-render)
+        if (this.onPositionChanged) this.onPositionChanged(element);
+
         appEvents.emit(AppEvents.ELEMENT_MOVED, element);
       };
 
@@ -421,11 +428,9 @@ export class ClipController {
               if (clipId) {
                 self.canvasRenderer.syncElementToClip(clipId);
               }
-              if (self.onSelectionChanged) {
-                self.onSelectionChanged(
-                  self.timeline.selectedClipId,
-                  self.selectedElement
-                );
+              // Lightweight update — only refresh position inputs
+              if (self.onPositionChanged) {
+                self.onPositionChanged(element);
               }
             },
             updateProperties(element, force) {
