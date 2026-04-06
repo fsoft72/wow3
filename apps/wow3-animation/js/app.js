@@ -5,6 +5,7 @@ import { TimelineController } from './controllers/TimelineController.js';
 import { PlaybackEngine } from './controllers/PlaybackEngine.js';
 import { ClipController } from './controllers/ClipController.js';
 import { HistoryManager } from './controllers/HistoryManager.js';
+import { AudioPlaybackManager } from './controllers/AudioPlaybackManager.js';
 import { TimelineView } from './views/TimelineView.js';
 import { CanvasRenderer } from './views/CanvasRenderer.js';
 import { PropertiesPanel } from './views/PropertiesPanel.js';
@@ -57,6 +58,7 @@ class WOW3AnimationApp {
     this.timeline = new TimelineController(this.project);
     this.playback = new PlaybackEngine(this.timeline);
     this.historyManager = new HistoryManager(this.timeline);
+    this.audioPlayback = new AudioPlaybackManager(this.timeline);
 
     // Record history on project changes (debounced)
     let historyTimeout;
