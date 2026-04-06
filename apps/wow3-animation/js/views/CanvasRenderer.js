@@ -53,7 +53,7 @@ export class CanvasRenderer {
     const project = this.timeline.project;
     const activeClipIds = new Set();
 
-    // Collect active visual clips (tracks rendered bottom-to-top, last = front)
+    // Collect active visual clips and create any new elements
     for (let i = 0; i < project.tracks.length; i++) {
       const track = project.tracks[i];
       if (track.type !== 'visual' || !track.visible) continue;
@@ -62,20 +62,16 @@ export class CanvasRenderer {
         if (!clip.isActiveAt(timeMs)) continue;
         activeClipIds.add(clip.id);
 
-        if (this._activeElements.has(clip.id)) {
-          // Element already on canvas — no action needed
-          continue;
-        }
+        if (!this._activeElements.has(clip.id)) {
+          // New clip appeared: create Element and render
+          const element = this._createElementFromClip(clip);
+          this._activeElements.set(clip.id, element);
+          const dom = element.render(this._getZIndex(project, track));
+          this._canvas.appendChild(dom);
 
-        // New clip appeared: create Element and render
-        const element = this._createElementFromClip(clip);
-        this._activeElements.set(clip.id, element);
-        const zIndex = this._getZIndex(project, track, clip);
-        const dom = element.render(zIndex);
-        this._canvas.appendChild(dom);
-
-        if (this.onElementCreated) {
-          this.onElementCreated(clip, element, dom);
+          if (this.onElementCreated) {
+            this.onElementCreated(clip, element, dom);
+          }
         }
       }
     }
@@ -88,6 +84,18 @@ export class CanvasRenderer {
       this._activeElements.delete(clipId);
       if (this.onElementRemoved) {
         this.onElementRemoved(clipId, element);
+      }
+    }
+
+    // Sync z-index for all active elements to reflect current track order
+    for (let i = 0; i < project.tracks.length; i++) {
+      const track = project.tracks[i];
+      if (track.type !== 'visual') continue;
+      for (const clip of track.clips) {
+        const element = this._activeElements.get(clip.id);
+        if (!element) continue;
+        const dom = document.getElementById(element.id);
+        if (dom) dom.style.zIndex = this._getZIndex(project, track);
       }
     }
 
@@ -198,7 +206,8 @@ export class CanvasRenderer {
     // Create new
     const element = this._createElementFromClip(clip);
     this._activeElements.set(clipId, element);
-    const zIndex = oldDom ? parseInt(oldDom.style.zIndex || '0') : 0;
+    const { track } = this.timeline.project.findClip(clipId);
+    const zIndex = track ? this._getZIndex(this.timeline.project, track) : 0;
     const dom = element.render(zIndex);
 
     if (nextSibling && nextSibling.parentNode === this._canvas) {
@@ -287,9 +296,10 @@ export class CanvasRenderer {
   }
 
   /** @private */
-  _getZIndex(project, track, clip) {
+  _getZIndex(project, track) {
     const trackIdx = project.tracks.indexOf(track);
-    return (trackIdx + 1) * 100;
+    // Track 0 is at the top of the timeline UI and should be frontmost.
+    return (project.tracks.length - trackIdx) * 100;
   }
 
   /** @private */
