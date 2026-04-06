@@ -39,31 +39,42 @@ export class VisualClip extends Clip {
    * @returns {VisualClip}
    */
   static createDefault(elementType, overrides = {}) {
+    // Matches wow-core Element model defaults (DEFAULT_SIZE + DEFAULTS constants)
     const defaults = {
       text: {
-        position: { x: 100, y: 100, width: 600, height: 200, rotation: 0 },
+        position: { x: 100, y: 100, width: 300, height: 100, rotation: 0 },
         properties: {
-          text: 'New Text',
+          text: 'Enter text here',
+          editable: true,
+          backgroundImage: { url: '', direction: 'none', speed: 0 },
           font: {
-            family: 'Roboto', size: 48, color: '#ffffff',
-            style: 'normal', weight: '400', decoration: 'none',
-            alignment: 'center', verticalAlign: 'middle',
+            family: 'Roboto', size: 48, color: '#000000',
+            style: 'normal', weight: 'normal', decoration: 'none',
+            alignment: 'left', verticalAlign: 'top',
             shadow: { enabled: false, color: '#000000', offsetX: 2, offsetY: 2, blur: 4 },
             stroke: { enabled: false, color: '#000000', width: 1 }
           }
         }
       },
       image: {
-        position: { x: 200, y: 100, width: 400, height: 300, rotation: 0 },
-        properties: { url: '', objectFit: 'cover', aspectRatio: null }
+        position: { x: 100, y: 100, width: 400, height: 300, rotation: 0 },
+        properties: {
+          url: '', objectFit: 'cover', aspectRatio: null,
+          crop: null, clipShape: 'none',
+          shapeBorderWidth: 0, shapeBorderColor: '#000000', shapeScale: 100
+        }
       },
       video: {
-        position: { x: 200, y: 100, width: 640, height: 360, rotation: 0 },
-        properties: { url: '', autoplay: true, loop: false, muted: true, controls: false, aspectRatio: 16 / 9 }
+        position: { x: 100, y: 100, width: 640, height: 360, rotation: 0 },
+        properties: {
+          url: '', autoplay: false, loop: false, muted: false, controls: true,
+          aspectRatio: 16 / 9, crop: null, clipShape: 'none',
+          shapeBorderWidth: 0, shapeBorderColor: '#000000', shapeScale: 100
+        }
       },
       shape: {
-        position: { x: 300, y: 200, width: 300, height: 300, rotation: 0 },
-        properties: { shapeType: 'rectangle', fillColor: '#2196F3', strokeColor: '#000000', strokeWidth: 0 }
+        position: { x: 100, y: 100, width: 200, height: 200, rotation: 0 },
+        properties: { shapeType: 'rectangle', fillColor: '#2196F3', strokeColor: '#000000', strokeWidth: 2 }
       }
     };
 

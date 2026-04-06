@@ -41,6 +41,7 @@ class WOW3AnimationApp {
     this._initUI();
     this._setupGlobals();
     this._bindKeyboard();
+    this._initMediaManager();
     console.log('WOW3 Animation Editor initialized');
   }
 
@@ -152,6 +153,13 @@ class WOW3AnimationApp {
         presentation: this.clipController.editor.presentation
       }
     };
+  }
+
+  /** @private */
+  _initMediaManager() {
+    if (typeof MediaManager !== 'undefined') {
+      MediaManager.init();
+    }
   }
 
   /** @private */
