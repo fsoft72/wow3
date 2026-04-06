@@ -458,6 +458,20 @@ export class TimelineView {
     this._playhead.style.left = x + 'px';
   }
 
+  /**
+   * Update the selected highlight on timeline clips without a full re-render.
+   * Called by app.js onSelectionChanged to avoid DOM rebuild during mousedown.
+   * @param {string|null} clipId
+   */
+  updateSelection(clipId) {
+    this._tracksContainer.querySelectorAll('.timeline-clip.selected')
+      .forEach(el => el.classList.remove('selected'));
+    if (clipId) {
+      const el = this._tracksContainer.querySelector(`[data-clip-id="${clipId}"]`);
+      if (el) el.classList.add('selected');
+    }
+  }
+
   /** @private */
   _onBodyClick(e) {
     const clipEl = e.target.closest('.timeline-clip');
@@ -465,7 +479,6 @@ export class TimelineView {
       const clipId = clipEl.dataset.clipId;
       this.timeline.selectClip(clipId);
       if (this.onClipSelected) this.onClipSelected(clipId);
-      this.render();
       return;
     }
     this.timeline.selectClip(null);

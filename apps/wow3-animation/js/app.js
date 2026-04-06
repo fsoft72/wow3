@@ -155,8 +155,10 @@ class WOW3AnimationApp {
 
     this.clipController.onSelectionChanged = (clipId, element) => {
       this.propertiesPanel.show(clipId, element);
-      // Also highlight on timeline
-      this.timelineView.render();
+      // Update selection highlight without full DOM rebuild.
+      // Full render() here caused the DOM to be replaced mid-mousedown,
+      // making the click event fire on the body → spurious deselect.
+      this.timelineView.updateSelection(clipId);
     };
 
     this.clipController.onPositionChanged = (element) => {
