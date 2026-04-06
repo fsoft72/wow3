@@ -389,6 +389,11 @@ export class TimelineView {
       document.addEventListener('mousemove', onMouseMove);
       document.addEventListener('mouseup', onMouseUp);
     });
+
+    // Stop click from bubbling to _onBodyClick — selection is handled above in mousedown.
+    // Without this, when render() rebuilds the DOM during mousedown, Chrome fires
+    // the subsequent click on the body (original target detached) → triggers deselect.
+    clipEl.addEventListener('click', (e) => e.stopPropagation());
   }
 
   /**

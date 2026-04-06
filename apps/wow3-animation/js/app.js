@@ -9,9 +9,10 @@ import { AudioPlaybackManager } from './controllers/AudioPlaybackManager.js';
 import { TimelineView } from './views/TimelineView.js';
 import { CanvasRenderer } from './views/CanvasRenderer.js';
 import { PropertiesPanel } from './views/PropertiesPanel.js';
+import { JsonEditorModal } from './components/JsonEditorModal.js';
 import { VisualClip } from './models/VisualClip.js';
 import { AudioClip } from './models/AudioClip.js';
-import { formatTime } from './utils/time.js';
+import { exportProject, importProject } from './utils/projectStorage.js';
 
 /**
  * WOW3AnimationApp — main application bootstrap.
@@ -34,6 +35,8 @@ class WOW3AnimationApp {
     this.propertiesPanel = null;
     /** @type {HistoryManager} */
     this.historyManager = null;
+    /** @type {JsonEditorModal} */
+    this._jsonEditorModal = null;
   }
 
   async init() {
@@ -44,6 +47,8 @@ class WOW3AnimationApp {
     this._setupGlobals();
     this._bindKeyboard();
     this._initMediaManager();
+    this._initJsonEditor();
+    this._initImportExport();
     this._startAutoSave();
     this.canvasRenderer.renderAtCurrentTime();
     console.log('WOW3 Animation Editor initialized');
@@ -289,7 +294,68 @@ class WOW3AnimationApp {
   }
 
   /** @private */
-  _initMediaManager() {
+  _initJsonEditor() {
+    this._jsonEditorModal = new JsonEditorModal(this.timeline, () => {
+      // After a valid JSON is applied, rebuild all views
+      this.clipController.deselectAll();
+      this.canvasRenderer.clear();
+      this.canvasRenderer.renderAtCurrentTime();
+      this.timelineView.render();
+      this._updateTitleInput();
+      this._updateDurationDisplay();
+    });
+
+    document.getElementById('btn-json-editor')?.addEventListener('click', () => {
+      this._jsonEditorModal.open();
+    });
+  }
+
+  /** @private */
+  _initImportExport() {
+    document.getElementById('btn-project-export')?.addEventListener('click', async () => {
+      const btn = document.getElementById('btn-project-export');
+      btn.disabled = true;
+      try {
+        await exportProject(this.timeline.project);
+      } catch (err) {
+        console.error('Export failed:', err);
+        alert(`Export failed: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById('btn-project-import')?.addEventListener('click', async () => {
+      try {
+        const jsonData = await importProject();
+        const newProject = Project.fromJSON(jsonData);
+
+        // Replace current project
+        this.timeline.project = newProject;
+        this.project = newProject;
+
+        // Rebuild everything
+        this.clipController.deselectAll();
+        this.canvasRenderer.clear();
+        this.timeline.seekTo(0);
+        this.canvasRenderer.renderAtCurrentTime();
+        this.timelineView.render();
+        this._updateTitleInput();
+        this._updateDurationDisplay();
+
+        // Persist to localStorage
+        this._saveProject(true);
+        console.log(`✅ Project "${newProject.title}" imported successfully`);
+      } catch (err) {
+        if (err.message !== 'No file selected') {
+          console.error('Import failed:', err);
+          alert(`Import failed: ${err.message}`);
+        }
+      }
+    });
+  }
+
+  /** @private */
     if (typeof MediaDB !== 'undefined') {
       MediaDB.setDatabaseName('wow3-anim_media');
     }
