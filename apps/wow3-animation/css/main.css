@@ -211,7 +211,7 @@ body {
 }
 
 /* ── Canvas element selection ── */
-#slide-canvas .element { cursor: pointer; }
+#slide-canvas .element { position: absolute; cursor: move; }
 #slide-canvas .element.selected { outline: 2px solid var(--color-accent); outline-offset: 0; }
 
 /* ── Resize handles ── */

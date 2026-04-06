@@ -177,10 +177,11 @@ class WOW3AnimationApp {
       this.timeline.seekTo(0);
     });
 
-    // Add clip buttons
+    // Add clip buttons — each creates a new track + clip at current time
     const addClip = (type) => {
+      const track = this.timeline.addTrack('visual');
       const clip = VisualClip.createDefault(type);
-      this.timeline.addClipToTrack(clip);
+      this.timeline.addClipToTrack(clip, track.id);
       this.canvasRenderer.renderAtCurrentTime();
       this.timelineView.render();
       this._updateDurationDisplay();
@@ -191,14 +192,15 @@ class WOW3AnimationApp {
     document.getElementById('btn-add-video').addEventListener('click', () => addClip('video'));
     document.getElementById('btn-add-shape').addEventListener('click', () => addClip('shape'));
 
-    // Audio clip
+    // Audio clip — creates a new audio track + clip
     document.getElementById('btn-add-audio').addEventListener('click', () => {
+      const track = this.timeline.addTrack('audio');
       const clip = new AudioClip({
         name: 'Audio',
         startMs: this.timeline.currentTimeMs,
         endMs: this.timeline.currentTimeMs + 10000
       });
-      this.timeline.addClipToTrack(clip);
+      this.timeline.addClipToTrack(clip, track.id);
       this.timelineView.render();
       this._updateDurationDisplay();
     });

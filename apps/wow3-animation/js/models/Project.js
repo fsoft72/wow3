@@ -59,11 +59,17 @@ export class Project {
   /**
    * Adds a new track to the project.
    * @param {'visual'|'audio'} type
+   * @param {Object} [opts]
+   * @param {'top'|'bottom'} [opts.position='bottom'] - Where to insert the track.
    * @returns {Track}
    */
-  addTrack(type) {
+  addTrack(type, opts = {}) {
     const track = new Track(type);
-    this.tracks.push(track);
+    if (opts.position === 'top') {
+      this.tracks.unshift(track);
+    } else {
+      this.tracks.push(track);
+    }
     return track;
   }
 
