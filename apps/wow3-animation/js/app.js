@@ -4,6 +4,7 @@ import { Project } from './models/Project.js';
 import { TimelineController } from './controllers/TimelineController.js';
 import { PlaybackEngine } from './controllers/PlaybackEngine.js';
 import { ClipController } from './controllers/ClipController.js';
+import { HistoryManager } from './controllers/HistoryManager.js';
 import { TimelineView } from './views/TimelineView.js';
 import { CanvasRenderer } from './views/CanvasRenderer.js';
 import { PropertiesPanel } from './views/PropertiesPanel.js';
@@ -29,6 +30,8 @@ class WOW3AnimationApp {
     this.timelineView = null;
     /** @type {PropertiesPanel} */
     this.propertiesPanel = null;
+    /** @type {HistoryManager} */
+    this.historyManager = null;
   }
 
   async init() {
@@ -52,6 +55,16 @@ class WOW3AnimationApp {
   _initControllers() {
     this.timeline = new TimelineController(this.project);
     this.playback = new PlaybackEngine(this.timeline);
+    this.historyManager = new HistoryManager(this.timeline);
+
+    // Record history on project changes (debounced)
+    let historyTimeout;
+    appEvents.on(AppEvents.SLIDE_UPDATED, () => {
+      clearTimeout(historyTimeout);
+      historyTimeout = setTimeout(() => {
+        this.historyManager.recordHistory();
+      }, 300);
+    });
   }
 
   /** @private */
@@ -61,6 +74,7 @@ class WOW3AnimationApp {
     this.canvasRenderer = new CanvasRenderer(this.timeline);
     this.clipController = new ClipController(this.timeline, this.canvasRenderer);
     this.clipController.init();
+    this.clipController.onRecordHistory = () => this.historyManager.recordHistory();
 
     this.propertiesPanel = new PropertiesPanel(this.timeline, this.clipController);
 
@@ -189,6 +203,22 @@ class WOW3AnimationApp {
       this._updateDurationDisplay();
     });
 
+    // Undo/Redo buttons
+    document.getElementById('btn-undo')?.addEventListener('click', () => {
+      this.historyManager.undo();
+      this.clipController.deselectAll();
+      this.canvasRenderer.clear();
+      this.canvasRenderer.renderAtCurrentTime();
+      this.timelineView.render();
+    });
+    document.getElementById('btn-redo')?.addEventListener('click', () => {
+      this.historyManager.redo();
+      this.clipController.deselectAll();
+      this.canvasRenderer.clear();
+      this.canvasRenderer.renderAtCurrentTime();
+      this.timelineView.render();
+    });
+
     // Make toolbar buttons draggable
     const makeDraggable = (btnId, type) => {
       const btn = document.getElementById(btnId);
@@ -237,6 +267,24 @@ class WOW3AnimationApp {
         this.playback.toggle();
         document.getElementById('btn-play').querySelector('i').textContent =
           this.playback.isPlaying ? 'pause' : 'play_arrow';
+      }
+
+      // Undo/Redo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        this.historyManager.undo();
+        this.clipController.deselectAll();
+        this.canvasRenderer.clear();
+        this.canvasRenderer.renderAtCurrentTime();
+        this.timelineView.render();
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        this.historyManager.redo();
+        this.clipController.deselectAll();
+        this.canvasRenderer.clear();
+        this.canvasRenderer.renderAtCurrentTime();
+        this.timelineView.render();
       }
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
