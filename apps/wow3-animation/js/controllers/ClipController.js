@@ -386,8 +386,9 @@ export class ClipController {
     clip.position.height = element.position.height;
     clip.position.rotation = element.position.rotation;
 
-    // Sync element-specific properties
-    clip.properties = structuredClone(element.properties);
+    // Merge element properties into clip (preserves clip-only keys like srtMediaId)
+    const elementProps = structuredClone(element.properties);
+    clip.properties = { ...clip.properties, ...elementProps };
     this.timeline.project.touch();
   }
 
