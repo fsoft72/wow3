@@ -42,6 +42,10 @@ export class CanvasRenderer {
     this._srtCache = new Map();
     /** @type {Set<string>} SRT sources currently being loaded */
     this._srtPending = new Set();
+    /** @type {boolean} Whether export-mode deterministic rendering is active */
+    this._exportMode = false;
+    /** @type {Map<string, Animation>} clipId → paused export animation */
+    this._exportAnimations = new Map();
 
     this._bindEvents();
   }
@@ -66,11 +70,11 @@ export class CanvasRenderer {
       if (track.type !== 'visual' || !track.visible) continue;
 
       for (const clip of track.clips) {
-        if (!clip.isActiveAt(timeMs)) continue;
+        if (!this._isClipRenderableAt(clip, timeMs)) continue;
         activeClipIds.add(clip.id);
 
         // If this clip was in the middle of an out-animation (e.g. seek back), cancel it
-        if (this._exitingElements.has(clip.id)) {
+        if (!this._exportMode && this._exitingElements.has(clip.id)) {
           const exiting = this._exitingElements.get(clip.id);
           exiting.waapi?.cancel();
           exiting.dom.remove();
@@ -86,7 +90,9 @@ export class CanvasRenderer {
           if (this.onElementCreated) this.onElementCreated(clip, element, dom);
 
           // Play in-animation
-          if (clip.inAnimation?.name) this._playInAnimation(dom, clip.inAnimation);
+          if (!this._exportMode && clip.inAnimation?.name && clip.isActiveAt(timeMs)) {
+            this._playInAnimation(dom, clip.inAnimation);
+          }
         }
       }
     }
@@ -98,7 +104,7 @@ export class CanvasRenderer {
       this._activeElements.delete(clipId);
 
       const clip = this._findClipById(clipId);
-      if (dom && clip?.outAnimation?.name && !this._exitingElements.has(clipId)) {
+      if (!this._exportMode && dom && clip?.outAnimation?.name && !this._exitingElements.has(clipId)) {
         // Keep DOM alive for out-animation duration, then remove
         const waapi = this._playOutAnimation(dom, clip.outAnimation, () => {
           dom.remove();
@@ -125,6 +131,12 @@ export class CanvasRenderer {
 
     // Update karaoke elements at current time
     this._updateKaraokeElements(timeMs, project);
+
+    if (this._exportMode) {
+      this._syncExportEffects(timeMs, project);
+    } else {
+      this._clearExportEffects();
+    }
   }
 
   /**
@@ -137,7 +149,7 @@ export class CanvasRenderer {
       if (track.type !== 'visual') continue;
       for (const clip of track.clips) {
         if (clip.elementType !== 'karaoke') continue;
-        if (!clip.isActiveAt(timeMs)) continue;
+        if (!this._isClipRenderableAt(clip, timeMs)) continue;
         const element = this._activeElements.get(clip.id);
         if (element) this.syncKaraokeCues(element, clip, timeMs);
       }
@@ -204,6 +216,31 @@ export class CanvasRenderer {
     return [...this._activeElements.values()];
   }
 
+  /**
+   * Enable/disable deterministic export mode.
+   * In export mode, out-animation visibility is based on timeline time rather
+   * than wall-clock animation callbacks, and effect state is synced per frame.
+   * @param {boolean} enabled
+   */
+  setExportMode(enabled) {
+    if (this._exportMode === enabled) return;
+    this._exportMode = enabled;
+    this._clearExportEffects();
+
+    for (const [, { dom, waapi }] of this._exitingElements) {
+      waapi?.cancel();
+      dom.remove();
+    }
+    this._exitingElements.clear();
+
+    if (enabled) {
+      for (const [, element] of this._activeElements) {
+        const dom = document.getElementById(element.id);
+        dom?.getAnimations().forEach(anim => anim.cancel());
+      }
+    }
+  }
+
   /** @private */
   async _loadSRT(src) {
     const text = await fetchMediaText(src);
@@ -256,6 +293,8 @@ export class CanvasRenderer {
    * Clear all rendered elements from canvas.
    */
   clear() {
+    this._clearExportEffects();
+
     for (const [, element] of this._activeElements) {
       const dom = document.getElementById(element.id);
       if (dom) dom.remove();
@@ -361,6 +400,129 @@ export class CanvasRenderer {
     });
     anim.onfinish = onDone;
     return anim;
+  }
+
+  /**
+   * Returns true when a clip should be present in the render tree.
+   * In export mode, clips remain renderable through their out-animation tail.
+   * @param {import('../models/VisualClip.js').VisualClip} clip
+   * @param {number} timeMs
+   * @returns {boolean}
+   * @private
+   */
+  _isClipRenderableAt(clip, timeMs) {
+    if (clip.isActiveAt(timeMs)) return true;
+    if (!this._exportMode || clip.endMs === null || !clip.outAnimation?.name) return false;
+    const outDuration = this._getAnimationDuration(clip.outAnimation);
+    return timeMs >= clip.endMs && timeMs < clip.endMs + outDuration;
+  }
+
+  /**
+   * Sync paused WAAPI animations to the exact timeline time for export frames.
+   * @param {number} timeMs
+   * @param {import('../models/Project.js').Project} project
+   * @private
+   */
+  _syncExportEffects(timeMs, project) {
+    const syncedIds = new Set();
+
+    for (const track of project.tracks) {
+      if (track.type !== 'visual' || !track.visible) continue;
+
+      for (const clip of track.clips) {
+        const effect = this._getExportEffectForClip(clip, timeMs);
+        const existing = this._exportAnimations.get(clip.id);
+
+        if (!effect) {
+          existing?.cancel();
+          this._exportAnimations.delete(clip.id);
+          continue;
+        }
+
+        const element = this._activeElements.get(clip.id);
+        if (!element) continue;
+        const dom = document.getElementById(element.id);
+        if (!dom) continue;
+
+        existing?.cancel();
+        const anim = dom.animate(effect.keyframes, {
+          duration: effect.duration,
+          easing: effect.easing,
+          fill: 'both'
+        });
+        anim.pause();
+        anim.currentTime = effect.currentTime;
+        this._exportAnimations.set(clip.id, anim);
+        syncedIds.add(clip.id);
+      }
+    }
+
+    for (const [clipId, anim] of this._exportAnimations) {
+      if (syncedIds.has(clipId)) continue;
+      anim.cancel();
+      this._exportAnimations.delete(clipId);
+    }
+  }
+
+  /** @private */
+  _clearExportEffects() {
+    for (const [, anim] of this._exportAnimations) {
+      anim.cancel();
+    }
+    this._exportAnimations.clear();
+  }
+
+  /**
+   * Resolve the effect to apply at the given export time, if any.
+   * @param {import('../models/VisualClip.js').VisualClip} clip
+   * @param {number} timeMs
+   * @returns {{keyframes: Array, duration: number, easing: string, currentTime: number}|null}
+   * @private
+   */
+  _getExportEffectForClip(clip, timeMs) {
+    if (clip.inAnimation?.name) {
+      const duration = this._getAnimationDuration(clip.inAnimation);
+      if (timeMs >= clip.startMs && timeMs < clip.startMs + duration) {
+        const def = ANIMATION_DEFINITIONS[clip.inAnimation.name];
+        if (def) {
+          const rawEasing = clip.inAnimation.easing ?? def.options.easing;
+          return {
+            keyframes: def.keyframes,
+            duration,
+            easing: EASING_MAP[rawEasing] ?? rawEasing,
+            currentTime: timeMs - clip.startMs,
+          };
+        }
+      }
+    }
+
+    if (clip.outAnimation?.name && clip.endMs !== null) {
+      const duration = this._getAnimationDuration(clip.outAnimation);
+      if (timeMs >= clip.endMs && timeMs < clip.endMs + duration) {
+        const def = ANIMATION_DEFINITIONS[clip.outAnimation.name];
+        if (def) {
+          const rawEasing = clip.outAnimation.easing ?? def.options.easing;
+          return {
+            keyframes: def.keyframes,
+            duration,
+            easing: EASING_MAP[rawEasing] ?? rawEasing,
+            currentTime: timeMs - clip.endMs,
+          };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * @param {{name: string, duration?: number}} cfg
+   * @returns {number}
+   * @private
+   */
+  _getAnimationDuration(cfg) {
+    const def = ANIMATION_DEFINITIONS[cfg?.name];
+    return cfg?.duration ?? def?.options?.duration ?? 600;
   }
 
   /** @private */

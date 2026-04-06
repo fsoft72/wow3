@@ -1,10 +1,11 @@
 import html2canvas from 'html2canvas';
+import { ANIMATION_DEFINITIONS } from '@wow/core/animations';
 import { toast } from '@wow/core/utils/toasts.js';
 import { fetchMediaArrayBuffer } from '../utils/media.js';
 
-const EXPORT_FPS = 30;
+const EXPORT_FPS = 25;
 const RECORDER_TIMESLICE_MS = 1000;
-const EXPORT_START_DELAY_MS = 150;
+const EXPORT_START_DELAY_MS = 80;
 const VIDEO_BITS_PER_SECOND = 8_000_000;
 
 export class PresentationExportController {
@@ -50,7 +51,7 @@ export class PresentationExportController {
 
     this.isExporting = true;
     const project = this.timeline.project;
-    const durationMs = project.getEffectiveDuration();
+    const durationMs = this._getExportDurationMs(project);
     const mimeType = this._getSupportedMimeType();
     const filename = this._buildFilename(project.title, mimeType);
 
@@ -76,6 +77,8 @@ export class PresentationExportController {
         this.playback.pause();
       }
       this.clipController.deselectAll();
+      this.canvasRenderer.clear();
+      this.canvasRenderer.setExportMode(true);
 
       exportCanvas = document.createElement('canvas');
       exportCanvas.width = project.width;
@@ -108,24 +111,21 @@ export class PresentationExportController {
         mediaRecorder.onstop = resolve;
       });
 
-      this.timeline.seekTo(0);
-      await this._nextPaint();
+      await this._renderAtTime(0);
       await this._waitForRenderableMedia(slideCanvas, 1000);
       await this._drawSlideFrame(slideCanvas, exportCtx, project.width, project.height);
 
       mediaRecorder.start(RECORDER_TIMESLICE_MS);
-      await this._sleep(EXPORT_START_DELAY_MS);
 
-      const startAt = performance.now();
+      const startAt = performance.now() + EXPORT_START_DELAY_MS;
       let nextFrameAt = startAt;
       let previousActiveIds = this._getActiveVisualClipIds(0);
 
       while (true) {
-        const elapsedMs = performance.now() - startAt;
+        const elapsedMs = Math.max(0, performance.now() - startAt);
         if (elapsedMs >= durationMs) break;
 
-        this.timeline.seekTo(elapsedMs);
-        await this._nextPaint();
+        await this._renderAtTime(elapsedMs);
 
         const activeIds = this._getActiveVisualClipIds(elapsedMs);
         if (!this._sameSet(activeIds, previousActiveIds)) {
@@ -149,8 +149,7 @@ export class PresentationExportController {
         }
       }
 
-      this.timeline.seekTo(durationMs);
-      await this._nextPaint();
+      await this._renderAtTime(durationMs);
       await this._drawSlideFrame(slideCanvas, exportCtx, project.width, project.height);
       if (onProgress) {
         onProgress({ progress: 1, timeMs: durationMs, durationMs });
@@ -198,6 +197,7 @@ export class PresentationExportController {
         }
       }
 
+      this.canvasRenderer.setExportMode(false);
       this.isExporting = false;
     }
   }
@@ -300,28 +300,43 @@ export class PresentationExportController {
    * @private
    */
   async _drawSlideFrame(slideCanvas, exportCtx, width, height) {
-    const handles = slideCanvas.querySelectorAll(
-      '.resize-handle, .rotate-handle, .crop-handle, .crop-corner'
-    );
-    const selectedEls = slideCanvas.querySelectorAll('.element.selected');
-    handles.forEach((handle) => { handle.style.display = 'none'; });
-    selectedEls.forEach((el) => { el.style.outline = 'none'; });
+    const rect = slideCanvas.getBoundingClientRect();
+    const scale = rect.width > 0 ? width / rect.width : 1;
 
-    try {
-      const captured = await html2canvas(slideCanvas, {
-        scale: 1,
-        width,
-        height,
-        useCORS: true,
-        logging: false,
-        backgroundColor: getComputedStyle(slideCanvas).backgroundColor || '#000000',
-      });
-      exportCtx.clearRect(0, 0, width, height);
-      exportCtx.drawImage(captured, 0, 0, width, height);
-    } finally {
-      handles.forEach((handle) => { handle.style.display = ''; });
-      selectedEls.forEach((el) => { el.style.outline = ''; });
-    }
+    const captured = await html2canvas(slideCanvas, {
+      scale,
+      width: rect.width || width,
+      height: rect.height || height,
+      useCORS: true,
+      logging: false,
+      foreignObjectRendering: true,
+      backgroundColor: getComputedStyle(slideCanvas).backgroundColor || '#000000',
+      onclone: (clonedDoc) => {
+        const clonedSlide = clonedDoc.getElementById(slideCanvas.id);
+        if (!clonedSlide) return;
+
+        const clonedWrapper = clonedDoc.getElementById('canvas-wrapper');
+        if (clonedWrapper) {
+          clonedWrapper.style.transform = 'none';
+          clonedWrapper.style.width = `${width}px`;
+          clonedWrapper.style.height = `${height}px`;
+          clonedWrapper.style.boxShadow = 'none';
+        }
+
+        clonedSlide.style.width = `${width}px`;
+        clonedSlide.style.height = `${height}px`;
+        clonedSlide.querySelectorAll(
+          '.resize-handle, .rotate-handle, .crop-handle, .crop-corner'
+        ).forEach((handle) => { handle.style.display = 'none'; });
+        clonedSlide.querySelectorAll('.element.selected').forEach((el) => {
+          el.classList.remove('selected');
+          el.style.outline = 'none';
+        });
+      }
+    });
+
+    exportCtx.clearRect(0, 0, width, height);
+    exportCtx.drawImage(captured, 0, 0, width, height);
   }
 
   /**
@@ -362,7 +377,9 @@ export class PresentationExportController {
     for (const track of this.timeline.project.tracks) {
       if (track.type !== 'visual' || track.visible === false) continue;
       for (const clip of track.clips) {
-        if (clip.isActiveAt(timeMs)) ids.add(clip.id);
+        const outDuration = this._getAnimationDurationMs(clip.outAnimation);
+        const inOutTail = clip.endMs !== null && timeMs >= clip.endMs && timeMs < clip.endMs + outDuration;
+        if (clip.isActiveAt(timeMs) || inOutTail) ids.add(clip.id);
       }
     }
     return ids;
@@ -408,6 +425,36 @@ export class PresentationExportController {
   }
 
   /**
+   * @param {import('../models/Project.js').Project} project
+   * @returns {number}
+   * @private
+   */
+  _getExportDurationMs(project) {
+    let durationMs = project.getEffectiveDuration();
+
+    for (const track of project.tracks) {
+      if (track.type !== 'visual' || track.visible === false) continue;
+      for (const clip of track.clips) {
+        if (clip.endMs === null || !clip.outAnimation?.name) continue;
+        durationMs = Math.max(durationMs, clip.endMs + this._getAnimationDurationMs(clip.outAnimation));
+      }
+    }
+
+    return durationMs;
+  }
+
+  /**
+   * @param {{name?: string, duration?: number}|null|undefined} cfg
+   * @returns {number}
+   * @private
+   */
+  _getAnimationDurationMs(cfg) {
+    if (!cfg?.name) return 0;
+    const def = ANIMATION_DEFINITIONS[cfg.name];
+    return cfg.duration ?? def?.options?.duration ?? 600;
+  }
+
+  /**
    * @param {string} title
    * @param {string} mimeType
    * @returns {string}
@@ -442,6 +489,18 @@ export class PresentationExportController {
    */
   _sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Render the slide DOM at an exact timeline time without seek clamping.
+   * @param {number} timeMs
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _renderAtTime(timeMs) {
+    this.timeline.currentTimeMs = Math.max(0, timeMs);
+    this.canvasRenderer.renderAtCurrentTime();
+    await this._nextPaint();
   }
 
   /**
