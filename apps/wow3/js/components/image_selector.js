@@ -17,7 +17,7 @@
  *   selector.getValue();          // current URL string
  *   selector.setValue('media_1'); // update display
  */
-import { toast } from '../utils/toasts.js';
+import { toast } from '@wow/core/utils/toasts.js';
 
 class ImageSelector {
 

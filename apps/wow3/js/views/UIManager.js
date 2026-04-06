@@ -5,7 +5,7 @@
 
 import { RightSidebar } from "./RightSidebar.js";
 import { StatusBar } from "./StatusBar.js";
-import { toast } from "../utils/toasts.js";
+import { toast } from "@wow/core/utils/toasts.js";
 
 export class UIManager {
 	constructor() {

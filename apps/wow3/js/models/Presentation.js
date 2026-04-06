@@ -3,7 +3,7 @@
  * Top-level model containing all slides and metadata
  */
 
-import { generateId } from '../utils/dom.js';
+import { generateId } from '@wow/core/utils/dom.js';
 import { Slide } from './Slide.js';
 
 export class Presentation {

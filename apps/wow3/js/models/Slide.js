@@ -3,17 +3,11 @@
  * Represents a single slide with elements
  */
 
-import { generateId } from '../utils/dom.js';
-import { DEFAULTS } from '../utils/constants.js';
-import { Element } from './Element.js';
+import { generateId } from '@wow/core/utils/dom.js';
+import { DEFAULTS } from '@wow/core/utils/constants.js';
+import { Element } from '@wow/core/models/Element.js';
 import { migrateElementAnimations, hasLegacyAnimations } from '../animations/migration.js';
-import { TextElement } from './TextElement.js';
-import { ImageElement } from './ImageElement.js';
-import { VideoElement } from './VideoElement.js';
-import { AudioElement } from './AudioElement.js';
-import { ShapeElement } from './ShapeElement.js';
-import { ListElement } from './ListElement.js';
-import { LinkElement } from './LinkElement.js';
+import { TextElement, ImageElement, VideoElement, AudioElement, ShapeElement, ListElement, LinkElement } from '@wow/core/models';
 import { CountdownTimerElement } from './CountdownTimerElement.js';
 
 export class Slide {

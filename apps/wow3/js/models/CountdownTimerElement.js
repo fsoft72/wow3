@@ -4,8 +4,8 @@
  * Supports cross-slide inheritance, clear flag, and completion sounds.
  */
 
-import { Element } from './Element.js';
-import { ElementType } from '../utils/constants.js';
+import { Element } from '@wow/core/models/Element.js';
+import { ElementType } from '@wow/core/utils/constants.js';
 
 export class CountdownTimerElement extends Element {
   /**
