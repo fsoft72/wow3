@@ -1,25 +1,50 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { resolve } from 'path';
-import { cpSync } from 'fs';
+import { cpSync, existsSync } from 'fs';
 
 /**
- * Copies classic (non-module) scripts to the dist folder.
- * These scripts use globals and can't be bundled by Vite yet.
+ * Copies classic (non-module) scripts to dist/js.
+ * Sources: wow3-specific js/ + shared wow-core/classic/.
  */
 function copyClassicScripts() {
   return {
     name: 'copy-classic-scripts',
     closeBundle() {
-      const src = resolve(__dirname, 'js');
       const dest = resolve(__dirname, 'dist/js');
-      cpSync(src, dest, { recursive: true });
+      // Copy wow3-specific scripts
+      const appJs = resolve(__dirname, 'js');
+      if (existsSync(appJs)) cpSync(appJs, dest, { recursive: true });
+      // Copy shared classic scripts from wow-core (overwrites if name collides)
+      const coreClassic = resolve(__dirname, '../../packages/wow-core/classic');
+      if (existsSync(coreClassic)) cpSync(coreClassic, dest, { recursive: true });
+    }
+  };
+}
+
+/**
+ * Copies shared CSS from wow-core to dist/css.
+ */
+function copyCoreCss() {
+  return {
+    name: 'copy-core-css',
+    closeBundle() {
+      const dest = resolve(__dirname, 'dist/css');
+      const coreCss = resolve(__dirname, '../../packages/wow-core/css');
+      if (existsSync(coreCss)) cpSync(coreCss, dest, { recursive: true });
     }
   };
 }
 
 export default defineConfig({
   base: './',
+
+  server: {
+    fs: {
+      // Allow Vite dev server to serve files from workspace root
+      allow: ['../..']
+    }
+  },
 
   build: {
     minify: 'terser',
@@ -31,8 +56,15 @@ export default defineConfig({
     }
   },
 
+  resolve: {
+    alias: {
+      '@wow/core': resolve(__dirname, '../../packages/wow-core/src')
+    }
+  },
+
   plugins: [
     copyClassicScripts(),
+    copyCoreCss(),
     VitePWA({
       strategies: 'injectManifest',
       srcDir: 'src',
