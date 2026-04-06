@@ -209,13 +209,15 @@ class WOW3AnimationApp {
    * @private
    */
   _setupGlobals() {
+    const cc = this.clipController;
     window.app = {
       editor: {
-        elementController: this.clipController,
-        recordHistory: () => {},
-        getActiveSlide: () => this.clipController.editor.getActiveSlide(),
-        uiManager: this.clipController.editor.uiManager,
-        presentation: this.clipController.editor.presentation
+        elementController: cc,
+        // Explicit passthrough for wow-core panels that call these methods
+        recordHistory: () => cc.editor.recordHistory(),
+        getActiveSlide: () => cc.editor.getActiveSlide(),
+        uiManager: cc.editor.uiManager,
+        presentation: cc.editor.presentation
       }
     };
   }
