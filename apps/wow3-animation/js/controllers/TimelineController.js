@@ -131,6 +131,58 @@ export class TimelineController {
     }
   }
 
+  /**
+   * Adds a new track.
+   * @param {'visual'|'audio'} type
+   * @returns {import('../models/Track.js').Track}
+   */
+  addTrack(type) {
+    const track = this.project.addTrack(type);
+    appEvents.emit(AppEvents.SLIDE_UPDATED);
+    return track;
+  }
+
+  /**
+   * Removes a track by id.
+   * @param {string} trackId
+   */
+  removeTrack(trackId) {
+    this.project.removeTrack(trackId);
+    if (this.selectedTrackId === trackId) {
+      this.selectedTrackId = null;
+      this.selectedClipId = null;
+    }
+    appEvents.emit(AppEvents.SLIDE_UPDATED);
+  }
+
+  /**
+   * Renames a track.
+   * @param {string} trackId
+   * @param {string} name
+   */
+  renameTrack(trackId, name) {
+    const track = this.project.tracks.find(t => t.id === trackId);
+    if (track) {
+      track.name = name;
+      this.project.touch();
+    }
+  }
+
+  /**
+   * Reorders a track: moves trackId to newIndex.
+   * @param {string} trackId
+   * @param {number} newIndex
+   */
+  reorderTrack(trackId, newIndex) {
+    const tracks = this.project.tracks;
+    const oldIndex = tracks.findIndex(t => t.id === trackId);
+    if (oldIndex === -1 || oldIndex === newIndex) return;
+    const [track] = tracks.splice(oldIndex, 1);
+    tracks.splice(newIndex, 0, track);
+    this.project.touch();
+    appEvents.emit(AppEvents.SLIDE_UPDATED);
+  }
+
   /** Zoom levels: px per ms */
   static ZOOM_MIN = 0.01;
   static ZOOM_MAX = 2.0;

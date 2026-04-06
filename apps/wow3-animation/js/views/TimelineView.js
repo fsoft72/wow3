@@ -47,6 +47,16 @@ export class TimelineView {
       this.render();
     }, { passive: false });
 
+    // Add track buttons
+    document.getElementById('btn-add-visual-track')?.addEventListener('click', () => {
+      this.timeline.addTrack('visual');
+      this.render();
+    });
+    document.getElementById('btn-add-audio-track')?.addEventListener('click', () => {
+      this.timeline.addTrack('audio');
+      this.render();
+    });
+
     // Zoom buttons
     document.getElementById('btn-zoom-in')?.addEventListener('click', () => {
       this.timeline.zoomIn();
@@ -102,18 +112,80 @@ export class TimelineView {
     this._tracksContainer.innerHTML = '';
     this._tracksContainer.style.width = totalWidth + 'px';
 
-    for (const track of tracks) {
+    for (let i = 0; i < tracks.length; i++) {
+      const track = tracks[i];
       const h = track.type === 'audio' ? TRACK_HEIGHT_AUDIO : TRACK_HEIGHT_VISUAL;
 
-      // Label
+      // ── Track label ──
       const label = document.createElement('div');
       label.className = 'track-label' + (track.type === 'audio' ? ' audio-track' : '');
-      label.innerHTML =
-        `<i class="material-icons">${track.type === 'audio' ? 'music_note' : 'layers'}</i>` +
-        `<span class="track-label-name">${track.name}</span>`;
+      label.draggable = true;
+      label.dataset.trackId = track.id;
+      label.dataset.trackIndex = i;
+
+      const icon = document.createElement('i');
+      icon.className = 'material-icons';
+      icon.textContent = track.type === 'audio' ? 'music_note' : 'layers';
+      label.appendChild(icon);
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'track-label-name';
+      nameSpan.textContent = track.name;
+      label.appendChild(nameSpan);
+
+      const delBtn = document.createElement('i');
+      delBtn.className = 'material-icons track-delete-btn';
+      delBtn.textContent = 'close';
+      delBtn.title = 'Delete track';
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.timeline.removeTrack(track.id);
+        this.render();
+      });
+      label.appendChild(delBtn);
+
+      // Double-click to rename
+      nameSpan.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        const input = document.createElement('input');
+        input.className = 'track-rename-input';
+        input.value = track.name;
+        nameSpan.replaceWith(input);
+        input.focus();
+        input.select();
+        const finish = () => {
+          this.timeline.renameTrack(track.id, input.value || track.name);
+          this.render();
+        };
+        input.addEventListener('blur', finish);
+        input.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter') input.blur();
+          if (ev.key === 'Escape') { input.value = track.name; input.blur(); }
+        });
+      });
+
+      // Drag reorder
+      label.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', track.id);
+        label.classList.add('dragging');
+      });
+      label.addEventListener('dragend', () => label.classList.remove('dragging'));
+      label.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        label.classList.add('drag-over');
+      });
+      label.addEventListener('dragleave', () => label.classList.remove('drag-over'));
+      label.addEventListener('drop', (e) => {
+        e.preventDefault();
+        label.classList.remove('drag-over');
+        const draggedId = e.dataTransfer.getData('text/plain');
+        this.timeline.reorderTrack(draggedId, i);
+        this.render();
+      });
+
       this._trackLabels.appendChild(label);
 
-      // Row
+      // ── Track row ──
       const row = document.createElement('div');
       row.className = 'track-row' + (track.type === 'audio' ? ' audio-track' : '');
       row.dataset.trackId = track.id;

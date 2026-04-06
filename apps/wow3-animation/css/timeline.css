@@ -92,6 +92,31 @@
   white-space: nowrap;
 }
 
+/* ── Track management ── */
+.track-delete-btn {
+  font-size: 14px !important;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.track-label:hover .track-delete-btn { opacity: 1; }
+.track-delete-btn:hover { color: #da3633; }
+.track-rename-input {
+  background: var(--color-bg);
+  border: 1px solid var(--color-accent);
+  color: var(--color-text);
+  font-size: 12px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  width: 80px;
+  outline: none;
+}
+.track-label.dragging { opacity: 0.4; }
+.track-label.drag-over { background: rgba(88, 166, 255, 0.12); border-top: 2px solid var(--color-accent); }
+
+#timeline-labels-header button { margin-right: 2px; }
+
 /* ── Clip drag ── */
 .timeline-clip.dragging { opacity: 0.6; z-index: 100; }
 .clip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; pointer-events: none; }
