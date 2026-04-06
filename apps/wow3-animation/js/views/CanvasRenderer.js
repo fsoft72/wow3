@@ -190,6 +190,26 @@ export class CanvasRenderer {
       this.onElementCreated(clip, element, dom);
     }
 
+    // Immediately sync karaoke cues so the element doesn't show placeholder
+    if (clip.elementType === 'karaoke' && typeof element.updateAtTime === 'function') {
+      const timeMs = this.timeline.currentTimeMs;
+      const relativeMs = timeMs - clip.startMs;
+      const src = clip.properties.srtMediaId || clip.properties.srtUrl;
+      if (src) {
+        const cues = this._srtCache.get(src);
+        if (cues) {
+          element.updateAtTime(relativeMs, cues);
+        } else {
+          this._loadSRT(src).then(parsed => {
+            if (parsed) {
+              this._srtCache.set(src, parsed);
+              element.updateAtTime(relativeMs, parsed);
+            }
+          });
+        }
+      }
+    }
+
     return { element, dom };
   }
 
