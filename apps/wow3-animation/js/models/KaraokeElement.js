@@ -82,10 +82,12 @@ export class KaraokeElement extends Element {
     // Apply current colors (may have been changed from panel)
     const colorPrev = this.properties.colorPrev || '#888888';
     const colorCurrent = this.properties.colorCurrent || '#ff9800';
+    const animSpeed = this.properties.highlightAnimationSpeed || 0;
+    const animType = this.properties.highlightAnimationType || 'pingpong';
 
     prevLine.style.color = colorPrev;
     nextLine.style.color = colorPrev;
-    this._applyHighlightColor(currentLine, colorCurrent);
+    this._applyHighlightColor(currentLine, colorCurrent, animSpeed, animType);
 
     // Update font styles
     const font = this.properties.font || {};
@@ -136,22 +138,37 @@ export class KaraokeElement extends Element {
   }
 
   /**
-   * Apply highlight color — supports both solid colors and CSS gradients.
+   * Apply highlight color — supports solid colors, CSS gradients, and gradient animation.
    * @param {HTMLElement} el
    * @param {string} color - CSS color or gradient string
+   * @param {number} animSpeed - Gradient animation speed (0 = disabled)
+   * @param {string} animType - 'pingpong' or 'cycle'
    */
-  _applyHighlightColor(el, color) {
+  _applyHighlightColor(el, color, animSpeed = 0, animType = 'pingpong') {
     if (color.includes('gradient')) {
       el.style.background = color;
       el.style.webkitBackgroundClip = 'text';
       el.style.webkitTextFillColor = 'transparent';
       el.style.backgroundClip = 'text';
       el.style.color = '';
+
+      // Gradient animation
+      if (animSpeed > 0) {
+        const duration = Math.max(0.5, 11 - animSpeed);
+        const animName = animType === 'cycle' ? 'wow3GradientCycleForward' : 'wow3GradientCycle';
+        el.style.backgroundSize = '200% 200%';
+        el.style.animation = `${animName} ${duration}s ease infinite`;
+      } else {
+        el.style.backgroundSize = '';
+        el.style.animation = '';
+      }
     } else {
       el.style.background = '';
       el.style.webkitBackgroundClip = '';
       el.style.webkitTextFillColor = '';
       el.style.backgroundClip = '';
+      el.style.backgroundSize = '';
+      el.style.animation = '';
       el.style.color = color;
     }
   }

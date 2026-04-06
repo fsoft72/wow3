@@ -81,6 +81,7 @@ export class VisualClip extends Clip {
         properties: {
           srtMediaId: null, srtUrl: '',
           colorPrev: '#888888', colorCurrent: '#ff9800', colorNext: '#888888',
+          highlightAnimationSpeed: 0, highlightAnimationType: 'pingpong',
           font: { family: 'Roboto', size: 36, weight: 'bold', alignment: 'center' }
         }
       }

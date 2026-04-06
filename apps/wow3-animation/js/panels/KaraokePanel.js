@@ -146,9 +146,11 @@ export class KaraokePanel {
     });
 
     // Highlight color (gradient — for current line)
-    PanelUtils.bindGradientPicker('karaoke-highlight-gradient-selector', element.properties.colorCurrent, (value) => {
+    PanelUtils.bindGradientPicker('karaoke-highlight-gradient-selector', element.properties.colorCurrent, (value, animationSpeed, animationType) => {
       updateProperty('properties.colorCurrent', value);
-    });
+      updateProperty('properties.highlightAnimationSpeed', animationSpeed);
+      updateProperty('properties.highlightAnimationType', animationType);
+    }, element.properties.highlightAnimationSpeed, element.properties.highlightAnimationType);
 
     // Font weight
     document.querySelectorAll('#font-weight .icon-toggle-btn').forEach(btn => {
