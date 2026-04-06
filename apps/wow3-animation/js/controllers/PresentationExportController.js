@@ -300,13 +300,16 @@ export class PresentationExportController {
    * @private
    */
   async _drawSlideFrame(slideCanvas, exportCtx, width, height) {
-    const rect = slideCanvas.getBoundingClientRect();
-    const scale = rect.width > 0 ? width / rect.width : 1;
-
     const captured = await html2canvas(slideCanvas, {
-      scale,
-      width: rect.width || width,
-      height: rect.height || height,
+      scale: 1,
+      width,
+      height,
+      x: 0,
+      y: 0,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: width,
+      windowHeight: height,
       useCORS: true,
       logging: false,
       foreignObjectRendering: true,
@@ -314,17 +317,24 @@ export class PresentationExportController {
       onclone: (clonedDoc) => {
         const clonedSlide = clonedDoc.getElementById(slideCanvas.id);
         if (!clonedSlide) return;
+        clonedDoc.documentElement.style.margin = '0';
+        clonedDoc.documentElement.style.padding = '0';
+        clonedDoc.body.innerHTML = '';
+        clonedDoc.body.style.margin = '0';
+        clonedDoc.body.style.padding = '0';
+        clonedDoc.body.style.width = `${width}px`;
+        clonedDoc.body.style.height = `${height}px`;
+        clonedDoc.body.style.overflow = 'hidden';
+        clonedDoc.body.style.background = 'transparent';
 
-        const clonedWrapper = clonedDoc.getElementById('canvas-wrapper');
-        if (clonedWrapper) {
-          clonedWrapper.style.transform = 'none';
-          clonedWrapper.style.width = `${width}px`;
-          clonedWrapper.style.height = `${height}px`;
-          clonedWrapper.style.boxShadow = 'none';
-        }
-
+        clonedDoc.body.appendChild(clonedSlide);
+        clonedSlide.style.position = 'absolute';
+        clonedSlide.style.left = '0';
+        clonedSlide.style.top = '0';
         clonedSlide.style.width = `${width}px`;
         clonedSlide.style.height = `${height}px`;
+        clonedSlide.style.margin = '0';
+        clonedSlide.style.transform = 'none';
         clonedSlide.querySelectorAll(
           '.resize-handle, .rotate-handle, .crop-handle, .crop-corner'
         ).forEach((handle) => { handle.style.display = 'none'; });
