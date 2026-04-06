@@ -371,3 +371,85 @@ body {
   pointer-events: none;
   z-index: 10000;
 }
+
+/* ── JSON Editor Modal ── */
+#json-editor-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 99999;
+  align-items: center;
+  justify-content: center;
+}
+#json-editor-modal.open { display: flex; }
+
+#json-editor-dialog {
+  display: flex;
+  flex-direction: column;
+  width: 90vw;
+  height: 88vh;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+#json-editor-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+#json-editor-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+#json-editor-title .material-icons { font-size: 18px; color: var(--color-accent); }
+#json-editor-status {
+  flex: 1;
+  font-size: 12px;
+  font-style: italic;
+}
+#json-editor-status.ok  { color: #3fb950; }
+#json-editor-status.error { color: #f85149; }
+#json-editor-actions { display: flex; gap: 8px; }
+
+.json-btn {
+  padding: 5px 14px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.json-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
+.json-btn-primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #0d1117;
+  font-weight: 600;
+}
+.json-btn-primary:hover { background: #79c0ff; border-color: #79c0ff; color: #0d1117; }
+.json-btn-primary:disabled {
+  background: var(--color-border);
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+#json-editor-body {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+#json-editor-body .cm-editor { height: 100%; }
+#json-editor-body .cm-scroller { overflow: auto; }
