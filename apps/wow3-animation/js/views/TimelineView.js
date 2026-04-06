@@ -29,6 +29,11 @@ export class TimelineView {
     appEvents.on(AppEvents.SLIDE_UPDATED, () => this.render());
 
     this._timelineBody.addEventListener('click', this._onBodyClick.bind(this));
+
+    // Ruler click + scrub
+    this._timeRuler.addEventListener('mousedown', (e) => {
+      this._onRulerMouseDown(e);
+    });
   }
 
   /**
@@ -232,6 +237,29 @@ export class TimelineView {
     }
     this.timeline.selectClip(null);
     this.render();
+  }
+
+  /** @private */
+  _onRulerMouseDown(e) {
+    const rect = this._timelineBody.getBoundingClientRect();
+    const scrollLeft = this._timelineBody.scrollLeft;
+
+    const setTime = (clientX) => {
+      const x = clientX - rect.left + scrollLeft;
+      const timeMs = Math.max(0, x / this.timeline.pxPerMs);
+      this.timeline.seekTo(timeMs);
+    };
+
+    setTime(e.clientX);
+
+    const onMouseMove = (ev) => setTime(ev.clientX);
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
   }
 
   /**
