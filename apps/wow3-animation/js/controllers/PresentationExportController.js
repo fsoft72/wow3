@@ -71,12 +71,16 @@ export class PresentationExportController {
     const audioNodes = [];
 
     try {
-      toast.info('Export started');
+      toast.info('Preloading assets…');
 
       if (this.playback.isPlaying) {
         this.playback.pause();
       }
       this.clipController.deselectAll();
+
+      await this._preloadAssets(project);
+      toast.info('Export started');
+
       this.canvasRenderer.clear();
       this.canvasRenderer.setExportMode(true);
 
@@ -511,6 +515,76 @@ export class PresentationExportController {
     this.timeline.currentTimeMs = Math.max(0, timeMs);
     this.canvasRenderer.renderAtCurrentTime();
     await this._nextPaint();
+  }
+
+  /**
+   * Preload all media assets (images, video, audio) used in the project
+   * so they are warm in the browser cache before frame capture starts.
+   * @param {import('../models/Project.js').Project} project
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _preloadAssets(project) {
+    const imageUrls = new Set();
+    const audioSrcs = new Set();
+
+    for (const track of project.tracks) {
+      if (track.visible === false) continue;
+
+      for (const clip of track.clips) {
+        if (track.type === 'visual') {
+          const url = clip.properties?.url;
+          if (url && url.startsWith('media_')) {
+            imageUrls.add(url);
+          }
+          // Text element background images
+          const bgUrl = clip.properties?.backgroundImage?.url;
+          if (bgUrl && bgUrl.startsWith('media_')) {
+            imageUrls.add(bgUrl);
+          }
+        }
+
+        if (track.type === 'audio') {
+          const src = clip.mediaId || clip.src || clip.properties?.url;
+          if (src) audioSrcs.add(src);
+        }
+      }
+    }
+
+    const promises = [];
+
+    // Preload images: resolve data URL from MediaDB, then decode into browser cache
+    if (window.MediaDB) {
+      for (const mediaId of imageUrls) {
+        promises.push(
+          window.MediaDB.getMediaDataURL(mediaId)
+            .then((dataURL) => {
+              if (!dataURL) return;
+              return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = resolve;
+                img.onerror = resolve;
+                img.src = dataURL;
+              });
+            })
+            .catch(() => {})
+        );
+      }
+    }
+
+    // Preload audio buffers (need a temporary AudioContext for decoding)
+    if (audioSrcs.size > 0) {
+      const tmpCtx = new AudioContext();
+      for (const src of audioSrcs) {
+        promises.push(this._getAudioBuffer(tmpCtx, src).catch(() => {}));
+      }
+      // Close the temp context after all decodes finish (buffers stay in our cache)
+      promises.push(
+        Promise.allSettled(promises.slice()).then(() => tmpCtx.close()).catch(() => {})
+      );
+    }
+
+    await Promise.allSettled(promises);
   }
 
   /**
