@@ -82,6 +82,24 @@ class WOW3AnimationApp {
   /** @private */
   _initUI() {
     this.timelineView = new TimelineView(this.timeline);
+
+    this.timelineView.onClipDropped = (type, trackId, timeMs) => {
+      if (type === 'audio') {
+        const clip = new AudioClip({
+          name: 'Audio',
+          startMs: timeMs,
+          endMs: timeMs + 10000
+        });
+        this.timeline.addClipToTrack(clip, trackId);
+      } else {
+        const clip = VisualClip.createDefault(type, { startMs: timeMs, endMs: timeMs + 5000 });
+        this.timeline.addClipToTrack(clip, trackId);
+      }
+      this.canvasRenderer.renderAtCurrentTime();
+      this.timelineView.render();
+      this._updateDurationDisplay();
+    };
+
     this.timelineView.render();
     this._bindToolbar();
     this._updateTitleInput();
@@ -170,6 +188,21 @@ class WOW3AnimationApp {
       this.timelineView.render();
       this._updateDurationDisplay();
     });
+
+    // Make toolbar buttons draggable
+    const makeDraggable = (btnId, type) => {
+      const btn = document.getElementById(btnId);
+      btn.draggable = true;
+      btn.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('application/wow-clip-type', type);
+        e.dataTransfer.effectAllowed = 'copy';
+      });
+    };
+    makeDraggable('btn-add-text', 'text');
+    makeDraggable('btn-add-image', 'image');
+    makeDraggable('btn-add-video', 'video');
+    makeDraggable('btn-add-shape', 'shape');
+    makeDraggable('btn-add-audio', 'audio');
   }
 
   /** @private */

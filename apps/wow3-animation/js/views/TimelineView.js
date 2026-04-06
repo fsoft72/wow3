@@ -20,6 +20,13 @@ export class TimelineView {
     this._playhead       = document.getElementById('playhead');
     this._timelineBody   = document.getElementById('timeline-body');
 
+    /**
+     * Callback for when a clip is dropped on the timeline.
+     * Set by app.js.
+     * @type {Function|null}
+     */
+    this.onClipDropped = null;
+
     this._bindEvents();
   }
 
@@ -190,6 +197,28 @@ export class TimelineView {
       row.className = 'track-row' + (track.type === 'audio' ? ' audio-track' : '');
       row.dataset.trackId = track.id;
       row.style.height = h + 'px';
+
+      // Drop from toolbar
+      row.addEventListener('dragover', (e) => {
+        if (!e.dataTransfer.types.includes('application/wow-clip-type')) return;
+        e.preventDefault();
+        row.classList.add('drag-over');
+      });
+      row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+      row.addEventListener('drop', (e) => {
+        row.classList.remove('drag-over');
+        const type = e.dataTransfer.getData('application/wow-clip-type');
+        if (!type) return;
+        e.preventDefault();
+
+        // Calculate drop time from x position
+        const rect = this._tracksContainer.getBoundingClientRect();
+        const scrollLeft = this._timelineBody.scrollLeft;
+        const x = e.clientX - rect.left + scrollLeft;
+        const timeMs = Math.max(0, x / this.timeline.pxPerMs);
+
+        if (this.onClipDropped) this.onClipDropped(type, track.id, timeMs);
+      });
 
       for (const clip of track.clips) {
         row.appendChild(this._createClipElement(clip));
