@@ -1,8 +1,16 @@
 import { appEvents, AppEvents } from '@wow/core/utils/events.js';
 import { TextPanel, ImagePanel, VideoPanel, AudioPanel } from '@wow/core/panels';
+import { ANIMATION_DEFINITIONS, ANIMATION_CATEGORY, getDefinitionsForCategory } from '@wow/core/animations';
 import { KaraokePanel } from '../panels/KaraokePanel.js';
 import { formatTime, parseTime } from '../utils/time.js';
 import { fetchMediaArrayBuffer } from '../utils/media.js';
+
+const IN_EFFECTS  = [{ key: '', label: 'None' }, ...getDefinitionsForCategory(ANIMATION_CATEGORY.BUILD_IN)];
+const OUT_EFFECTS = [{ key: '', label: 'None' }, ...getDefinitionsForCategory(ANIMATION_CATEGORY.BUILD_OUT)];
+const EASING_OPTIONS = [
+  'ease', 'ease-in', 'ease-out', 'ease-in-out', 'linear',
+  'ease-in-back', 'ease-out-back', 'ease-in-out-back'
+];
 
 /**
  * PropertiesPanel — right sidebar.
@@ -84,6 +92,9 @@ export class PropertiesPanel {
           </button>
         </div>` : ''}
       </div>`;
+
+      // ── FX section ──
+      html += this._renderFxSection(clip);
     }
 
     if (clip.type === 'audio') {
@@ -127,6 +138,7 @@ export class PropertiesPanel {
     this._bindTimingInputs(clip);
     this._bindPositionInputs(clip);
     this._bindAudioInputs(clip);
+    this._bindFxInputs(clip);
   }
 
   /**
@@ -253,6 +265,103 @@ export class PropertiesPanel {
     } catch (err) {
       console.error('Failed to get audio duration:', err);
     }
+  }
+
+  /**
+   * Render the FX section HTML for a visual clip.
+   * @param {import('../models/VisualClip.js').VisualClip} clip
+   * @returns {string}
+   * @private
+   */
+  _renderFxSection(clip) {
+    const inName  = clip.inAnimation?.name  ?? '';
+    const inDur   = clip.inAnimation?.duration  ?? 600;
+    const inEase  = clip.inAnimation?.easing  ?? 'ease-out';
+    const outName = clip.outAnimation?.name ?? '';
+    const outDur  = clip.outAnimation?.duration ?? 600;
+    const outEase = clip.outAnimation?.easing ?? 'ease-in';
+
+    const inOptions  = IN_EFFECTS.map(e =>
+      `<option value="${e.key}" ${e.key === inName  ? 'selected' : ''}>${e.label}</option>`).join('');
+    const outOptions = OUT_EFFECTS.map(e =>
+      `<option value="${e.key}" ${e.key === outName ? 'selected' : ''}>${e.label}</option>`).join('');
+    const easingOpts = (selected) => EASING_OPTIONS.map(e =>
+      `<option value="${e}" ${e === selected ? 'selected' : ''}>${e}</option>`).join('');
+
+    return `<div class="props-section">
+      <div class="props-section-title">FX</div>
+      <div class="props-row"><label class="fx-label">In</label>
+        <select id="fx-in-name" class="props-select fx-select">${inOptions}</select>
+      </div>
+      <div id="fx-in-opts" class="${inName ? '' : 'fx-hidden'} fx-subopts">
+        <div class="props-row">
+          <label>Duration</label>
+          <input type="number" id="fx-in-dur" class="props-input" value="${inDur}" min="100" max="5000" step="100">
+          <span class="fx-unit">ms</span>
+        </div>
+        <div class="props-row">
+          <label>Easing</label>
+          <select id="fx-in-ease" class="props-select">${easingOpts(inEase)}</select>
+        </div>
+      </div>
+      <div class="props-row"><label class="fx-label">Out</label>
+        <select id="fx-out-name" class="props-select fx-select">${outOptions}</select>
+      </div>
+      <div id="fx-out-opts" class="${outName ? '' : 'fx-hidden'} fx-subopts">
+        <div class="props-row">
+          <label>Duration</label>
+          <input type="number" id="fx-out-dur" class="props-input" value="${outDur}" min="100" max="5000" step="100">
+          <span class="fx-unit">ms</span>
+        </div>
+        <div class="props-row">
+          <label>Easing</label>
+          <select id="fx-out-ease" class="props-select">${easingOpts(outEase)}</select>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  /** @private */
+  _bindFxInputs(clip) {
+    if (clip.type !== 'visual') return;
+
+    const inName  = document.getElementById('fx-in-name');
+    const inDur   = document.getElementById('fx-in-dur');
+    const inEase  = document.getElementById('fx-in-ease');
+    const outName = document.getElementById('fx-out-name');
+    const outDur  = document.getElementById('fx-out-dur');
+    const outEase = document.getElementById('fx-out-ease');
+    const inOpts  = document.getElementById('fx-in-opts');
+    const outOpts = document.getElementById('fx-out-opts');
+
+    const updateIn = () => {
+      const name = inName.value;
+      clip.inAnimation = name ? {
+        name,
+        duration: parseInt(inDur?.value) || 600,
+        easing: inEase?.value || 'ease-out'
+      } : null;
+      inOpts.classList.toggle('fx-hidden', !name);
+      this.timeline.project.touch();
+    };
+
+    const updateOut = () => {
+      const name = outName.value;
+      clip.outAnimation = name ? {
+        name,
+        duration: parseInt(outDur?.value) || 600,
+        easing: outEase?.value || 'ease-in'
+      } : null;
+      outOpts.classList.toggle('fx-hidden', !name);
+      this.timeline.project.touch();
+    };
+
+    inName?.addEventListener('change', updateIn);
+    inDur?.addEventListener('change', updateIn);
+    inEase?.addEventListener('change', updateIn);
+    outName?.addEventListener('change', updateOut);
+    outDur?.addEventListener('change', updateOut);
+    outEase?.addEventListener('change', updateOut);
   }
 
   /** @private */

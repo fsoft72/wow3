@@ -1,5 +1,6 @@
 import { appEvents, AppEvents } from '@wow/core/utils/events.js';
 import { TextElement, ImageElement, VideoElement, AudioElement, ShapeElement } from '@wow/core/models';
+import { ANIMATION_DEFINITIONS } from '@wow/core/animations';
 import { KaraokeElement } from '../models/KaraokeElement.js';
 import { parseSRT } from '../utils/srt-parser.js';
 import { fetchMediaText } from '../utils/media.js';
@@ -25,6 +26,12 @@ export class CanvasRenderer {
     this.timeline = timeline;
     /** @type {Map<string, import('@wow/core/models/Element.js').Element>} clipId → Element */
     this._activeElements = new Map();
+    /**
+     * Clips whose out-animation is currently playing.
+     * clipId → { element, dom, waapi: Animation }
+     * @type {Map<string, {element: *, dom: HTMLElement, waapi: Animation|null}>}
+     */
+    this._exitingElements = new Map();
     /** @type {HTMLElement} */
     this._canvas = document.getElementById('slide-canvas');
     /** @type {Function|null} onElementCreated callback — set by ClipController */
@@ -62,16 +69,24 @@ export class CanvasRenderer {
         if (!clip.isActiveAt(timeMs)) continue;
         activeClipIds.add(clip.id);
 
+        // If this clip was in the middle of an out-animation (e.g. seek back), cancel it
+        if (this._exitingElements.has(clip.id)) {
+          const exiting = this._exitingElements.get(clip.id);
+          exiting.waapi?.cancel();
+          exiting.dom.remove();
+          this._exitingElements.delete(clip.id);
+        }
+
         if (!this._activeElements.has(clip.id)) {
-          // New clip appeared: create Element and render
           const element = this._createElementFromClip(clip);
           this._activeElements.set(clip.id, element);
           const dom = element.render(this._getZIndex(project, track));
           this._canvas.appendChild(dom);
 
-          if (this.onElementCreated) {
-            this.onElementCreated(clip, element, dom);
-          }
+          if (this.onElementCreated) this.onElementCreated(clip, element, dom);
+
+          // Play in-animation
+          if (clip.inAnimation?.name) this._playInAnimation(dom, clip.inAnimation);
         }
       }
     }
@@ -80,11 +95,20 @@ export class CanvasRenderer {
     for (const [clipId, element] of this._activeElements) {
       if (activeClipIds.has(clipId)) continue;
       const dom = document.getElementById(element.id);
-      if (dom) dom.remove();
       this._activeElements.delete(clipId);
-      if (this.onElementRemoved) {
-        this.onElementRemoved(clipId, element);
+
+      const clip = this._findClipById(clipId);
+      if (dom && clip?.outAnimation?.name && !this._exitingElements.has(clipId)) {
+        // Keep DOM alive for out-animation duration, then remove
+        const waapi = this._playOutAnimation(dom, clip.outAnimation, () => {
+          dom.remove();
+          this._exitingElements.delete(clipId);
+        });
+        this._exitingElements.set(clipId, { element, dom, waapi });
+      } else {
+        if (dom) dom.remove();
       }
+      if (this.onElementRemoved) this.onElementRemoved(clipId, element);
     }
 
     // Sync z-index for all active elements to reflect current track order
@@ -232,11 +256,17 @@ export class CanvasRenderer {
    * Clear all rendered elements from canvas.
    */
   clear() {
-    for (const [clipId, element] of this._activeElements) {
+    for (const [, element] of this._activeElements) {
       const dom = document.getElementById(element.id);
       if (dom) dom.remove();
     }
     this._activeElements.clear();
+
+    for (const [, { dom, waapi }] of this._exitingElements) {
+      waapi?.cancel();
+      dom.remove();
+    }
+    this._exitingElements.clear();
   }
 
   /**
@@ -293,6 +323,52 @@ export class CanvasRenderer {
       properties: structuredClone(clip.properties),
       name: clip.name || clip.elementType
     });
+  }
+
+  /**
+   * Play in-animation on a DOM element using WAAPI.
+   * @param {HTMLElement} dom
+   * @param {{name: string, duration: number, easing: string}} cfg
+   * @private
+   */
+  _playInAnimation(dom, cfg) {
+    const def = ANIMATION_DEFINITIONS[cfg.name];
+    if (!def) return;
+    dom.animate(def.keyframes, {
+      duration: cfg.duration ?? def.options.duration,
+      easing: cfg.easing ?? def.options.easing,
+      fill: 'backwards'
+    });
+  }
+
+  /**
+   * Play out-animation on a DOM element and call onDone when finished.
+   * @param {HTMLElement} dom
+   * @param {{name: string, duration: number, easing: string}} cfg
+   * @param {Function} onDone
+   * @returns {Animation}
+   * @private
+   */
+  _playOutAnimation(dom, cfg, onDone) {
+    const def = ANIMATION_DEFINITIONS[cfg.name];
+    if (!def) { onDone(); return null; }
+    const anim = dom.animate(def.keyframes, {
+      duration: cfg.duration ?? def.options.duration,
+      easing: cfg.easing ?? def.options.easing,
+      fill: 'forwards'
+    });
+    anim.onfinish = onDone;
+    return anim;
+  }
+
+  /** @private */
+  _findClipById(clipId) {
+    return this.timeline.project.findClip(clipId).clip;
+  }
+
+  /** @private */
+  _findClip(clipId) {
+    return this._findClipById(clipId);
   }
 
   /** @private */
