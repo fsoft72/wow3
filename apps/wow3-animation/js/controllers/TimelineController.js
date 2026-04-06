@@ -83,6 +83,26 @@ export class TimelineController {
   }
 
   /**
+   * Removes a clip by id from its track.
+   * @param {string} clipId
+   */
+  removeClip(clipId) {
+    for (const track of this.project.tracks) {
+      const idx = track.clips.findIndex(c => c.id === clipId);
+      if (idx !== -1) {
+        track.clips.splice(idx, 1);
+        if (this.selectedClipId === clipId) {
+          this.selectedClipId = null;
+          this.selectedTrackId = null;
+        }
+        this.project.touch();
+        appEvents.emit(AppEvents.SLIDE_UPDATED);
+        return;
+      }
+    }
+  }
+
+  /**
    * Finds a clip and its parent track by clip id.
    * @param {string} clipId
    * @returns {{track: import('../models/Track.js').Track|null, clip: import('../models/Clip.js').Clip|null}}

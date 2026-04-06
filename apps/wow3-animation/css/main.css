@@ -171,3 +171,64 @@ body {
   pointer-events: none;
   z-index: 20;
 }
+
+/* ── Canvas element selection ── */
+#slide-canvas .element { cursor: pointer; }
+#slide-canvas .element.selected { outline: 2px solid var(--color-accent); outline-offset: 0; }
+
+/* ── Resize handles ── */
+.resize-handle {
+  position: absolute;
+  width: 8px; height: 8px;
+  background: #fff;
+  border: 1px solid var(--color-accent);
+  border-radius: 2px;
+  z-index: 9999;
+}
+.resize-handle.nw { top: -4px; left: -4px; cursor: nw-resize; }
+.resize-handle.n  { top: -4px; left: 50%; margin-left: -4px; cursor: n-resize; }
+.resize-handle.ne { top: -4px; right: -4px; cursor: ne-resize; }
+.resize-handle.e  { top: 50%; margin-top: -4px; right: -4px; cursor: e-resize; }
+.resize-handle.se { bottom: -4px; right: -4px; cursor: se-resize; }
+.resize-handle.s  { bottom: -4px; left: 50%; margin-left: -4px; cursor: s-resize; }
+.resize-handle.sw { bottom: -4px; left: -4px; cursor: sw-resize; }
+.resize-handle.w  { top: 50%; margin-top: -4px; left: -4px; cursor: w-resize; }
+
+/* ── Rotate handle ── */
+.rotate-handle {
+  position: absolute;
+  top: -28px; left: 50%;
+  margin-left: -6px;
+  width: 12px; height: 12px;
+  background: var(--color-accent);
+  border: 1px solid #fff;
+  border-radius: 50%;
+  cursor: grab;
+  z-index: 9999;
+}
+.rotate-handle::before {
+  content: '';
+  position: absolute;
+  top: 12px; left: 5px;
+  width: 1px; height: 16px;
+  background: var(--color-accent);
+}
+
+/* ── Alignment guides ── */
+#alignment-guides .alignment-guide {
+  position: absolute;
+  background: #ff4081;
+  z-index: 10000;
+  pointer-events: none;
+}
+#alignment-guides .alignment-guide.horizontal { height: 1px; left: 0; right: 0; }
+#alignment-guides .alignment-guide.vertical { width: 1px; top: 0; bottom: 0; }
+
+/* ── Marquee selection ── */
+.selection-box {
+  position: absolute;
+  border: 1px dashed var(--color-accent);
+  background: rgba(88, 166, 255, 0.08);
+  pointer-events: none;
+  z-index: 10000;
+}

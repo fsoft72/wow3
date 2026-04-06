@@ -1,10 +1,14 @@
+import { appEvents, AppEvents } from '@wow/core/utils/events.js';
+
 import { Project } from './models/Project.js';
 import { TimelineController } from './controllers/TimelineController.js';
 import { PlaybackEngine } from './controllers/PlaybackEngine.js';
+import { ClipController } from './controllers/ClipController.js';
 import { TimelineView } from './views/TimelineView.js';
+import { CanvasRenderer } from './views/CanvasRenderer.js';
 
 /**
- * WOW3AnimationApp - main application bootstrap.
+ * WOW3AnimationApp — main application bootstrap.
  */
 class WOW3AnimationApp {
   constructor() {
@@ -14,26 +18,27 @@ class WOW3AnimationApp {
     this.timeline = null;
     /** @type {PlaybackEngine} */
     this.playback = null;
+    /** @type {ClipController} */
+    this.clipController = null;
+    /** @type {CanvasRenderer} */
+    this.canvasRenderer = null;
     /** @type {TimelineView} */
     this.timelineView = null;
   }
 
-  /**
-   * Initialize the app.
-   */
   async init() {
     this._initProject();
     this._initControllers();
+    this._initCanvas();
     this._initUI();
+    this._setupGlobals();
     this._bindKeyboard();
     console.log('WOW3 Animation Editor initialized');
   }
 
   /** @private */
   _initProject() {
-    // TODO: load from IndexedDB if available
     this.project = new Project({ title: 'Untitled Project', orientation: 'landscape' });
-    // Add default tracks
     this.project.addTrack('visual');
     this.project.addTrack('audio');
   }
@@ -45,13 +50,48 @@ class WOW3AnimationApp {
   }
 
   /** @private */
-  _initUI() {
+  _initCanvas() {
     this._scaleCanvas();
+
+    this.canvasRenderer = new CanvasRenderer(this.timeline);
+    this.clipController = new ClipController(this.timeline, this.canvasRenderer);
+    this.clipController.init();
+
+    // Click on canvas background deselects
+    const canvas = document.getElementById('slide-canvas');
+    canvas.addEventListener('click', (e) => {
+      if (e.target === canvas) {
+        this.clipController.deselectAll();
+      }
+    });
+  }
+
+  /** @private */
+  _initUI() {
     this.timelineView = new TimelineView(this.timeline);
     this.timelineView.render();
     this._bindToolbar();
     this._updateTitleInput();
     this._updateDurationDisplay();
+
+    appEvents.on(AppEvents.PLAYHEAD_MOVED, () => this._updateTimeDisplay());
+  }
+
+  /**
+   * Set up window.app global for wow-core panel compatibility.
+   * Panels call window.app.editor.elementController.updateElementProperty().
+   * @private
+   */
+  _setupGlobals() {
+    window.app = {
+      editor: {
+        elementController: this.clipController,
+        recordHistory: () => {},
+        getActiveSlide: () => this.clipController.editor.getActiveSlide(),
+        uiManager: this.clipController.editor.uiManager,
+        presentation: this.clipController.editor.presentation
+      }
+    };
   }
 
   /** @private */
@@ -65,10 +105,12 @@ class WOW3AnimationApp {
     const areaH = area.clientHeight - 32;
     const scale = Math.min(areaW / width, areaH / height, 1);
 
-    canvas.style.width  = width  + 'px';
+    canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
+    wrapper.style.width = (width * scale) + 'px';
+    wrapper.style.height = (height * scale) + 'px';
     wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.transformOrigin = 'center center';
+    wrapper.style.transformOrigin = 'top left';
   }
 
   /** @private */
@@ -104,40 +146,50 @@ class WOW3AnimationApp {
   /** @private */
   _updateDurationDisplay() {
     const dur = this.project.getEffectiveDuration();
-    const el = document.getElementById('playback-duration');
-    el.textContent = '/ ' + this._formatTime(dur);
+    document.getElementById('playback-duration').textContent = '/ ' + this._formatTime(dur);
+  }
+
+  /** @private */
+  _updateTimeDisplay() {
+    document.getElementById('playback-time').textContent =
+      this._formatTime(this.timeline.currentTimeMs);
   }
 
   /** @private */
   _bindKeyboard() {
-    document.addEventListener('keydown', e => {
+    document.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
       if (e.code === 'Space') {
         e.preventDefault();
         this.playback.toggle();
-        const icon = document.getElementById('btn-play').querySelector('i');
-        icon.textContent = this.playback.isPlaying ? 'pause' : 'play_arrow';
+        document.getElementById('btn-play').querySelector('i').textContent =
+          this.playback.isPlaying ? 'pause' : 'play_arrow';
+      }
+
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const clipId = this.timeline.selectedClipId;
+        if (clipId) {
+          this.timeline.removeClip(clipId);
+          this.clipController.deselectAll();
+          this.canvasRenderer.renderAtCurrentTime();
+          this.timelineView.render();
+        }
       }
     });
   }
 
   /**
-   * Formats ms as hh:mm:ss.fff
    * @param {number} ms
-   * @returns {string}
+   * @returns {string} hh:mm:ss.fff
    */
   _formatTime(ms) {
     const totalS = Math.floor(ms / 1000);
     const h = Math.floor(totalS / 3600);
     const m = Math.floor((totalS % 3600) / 60);
     const s = totalS % 60;
-    const frac = String(ms % 1000).padStart(3, '0');
-    return [
-      String(h).padStart(2, '0'),
-      String(m).padStart(2, '0'),
-      String(s).padStart(2, '0')
-    ].join(':') + '.' + frac;
+    const frac = String(Math.floor(ms % 1000)).padStart(3, '0');
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${frac}`;
   }
 }
 
