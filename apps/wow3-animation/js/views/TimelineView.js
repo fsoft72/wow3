@@ -302,10 +302,13 @@ export class TimelineView {
 
   /** @private */
   _initClipDrag(clipEl, clip) {
-    let startX, startMs;
+    let startX, startMs, hasMoved;
 
     const onMouseMove = (e) => {
       const dx = e.clientX - startX;
+      if (Math.abs(dx) < 3 && !hasMoved) return;
+      hasMoved = true;
+
       const dMs = dx / this.timeline.pxPerMs;
       let newStart = Math.max(0, startMs + dMs);
 
@@ -325,7 +328,8 @@ export class TimelineView {
       document.removeEventListener('mouseup', onMouseUp);
       clipEl.classList.remove('dragging');
       this._isDragging = false;
-      this.render();
+      // Only re-render if there was actual movement (preserves DOM for dblclick)
+      if (hasMoved) this.render();
     };
 
     clipEl.addEventListener('mousedown', (e) => {
@@ -333,6 +337,7 @@ export class TimelineView {
       e.stopPropagation();
       startX = e.clientX;
       startMs = clip.startMs;
+      hasMoved = false;
       clipEl.classList.add('dragging');
       this._isDragging = true;
 
