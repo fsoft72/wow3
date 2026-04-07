@@ -689,53 +689,23 @@ class WOW3AnimationApp {
     });
 
     /**
-     * Resolve a media source to a fetchable URL.
-     * Media IDs (media_xxx) are resolved via MediaDB, others returned as-is.
-     * @param {string} src
-     * @returns {Promise<string|null>}
+     * Fetch a URL (or MediaDB ID) and return a blob URL that resolves
+     * instantly from memory. Used by preloadAssets to avoid double-fetching.
+     * @param {string} src - media ID or external URL
+     * @returns {Promise<string>} blob URL
      */
-    async function _resolveMediaUrl(src) {
+    async function _fetchAsBlobUrl(src) {
+      let resp;
       if (src.startsWith('media_') && window.MediaDB) {
         const dataURL = await window.MediaDB.getMediaDataURL(src);
-        return dataURL || null;
+        if (!dataURL) throw new Error(`media not found: ${src}`);
+        resp = await fetch(dataURL);
+      } else {
+        resp = await fetch(src);
       }
-      return src;
-    }
-
-    /**
-     * Preload an image or video into the browser cache.
-     * @param {string} src - media ID or URL
-     * @param {'image'|'video'} type
-     * @returns {Promise<void>}
-     */
-    async function _preloadMedia(src, type) {
-      const url = await _resolveMediaUrl(src);
-      if (!url) return;
-
-      if (type === 'image') {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = resolve;
-          img.onerror = reject;
-          img.src = url;
-        });
-      }
-
-      // video: fetch the data so the browser has it cached
-      const resp = await fetch(url);
-      await resp.arrayBuffer();
-    }
-
-    /**
-     * Fetch a resource (audio, SRT, etc.) so it's in browser/network cache.
-     * @param {string} src - media ID or URL
-     * @returns {Promise<void>}
-     */
-    async function _preloadFetch(src) {
-      const url = await _resolveMediaUrl(src);
-      if (!url) return;
-      const resp = await fetch(url);
-      await resp.arrayBuffer();
+      if (!resp.ok) throw new Error(`HTTP ${resp.status} for ${src}`);
+      const blob = await resp.blob();
+      return URL.createObjectURL(blob);
     }
 
     window.__wow3 = {
@@ -785,7 +755,11 @@ class WOW3AnimationApp {
        */
       async preloadAssets() {
         const project = self.project;
-        /** @type {Array<{name: string, promise: Promise}>} */
+        /**
+         * Each task fetches one asset and, on success, patches the clip
+         * property to a blob URL so downstream code never re-fetches.
+         * @type {Array<{name: string, promise: Promise}>}
+         */
         const tasks = [];
 
         for (const track of project.tracks) {
@@ -795,17 +769,32 @@ class WOW3AnimationApp {
               const url = clip.properties?.url;
               if (url && (clip.elementType === 'image' || clip.elementType === 'video')) {
                 const name = clip.name || url;
-                tasks.push({ name, promise: _preloadMedia(url, clip.elementType) });
+                tasks.push({
+                  name,
+                  promise: _fetchAsBlobUrl(url).then(blobUrl => {
+                    clip.properties.url = blobUrl;
+                  })
+                });
               }
               // Text background images
               const bgUrl = clip.properties?.backgroundImage?.url;
               if (bgUrl) {
-                tasks.push({ name: bgUrl, promise: _preloadMedia(bgUrl, 'image') });
+                tasks.push({
+                  name: bgUrl,
+                  promise: _fetchAsBlobUrl(bgUrl).then(blobUrl => {
+                    clip.properties.backgroundImage.url = blobUrl;
+                  })
+                });
               }
               // Karaoke SRT
               if (clip.elementType === 'karaoke' && clip.properties?.srtMediaId) {
                 const src = clip.properties.srtMediaId;
-                tasks.push({ name: clip.name || src, promise: _preloadFetch(src) });
+                tasks.push({
+                  name: clip.name || src,
+                  promise: _fetchAsBlobUrl(src).then(blobUrl => {
+                    clip.properties.srtMediaId = blobUrl;
+                  })
+                });
               }
             }
 
@@ -813,7 +802,13 @@ class WOW3AnimationApp {
             if (track.type === 'audio') {
               const src = clip.mediaId || clip.src;
               if (src) {
-                tasks.push({ name: clip.name || src, promise: _preloadFetch(src) });
+                tasks.push({
+                  name: clip.name || src,
+                  promise: _fetchAsBlobUrl(src).then(blobUrl => {
+                    if (clip.mediaId) clip.mediaId = blobUrl;
+                    else clip.src = blobUrl;
+                  })
+                });
               }
             }
           }

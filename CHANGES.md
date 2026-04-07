@@ -2,6 +2,21 @@
 
 ## 2026-04-07
 
+### wow3-renderer: preload assets as blob URLs to avoid double-fetching
+
+`preloadAssets()` now downloads each asset once and converts it to a blob URL
+(`URL.createObjectURL`), then patches the clip property (url/mediaId/src) with
+the blob URL. All downstream code (ImageElement, VideoElement,
+AudioPlaybackManager, fetchMediaArrayBuffer) resolves the blob URL instantly
+from memory — no second network request, regardless of HTTP cache headers.
+
+**Modified files:**
+- `apps/wow3-animation/js/app.js` — replaced `_resolveMediaUrl`, `_preloadMedia`,
+  `_preloadFetch` with a single `_fetchAsBlobUrl` helper; `preloadAssets()` patches
+  clip properties with blob URLs after download.
+
+---
+
 ### wow3-renderer: 60fps, fix fade-in effects, strict asset preloading
 
 - Recording bumped from 24fps to 60fps.
