@@ -2,6 +2,17 @@
 
 ## 2026-04-07
 
+### wow3-renderer: Add local HTTP server for dist and .wow3a
+
+Added `startServer()` function that spins up a local HTTP server on a random
+port. It serves the pre-built wow3-animation app from `apps/wow3-animation/dist/`
+as static files via `sirv`, and exposes the input `.wow3a` file at `/input.wow3a`
+so the headless browser can fetch it.
+
+**New files:**
+- `apps/wow3-renderer/src/server.js` — HTTP server with sirv static serving and
+  .wow3a endpoint
+
 ### wow3-animation: Add player mode for headless rendering
 
 Added a "player mode" to the animation editor, triggered by `?mode=player` URL
