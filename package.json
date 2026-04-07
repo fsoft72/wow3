@@ -8,6 +8,7 @@
     "build:wow3": "pnpm --filter @wow/wow3 build",
     "build:animation": "pnpm --filter @wow/wow3-animation build",
     "build:all": "pnpm --filter '@wow/*' build",
+    "prerender": "pnpm build:animation",
     "render": "node apps/wow3-renderer/src/index.js"
   },
   "packageManager": "pnpm@10.32.1"
