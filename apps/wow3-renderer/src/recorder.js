@@ -63,8 +63,27 @@ export async function record({ port, width, height, outputPath, onProgress }) {
     log('Starting recording...');
     await recorder.start(outputPath);
 
-    // Start playback and wait for it to end
-    await page.evaluate(() => window.__wow3.play());
+    // Start playback and poll progress each second
+    const totalSec = Math.ceil(duration / 1000);
+    let lastSec = -1;
+    let finished = false;
+
+    const playPromise = page.evaluate(() => window.__wow3.play()).then(() => { finished = true; });
+
+    // Poll until playback ends
+    while (!finished) {
+      const currentMs = await page.evaluate(() => window.__wow3.currentTime);
+      const currentSec = Math.floor(currentMs / 1000);
+
+      if (currentSec > lastSec) {
+        lastSec = currentSec;
+        log(`Rendering: ${currentSec}/${totalSec}s`);
+      }
+
+      await new Promise(r => setTimeout(r, 250));
+    }
+
+    await playPromise;
 
     log('Recording complete.');
     await recorder.stop();

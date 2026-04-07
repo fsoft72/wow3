@@ -2,6 +2,17 @@
 
 ## 2026-04-07
 
+### wow3-renderer: per-second rendering progress log
+
+The recorder now logs `Rendering: N/Ts` for each second of playback, enabling
+external services to parse stdout and show a progress indicator.
+
+**Modified files:**
+- `apps/wow3-renderer/src/recorder.js` — poll `currentTime` every 250ms during
+  playback, log each new second via `onProgress` callback.
+
+---
+
 ### wow3-renderer: support external URL audio assets
 
 Audio clips can now reference external URLs (e.g. `https://easyshare.os3.services/d/...`)
