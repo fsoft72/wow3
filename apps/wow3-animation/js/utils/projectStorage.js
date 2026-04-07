@@ -114,6 +114,9 @@ export const exportProject = async (project) => {
   if (typeof JSZip === 'undefined') throw new Error('JSZip not loaded');
 
   const jsonData = JSON.parse(JSON.stringify(project.toJSON()));
+  if (jsonData.metadata) {
+    delete jsonData.metadata.mediaFolderId;
+  }
 
   // Collect all media IDs referenced
   const mediaIds = collectMediaIds(jsonData);
@@ -214,7 +217,10 @@ export const importProjectZip = async (file) => {
       try {
         const folder = await window.MediaDB.createFolder(albumName);
         folderId = folder.id;
-      } catch (_) {}
+        } catch (_) {}
+
+      jsonData.metadata = jsonData.metadata || {};
+      jsonData.metadata.mediaFolderId = folderId;
 
       for (const { relativePath, entry } of assetFiles) {
         try {

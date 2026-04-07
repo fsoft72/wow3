@@ -34,7 +34,8 @@ export class Project {
       created: props.metadata?.created ?? new Date().toISOString(),
       modified: props.metadata?.modified ?? new Date().toISOString(),
       author: props.metadata?.author ?? '',
-      version: props.metadata?.version ?? '1.0.0'
+      version: props.metadata?.version ?? '1.0.0',
+      mediaFolderId: props.metadata?.mediaFolderId ?? null
     };
 
     /** @type {Track[]} */

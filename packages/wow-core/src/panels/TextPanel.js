@@ -171,6 +171,11 @@ export class TextPanel {
     const updateProperty = (path, value) => {
       window.app.editor.elementController.updateElementProperty(path, value);
     };
+    const importSource = (value, options) => {
+      return window.app?.editor?.externalMediaImporter?.importSource
+        ? window.app.editor.externalMediaImporter.importSource(value, options)
+        : Promise.resolve(value);
+    };
 
     // Tab switching
     document.querySelectorAll('.panel-tab').forEach(tab => {
@@ -225,13 +230,16 @@ export class TextPanel {
       placeholder: 'Enter URL or media ID',
       value: element.properties.backgroundImage?.url || '',
       onMediaChange: async (value) => {
+        let storedValue = value;
         if (value instanceof File) {
           const item = await window.MediaDB.addMedia(value);
-          updateProperty('properties.backgroundImage.url', item.id);
+          storedValue = item.id;
         } else {
-          updateProperty('properties.backgroundImage.url', value);
+          storedValue = await importSource(value, { kind: 'image' });
         }
-        toggleBgControls(!!value);
+        updateProperty('properties.backgroundImage.url', storedValue);
+        toggleBgControls(!!storedValue);
+        return storedValue;
       }
     });
 

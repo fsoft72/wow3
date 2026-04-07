@@ -50,7 +50,7 @@ export class JsonEditorModal {
     this._modal.addEventListener('click', (e) => { if (e.target === this._modal) this.close(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && this._isOpen()) this.close(); });
 
-    this._applyBtn.addEventListener('click', () => this._applyJson());
+    this._applyBtn.addEventListener('click', () => void this._applyJson());
   }
 
   /** Opens the modal and loads current project JSON into the editor. */
@@ -110,7 +110,7 @@ export class JsonEditorModal {
   }
 
   /** @private */
-  _applyJson() {
+  async _applyJson() {
     const raw = this._view.state.doc.toString();
     let data;
     try {
@@ -122,7 +122,7 @@ export class JsonEditorModal {
     try {
       this.timeline.project = Project.fromJSON(data);
       this.timeline.project.touch();
-      if (this.onApply) this.onApply();
+      if (this.onApply) await Promise.resolve(this.onApply());
       this._setStatus('Applied ✓', false);
       this._applyBtn.disabled = true;
     } catch (err) {

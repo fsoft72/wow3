@@ -93,9 +93,19 @@ class ImageSelector {
     const mimePrefix = this._accept.replace('/*', '/');
 
     if (this._urlInput) {
-      this._urlInput.addEventListener('change', (e) => {
+      this._urlInput.addEventListener('change', async (e) => {
         this._value = e.target.value;
-        this._onMediaChange(this._value);
+        try {
+          const nextValue = await Promise.resolve(this._onMediaChange(this._value));
+          if (typeof nextValue === 'string') {
+            this._value = nextValue;
+            if (this._urlInput) this._urlInput.value = nextValue;
+          }
+        } catch (error) {
+          console.error('Media URL update failed:', error);
+          toast.error(`Failed to import ${this._mediaType}`);
+          if (this._urlInput) this._urlInput.value = this._value;
+        }
       });
     }
 
@@ -107,7 +117,16 @@ class ImageSelector {
           if (mediaId) {
             this._value = mediaId;
             if (this._urlInput) this._urlInput.value = mediaId;
-            this._onMediaChange(mediaId);
+            try {
+              const nextValue = await Promise.resolve(this._onMediaChange(mediaId));
+              if (typeof nextValue === 'string') {
+                this._value = nextValue;
+                if (this._urlInput) this._urlInput.value = nextValue;
+              }
+            } catch (error) {
+              console.error('Media library selection failed:', error);
+              toast.error(`Failed to update ${this._mediaType}`);
+            }
           }
         });
       });
@@ -121,7 +140,11 @@ class ImageSelector {
         if (!file) return;
         toast.info(`Uploading ${this._mediaType}...`);
         try {
-          this._onMediaChange(file);
+          const nextValue = await Promise.resolve(this._onMediaChange(file));
+          if (typeof nextValue === 'string') {
+            this._value = nextValue;
+            if (this._urlInput) this._urlInput.value = nextValue;
+          }
           toast.success(`${typeName} uploaded successfully!`);
         } catch (error) {
           console.error('Upload failed:', error);
@@ -145,7 +168,11 @@ class ImageSelector {
         if (!file || !file.type.startsWith(mimePrefix)) return;
         toast.info(`Uploading ${this._mediaType}...`);
         try {
-          this._onMediaChange(file);
+          const nextValue = await Promise.resolve(this._onMediaChange(file));
+          if (typeof nextValue === 'string') {
+            this._value = nextValue;
+            if (this._urlInput) this._urlInput.value = nextValue;
+          }
           toast.success(`${typeName} uploaded successfully!`);
         } catch (error) {
           console.error('Upload failed:', error);

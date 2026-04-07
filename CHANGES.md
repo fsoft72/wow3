@@ -2,6 +2,31 @@
 
 ## 2026-04-07
 
+### wow3-animation: import external asset URLs into the project media folder
+
+External asset URLs are now fetched once, stored in MediaDB inside a folder
+owned by the current project, and rewritten to `media_...` IDs. This makes the
+editor and player use local MediaDB-backed assets instead of repeatedly loading
+remote URLs and redirects on every canvas re-render.
+
+**Modified files:**
+- `apps/wow3-animation/js/utils/externalMedia.js` — new helper that imports
+  external URLs into the project's MediaDB folder and rewrites project refs.
+- `apps/wow3-animation/js/app.js` — normalize external URLs on editor startup,
+  JSON apply, project import, and player `loadFile()`.
+- `apps/wow3-animation/js/controllers/ClipController.js`,
+  `apps/wow3-animation/js/views/PropertiesPanel.js`,
+  `apps/wow3-animation/js/panels/KaraokePanel.js`,
+  `packages/wow-core/src/panels/TextPanel.js` — convert user-entered external
+  URLs to project-local `mediaId` values at edit time.
+- `apps/wow3-animation/js/models/Project.js`,
+  `apps/wow3-animation/js/utils/projectStorage.js`,
+  `packages/wow-core/classic/media_db.js` — persist the project media folder,
+  strip it from ZIP export, restore it on ZIP import, and allow explicit
+  non-deduped project copies when importing remote assets.
+
+---
+
 ### wow3-renderer: preload assets as blob URLs to avoid double-fetching
 
 `preloadAssets()` now downloads each asset once and converts it to a blob URL

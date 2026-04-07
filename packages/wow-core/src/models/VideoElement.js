@@ -108,14 +108,6 @@ export class VideoElement extends Element {
         video.loop = this.properties.loop;
         video.muted = this.properties.muted;
 
-        if (type === 'local') {
-          const mediaId = url.replace('local://', '');
-          this.loadFromMediaDB(video, mediaId);
-        } else {
-          // External URL
-          video.src = url;
-        }
-
         // Store aspect ratio when video loads
         video.onloadedmetadata = () => {
           if (video.videoWidth && video.videoHeight) {
@@ -126,6 +118,14 @@ export class VideoElement extends Element {
         video.onerror = () => {
           el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f5f5f5;color:#999;">Video not found</div>';
         };
+
+        if (type === 'local') {
+          const mediaId = url.replace('local://', '');
+          this.loadFromMediaDB(video, mediaId);
+        } else {
+          // External URL
+          video.src = url;
+        }
 
         let content;
 

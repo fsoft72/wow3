@@ -14,6 +14,7 @@ import { JsonEditorModal } from './components/JsonEditorModal.js';
 import { VisualClip } from './models/VisualClip.js';
 import { AudioClip } from './models/AudioClip.js';
 import { exportProject, importProject } from './utils/projectStorage.js';
+import { ingestProjectMediaSource, localizeProjectExternalMedia, renameProjectMediaFolder } from './utils/externalMedia.js';
 import { formatTime } from './utils/time.js';
 
 /**
@@ -55,6 +56,13 @@ class WOW3AnimationApp {
     this._playerMode = WOW3AnimationApp.isPlayerMode;
 
     this._initProject();
+    this._initMediaManager();
+
+    let normalizedMediaCount = 0;
+    if (!this._playerMode) {
+      normalizedMediaCount = await this._localizeProjectMedia(this.project);
+    }
+
     this._initControllers();
     this._initCanvas();
 
@@ -62,13 +70,14 @@ class WOW3AnimationApp {
       this._initUI();
       this._setupGlobals();
       this._bindKeyboard();
-      this._initMediaManager();
       this._initJsonEditor();
       this._initImportExport();
       this._startAutoSave();
+      if (normalizedMediaCount > 0) {
+        this._saveProject(true);
+      }
     } else {
       document.body.classList.add('player-mode');
-      this._initMediaManager();
     }
 
     this.canvasRenderer.renderAtCurrentTime();
@@ -89,6 +98,27 @@ class WOW3AnimationApp {
       this.project = new Project({ title: 'Untitled Project', orientation: 'landscape' });
       this.project.addTrack('visual');
       this.project.addTrack('audio');
+    }
+  }
+
+  /**
+   * Import any external media URLs into the project's MediaDB folder and
+   * rewrite clip references to media IDs.
+   * @param {Project} project
+   * @param {{throwOnError?: boolean}} [options]
+   * @returns {Promise<number>}
+   * @private
+   */
+  async _localizeProjectMedia(project, options = {}) {
+    try {
+      return await localizeProjectExternalMedia(project);
+    } catch (error) {
+      console.error('Failed to localize external project media:', error);
+      if (options.throwOnError) throw error;
+      if (!this._playerMode) {
+        alert(`Failed to import external media: ${error.message}`);
+      }
+      return 0;
     }
   }
 
@@ -315,9 +345,13 @@ class WOW3AnimationApp {
    */
   _setupGlobals() {
     const cc = this.clipController;
+    const self = this;
     window.app = {
       editor: {
         elementController: cc,
+        externalMediaImporter: {
+          importSource: (source, options) => ingestProjectMediaSource(self.project, source, options)
+        },
         // Explicit passthrough for wow-core panels that call these methods
         recordHistory: () => cc.editor.recordHistory(),
         getActiveSlide: () => cc.editor.getActiveSlide(),
@@ -329,7 +363,10 @@ class WOW3AnimationApp {
 
   /** @private */
   _initJsonEditor() {
-    this._jsonEditorModal = new JsonEditorModal(this.timeline, () => {
+    this._jsonEditorModal = new JsonEditorModal(this.timeline, async () => {
+      await this._localizeProjectMedia(this.timeline.project, { throwOnError: true });
+      this.project = this.timeline.project;
+
       // After a valid JSON is applied, rebuild all views
       this.clipController.deselectAll();
       this.canvasRenderer.clear();
@@ -337,6 +374,7 @@ class WOW3AnimationApp {
       this.timelineView.render();
       this._updateTitleInput();
       this._updateDurationDisplay();
+      this._saveProject(true);
     });
 
     document.getElementById('btn-json-editor')?.addEventListener('click', () => {
@@ -363,6 +401,7 @@ class WOW3AnimationApp {
       try {
         const jsonData = await importProject();
         const newProject = Project.fromJSON(jsonData);
+        await this._localizeProjectMedia(newProject, { throwOnError: true });
 
         // Replace current project
         this.timeline.project = newProject;
@@ -527,9 +566,10 @@ class WOW3AnimationApp {
   _updateTitleInput() {
     const input = document.getElementById('project-title-input');
     input.value = this.project.title;
-    input.addEventListener('change', () => {
+    input.addEventListener('change', async () => {
       this.project.title = input.value;
       this.project.touch();
+      await renameProjectMediaFolder(this.project);
     });
   }
 
@@ -689,23 +729,52 @@ class WOW3AnimationApp {
     });
 
     /**
-     * Fetch a URL (or MediaDB ID) and return a blob URL that resolves
-     * instantly from memory. Used by preloadAssets to avoid double-fetching.
-     * @param {string} src - media ID or external URL
-     * @returns {Promise<string>} blob URL
+     * Resolve a media source to a fetchable URL.
+     * Media IDs (media_xxx) are resolved via MediaDB, others returned as-is.
+     * @param {string} src
+     * @returns {Promise<string|null>}
      */
-    async function _fetchAsBlobUrl(src) {
-      let resp;
+    async function _resolveMediaUrl(src) {
       if (src.startsWith('media_') && window.MediaDB) {
         const dataURL = await window.MediaDB.getMediaDataURL(src);
-        if (!dataURL) throw new Error(`media not found: ${src}`);
-        resp = await fetch(dataURL);
-      } else {
-        resp = await fetch(src);
+        return dataURL || null;
       }
-      if (!resp.ok) throw new Error(`HTTP ${resp.status} for ${src}`);
-      const blob = await resp.blob();
-      return URL.createObjectURL(blob);
+      return src;
+    }
+
+    /**
+     * Preload an image or video into the browser cache.
+     * @param {string} src - media ID or URL
+     * @param {'image'|'video'} type
+     * @returns {Promise<void>}
+     */
+    async function _preloadMedia(src, type) {
+      const url = await _resolveMediaUrl(src);
+      if (!url) return;
+
+      if (type === 'image') {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = url;
+        });
+      }
+
+      const resp = await fetch(url);
+      await resp.arrayBuffer();
+    }
+
+    /**
+     * Fetch a resource (audio, SRT, etc.) so it's in browser/network cache.
+     * @param {string} src - media ID or URL
+     * @returns {Promise<void>}
+     */
+    async function _preloadFetch(src) {
+      const url = await _resolveMediaUrl(src);
+      if (!url) return;
+      const resp = await fetch(url);
+      await resp.arrayBuffer();
     }
 
     window.__wow3 = {
@@ -734,6 +803,7 @@ class WOW3AnimationApp {
         const { importProjectZip } = await import('./utils/projectStorage.js');
         const jsonData = await importProjectZip(file);
         const newProject = Project.fromJSON(jsonData);
+        await self._localizeProjectMedia(newProject, { throwOnError: true });
 
         self.timeline.project = newProject;
         self.project = newProject;
@@ -743,24 +813,30 @@ class WOW3AnimationApp {
         canvas.style.width = newProject.width + 'px';
         canvas.style.height = newProject.height + 'px';
 
-        // Don't render yet — call preloadAssets() first to patch URLs,
-        // then play() will clear + seekTo(0) + render with blob URLs.
+        // Don't render yet — call preloadAssets() first.
         self.canvasRenderer.clear();
       },
 
       /**
        * Pre-fetch all media assets (images, videos, audio) so playback
        * doesn't stall waiting for network. Call after loadFile().
-       * @returns {Promise<void>}
+       * @returns {Promise<string[]|null>}
        */
       async preloadAssets() {
         const project = self.project;
+        /** @type {Map<string, {name: string, promise: Promise<void>}>} */
+        const taskMap = new Map();
+
         /**
-         * Each task fetches one asset and, on success, patches the clip
-         * property to a blob URL so downstream code never re-fetches.
-         * @type {Array<{name: string, promise: Promise}>}
+         * Queue a preload task once per unique source/method pair.
+         * @param {string} key
+         * @param {string} name
+         * @param {() => Promise<void>} factory
          */
-        const tasks = [];
+        function queueTask(key, name, factory) {
+          if (taskMap.has(key)) return;
+          taskMap.set(key, { name, promise: factory() });
+        }
 
         for (const track of project.tracks) {
           for (const clip of track.clips) {
@@ -769,32 +845,17 @@ class WOW3AnimationApp {
               const url = clip.properties?.url;
               if (url && (clip.elementType === 'image' || clip.elementType === 'video')) {
                 const name = clip.name || url;
-                tasks.push({
-                  name,
-                  promise: _fetchAsBlobUrl(url).then(blobUrl => {
-                    clip.properties.url = blobUrl;
-                  })
-                });
+                queueTask(`${clip.elementType}:${url}`, name, () => _preloadMedia(url, clip.elementType));
               }
               // Text background images
               const bgUrl = clip.properties?.backgroundImage?.url;
               if (bgUrl) {
-                tasks.push({
-                  name: bgUrl,
-                  promise: _fetchAsBlobUrl(bgUrl).then(blobUrl => {
-                    clip.properties.backgroundImage.url = blobUrl;
-                  })
-                });
+                queueTask(`image:${bgUrl}`, bgUrl, () => _preloadMedia(bgUrl, 'image'));
               }
               // Karaoke SRT
               if (clip.elementType === 'karaoke' && clip.properties?.srtMediaId) {
                 const src = clip.properties.srtMediaId;
-                tasks.push({
-                  name: clip.name || src,
-                  promise: _fetchAsBlobUrl(src).then(blobUrl => {
-                    clip.properties.srtMediaId = blobUrl;
-                  })
-                });
+                queueTask(`fetch:${src}`, clip.name || src, () => _preloadFetch(src));
               }
             }
 
@@ -802,18 +863,13 @@ class WOW3AnimationApp {
             if (track.type === 'audio') {
               const src = clip.mediaId || clip.src;
               if (src) {
-                tasks.push({
-                  name: clip.name || src,
-                  promise: _fetchAsBlobUrl(src).then(blobUrl => {
-                    if (clip.mediaId) clip.mediaId = blobUrl;
-                    else clip.src = blobUrl;
-                  })
-                });
+                queueTask(`fetch:${src}`, clip.name || src, () => _preloadFetch(src));
               }
             }
           }
         }
 
+        const tasks = [...taskMap.values()];
         const failed = [];
         const results = await Promise.allSettled(tasks.map(t => t.promise));
 

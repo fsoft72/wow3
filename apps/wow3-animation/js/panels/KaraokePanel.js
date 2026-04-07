@@ -104,6 +104,20 @@ export class KaraokePanel {
     const updateProperty = (path, value) => {
       window.app.editor.elementController.updateElementProperty(path, value);
     };
+    const refreshClip = (previousSource = null) => {
+      const controller = window.app?.editor?.elementController;
+      if (!controller || !clip) return;
+      controller.timeline.project.touch();
+      if (previousSource) controller.canvasRenderer.invalidateSrtCache(previousSource);
+      const currentSource = clip.properties.srtMediaId || clip.properties.srtUrl;
+      if (currentSource) controller.canvasRenderer.invalidateSrtCache(currentSource);
+      controller.canvasRenderer.renderAtCurrentTime();
+    };
+    const importSource = (value, options) => {
+      return window.app?.editor?.externalMediaImporter?.importSource
+        ? window.app.editor.externalMediaImporter.importSource(value, options)
+        : Promise.resolve(value);
+    };
 
     // SRT source — read from clip (the source of truth), update clip directly
     const srtValue = clip?.properties?.srtMediaId || clip?.properties?.srtUrl || '';
@@ -113,21 +127,28 @@ export class KaraokePanel {
       mediaType: 'subtitle',
       placeholder: 'Enter URL or media ID',
       value: srtValue,
-      onMediaChange: (value) => {
+      onMediaChange: async (value) => {
         if (!clip) return;
+        const previousSource = clip.properties.srtMediaId || clip.properties.srtUrl;
         if (typeof value === 'object' && value instanceof File) {
           if (typeof MediaDB !== 'undefined') {
-            MediaDB.addMedia(value).then(id => {
-              clip.properties.srtMediaId = id;
-              clip.properties.srtUrl = '';
-            });
+            const item = await MediaDB.addMedia(value);
+            clip.properties.srtMediaId = item.id;
+            clip.properties.srtUrl = '';
+            refreshClip(previousSource);
+            return item.id;
           }
-        } else if (value.startsWith('media_')) {
-          clip.properties.srtMediaId = value;
-          clip.properties.srtUrl = '';
         } else {
-          clip.properties.srtUrl = value;
-          clip.properties.srtMediaId = null;
+          const nextValue = await importSource(value, { kind: 'subtitle' });
+          if (typeof nextValue === 'string' && nextValue.startsWith('media_')) {
+            clip.properties.srtMediaId = nextValue;
+            clip.properties.srtUrl = '';
+          } else {
+            clip.properties.srtUrl = nextValue;
+            clip.properties.srtMediaId = null;
+          }
+          refreshClip(previousSource);
+          return clip.properties.srtMediaId || clip.properties.srtUrl || '';
         }
       }
     });

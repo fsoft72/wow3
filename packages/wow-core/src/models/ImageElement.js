@@ -97,15 +97,6 @@ export class ImageElement extends Element {
         el.appendChild(content);
       }
 
-      // Check if URL is a media ID or external URL
-      if (this.properties.url.startsWith('media_')) {
-        // Load from MediaDB
-        this.loadFromMediaDB(img);
-      } else {
-        // External URL
-        img.src = this.properties.url;
-      }
-
       // Store aspect ratio when image loads
       img.onload = () => {
         if (!this.properties.aspectRatio && img.naturalWidth && img.naturalHeight) {
@@ -117,6 +108,15 @@ export class ImageElement extends Element {
         // Show error placeholder
         el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f5f5f5;color:#999;">Image not found</div>';
       };
+
+      // Check if URL is a media ID or external URL
+      if (this.properties.url.startsWith('media_')) {
+        // Load from MediaDB
+        this.loadFromMediaDB(img);
+      } else {
+        // External URL
+        img.src = this.properties.url;
+      }
     } else {
       // Show placeholder
       el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f5f5f5;color:#999;border:2px dashed #ccc;">No image selected</div>';

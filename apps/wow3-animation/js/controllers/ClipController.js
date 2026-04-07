@@ -1,5 +1,6 @@
 import { appEvents, AppEvents } from '@wow/core/utils/events.js';
 import { ResizeHandler, RotateHandler, MarqueeHandler, CropHandler } from '@wow/core/interactions';
+import { ingestProjectMediaSource } from '../utils/externalMedia.js';
 
 /**
  * Bridges wow-core interaction handlers with the clip-based model.
@@ -323,7 +324,11 @@ export class ClipController {
     if (!element || !element.setUrl) return;
 
     try {
-      await element.setUrl(source);
+      const nextSource = typeof source === 'string'
+        ? await ingestProjectMediaSource(this.timeline.project, source, { kind: element.type })
+        : source;
+
+      await element.setUrl(nextSource);
 
       const clipId = this.canvasRenderer.getClipIdForElement(element.id);
       if (clipId) {
@@ -338,8 +343,10 @@ export class ClipController {
       }
 
       this.editor.recordHistory();
+      return element.properties?.url || nextSource;
     } catch (error) {
       console.error('Failed to update media URL:', error);
+      throw error;
     }
   }
 

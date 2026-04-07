@@ -3,6 +3,7 @@ import { TextPanel, ImagePanel, VideoPanel, AudioPanel } from '@wow/core/panels'
 import { ANIMATION_DEFINITIONS, ANIMATION_CATEGORY, getDefinitionsForCategory } from '@wow/core/animations';
 import { KaraokePanel } from '../panels/KaraokePanel.js';
 import { formatTime, parseTime } from '../utils/time.js';
+import { ingestProjectMediaSource } from '../utils/externalMedia.js';
 import { fetchMediaArrayBuffer } from '../utils/media.js';
 
 const IN_EFFECTS  = [{ key: '', label: 'None' }, ...getDefinitionsForCategory(ANIMATION_CATEGORY.BUILD_IN)];
@@ -240,20 +241,28 @@ export class PropertiesPanel {
         onMediaChange: async (value) => {
           if (value instanceof File) {
             if (typeof MediaDB !== 'undefined') {
-              const mediaId = await MediaDB.addMedia(value);
-              clip.mediaId = mediaId;
+              const item = await MediaDB.addMedia(value);
+              clip.mediaId = item.id;
               clip.src = '';
+              this.timeline.project.touch();
+              appEvents.emit(AppEvents.SLIDE_UPDATED);
+              this.show(clip.id, null);
+              return item.id;
             }
-          } else if (typeof value === 'string' && value.startsWith('media_')) {
-            clip.mediaId = value;
-            clip.src = '';
           } else {
-            clip.src = value;
-            clip.mediaId = null;
+            const nextValue = await ingestProjectMediaSource(this.timeline.project, value, { kind: 'audio' });
+            if (typeof nextValue === 'string' && nextValue.startsWith('media_')) {
+              clip.mediaId = nextValue;
+              clip.src = '';
+            } else {
+              clip.src = nextValue;
+              clip.mediaId = null;
+            }
+            this.timeline.project.touch();
+            appEvents.emit(AppEvents.SLIDE_UPDATED);
+            this.show(clip.id, null);
+            return clip.mediaId || clip.src || '';
           }
-          this.timeline.project.touch();
-          appEvents.emit(AppEvents.SLIDE_UPDATED);
-          this.show(clip.id, null);
         }
       });
     }

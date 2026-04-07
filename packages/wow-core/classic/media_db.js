@@ -208,14 +208,16 @@ const MediaDB = {
    * @param {File|Blob} file - File or Blob object
    * @param {string|null} folderId - Folder ID or null for root
    * @param {Object} metadata - Additional metadata
+   * @param {{dedupe?: boolean}} options - Optional behavior overrides
    * @returns {Promise<Object>} Media item with id (existing if duplicate)
    */
-  async addMedia(file, folderId = null, metadata = {}) {
+  async addMedia(file, folderId = null, metadata = {}, options = {}) {
     const db = await this.init();
+    const dedupe = options.dedupe !== false;
 
     // Compute content hash and check for duplicates (if crypto.subtle is available)
     const hash = await this._computeHash(file);
-    if (hash) {
+    if (dedupe && hash) {
       const existing = await this.findByHash(hash);
       if (existing) {
         console.log('♻️ Media already exists, reusing:', existing.id);
