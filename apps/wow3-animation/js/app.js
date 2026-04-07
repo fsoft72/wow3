@@ -785,39 +785,53 @@ class WOW3AnimationApp {
        */
       async preloadAssets() {
         const project = self.project;
-        const promises = [];
+        /** @type {Array<{name: string, promise: Promise}>} */
+        const tasks = [];
 
         for (const track of project.tracks) {
           for (const clip of track.clips) {
             // ── Visual clips: images & videos ──
             if (track.type === 'visual') {
               const url = clip.properties?.url;
-              if (url) {
-                if (clip.elementType === 'image' || clip.elementType === 'video') {
-                  promises.push(_preloadMedia(url, clip.elementType));
-                }
+              if (url && (clip.elementType === 'image' || clip.elementType === 'video')) {
+                const name = clip.name || url;
+                tasks.push({ name, promise: _preloadMedia(url, clip.elementType) });
               }
               // Text background images
               const bgUrl = clip.properties?.backgroundImage?.url;
-              if (bgUrl) promises.push(_preloadMedia(bgUrl, 'image'));
+              if (bgUrl) {
+                tasks.push({ name: bgUrl, promise: _preloadMedia(bgUrl, 'image') });
+              }
               // Karaoke SRT
               if (clip.elementType === 'karaoke' && clip.properties?.srtMediaId) {
-                promises.push(_preloadFetch(clip.properties.srtMediaId));
+                const src = clip.properties.srtMediaId;
+                tasks.push({ name: clip.name || src, promise: _preloadFetch(src) });
               }
             }
 
             // ── Audio clips ──
             if (track.type === 'audio') {
               const src = clip.mediaId || clip.src;
-              if (src) promises.push(_preloadFetch(src));
+              if (src) {
+                tasks.push({ name: clip.name || src, promise: _preloadFetch(src) });
+              }
             }
           }
         }
 
-        const results = await Promise.allSettled(promises);
-        const ok = results.filter(r => r.status === 'fulfilled').length;
-        const fail = results.filter(r => r.status === 'rejected').length;
-        console.log(`[preload] ${ok} assets loaded, ${fail} failed`);
+        const failed = [];
+        const results = await Promise.allSettled(tasks.map(t => t.promise));
+
+        for (let i = 0; i < results.length; i++) {
+          const status = results[i].status === 'fulfilled' ? 'OK' : 'FAIL';
+          console.log(`[preload] ${status}: ${tasks[i].name}`);
+          if (results[i].status === 'rejected') {
+            failed.push(tasks[i].name);
+          }
+        }
+
+        console.log(`[preload] ${results.length - failed.length} loaded, ${failed.length} failed`);
+        return failed.length > 0 ? failed : null;
       },
 
       /**
@@ -825,6 +839,8 @@ class WOW3AnimationApp {
        * @returns {Promise<void>}
        */
       play() {
+        // Clear canvas so elements are freshly created with in-animations
+        self.canvasRenderer.clear();
         self.timeline.seekTo(0);
         return new Promise((resolve) => {
           endResolve = resolve;

@@ -2,6 +2,25 @@
 
 ## 2026-04-07
 
+### wow3-renderer: 60fps, fix fade-in effects, strict asset preloading
+
+- Recording bumped from 24fps to 60fps.
+- Fixed missing in-animations: `play()` now clears the canvas before seeking
+  to time 0 so elements are freshly created with their WAAPI animations when
+  recording is active (previously, `loadFile()` created them early and the
+  animations had already completed).
+- `preloadAssets()` now logs each asset name with OK/FAIL status and returns
+  the list of failed assets. The recorder aborts with an error listing all
+  failed assets instead of rendering with missing resources.
+
+**Modified files:**
+- `apps/wow3-animation/js/app.js` — `preloadAssets()` tracks names, logs per-asset
+  status, returns failures; `play()` calls `canvasRenderer.clear()` before seek.
+- `apps/wow3-renderer/src/recorder.js` — fps set to 60; preload result checked,
+  render aborted on failures.
+
+---
+
 ### wow3-renderer: preload all media assets before playback
 
 Added `preloadAssets()` to the `__wow3` player API — pre-fetches all images,

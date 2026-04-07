@@ -46,9 +46,14 @@ export async function record({ port, width, height, outputPath, onProgress }) {
 
     // Pre-fetch all media assets before playback
     log('Preloading assets...');
-    await page.evaluate(async () => {
-      await window.__wow3.preloadAssets();
+    const preloadErrors = await page.evaluate(async () => {
+      return await window.__wow3.preloadAssets();
     });
+
+    if (preloadErrors && preloadErrors.length > 0) {
+      for (const name of preloadErrors) log(`  FAILED: ${name}`);
+      throw new Error(`${preloadErrors.length} asset(s) failed to load — aborting render`);
+    }
 
     // Read duration and resolution from the loaded project
     const duration = await page.evaluate(() => window.__wow3.duration);
@@ -57,7 +62,7 @@ export async function record({ port, width, height, outputPath, onProgress }) {
     // Configure and start recording
     const recorder = new PuppeteerScreenRecorder(page, {
       followNewTab: false,
-      fps: 24,
+      fps: 60,
       ffmpeg_Path: null,
       videoFrame: { width, height },
       videoCrf: 18,
