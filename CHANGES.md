@@ -2,6 +2,16 @@
 
 ## 2026-04-07
 
+### wow3-renderer: Add Puppeteer screen recorder
+
+Created the Puppeteer-based recorder module that opens a headless browser,
+navigates to the wow3-animation player mode, loads a `.wow3a` presentation,
+and records playback at 24fps using `puppeteer-screen-recorder`.
+
+**New files:**
+- `apps/wow3-renderer/src/recorder.js` — `record()` function with browser
+  lifecycle, viewport setup, player API interaction, and screen recording
+
 ### wow3-renderer: Add local HTTP server for dist and .wow3a
 
 Added `startServer()` function that spins up a local HTTP server on a random
