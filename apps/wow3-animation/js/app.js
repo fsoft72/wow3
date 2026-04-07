@@ -743,9 +743,9 @@ class WOW3AnimationApp {
         canvas.style.width = newProject.width + 'px';
         canvas.style.height = newProject.height + 'px';
 
+        // Don't render yet — call preloadAssets() first to patch URLs,
+        // then play() will clear + seekTo(0) + render with blob URLs.
         self.canvasRenderer.clear();
-        self.timeline.seekTo(0);
-        self.canvasRenderer.renderAtCurrentTime();
       },
 
       /**
