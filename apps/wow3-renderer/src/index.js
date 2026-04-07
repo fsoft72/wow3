@@ -88,7 +88,7 @@ async function validate(inputPath) {
  * Main entry point.
  */
 async function main() {
-  const inputArg = process.argv[2];
+  const inputArg = process.argv.slice(2).find(a => a !== '--');
 
   if (!inputArg || inputArg === '--help' || inputArg === '-h') {
     console.log('Usage: wow3-render <path-to-file.wow3a>');
