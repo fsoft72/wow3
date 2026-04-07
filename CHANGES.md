@@ -2,6 +2,17 @@
 
 ## 2026-04-07
 
+### wow3-renderer: Implement CLI orchestration
+
+Replaced the placeholder `index.js` with the full CLI entry point that ties
+together server, recorder, and audio modules. The flow: validate input file and
+prerequisites (FFmpeg, wow3-animation build), start local HTTP server, record
+the presentation with Puppeteer, extract and mix audio with FFmpeg, clean up.
+
+**Modified files:**
+- `apps/wow3-renderer/src/index.js` — full CLI orchestration with validation,
+  server startup, recording, audio mixing, and cleanup
+
 ### wow3-renderer: Add audio extraction and FFmpeg mixing
 
 Created the audio module for extracting audio clips from `.wow3a` ZIP files and
