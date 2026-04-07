@@ -2,72 +2,24 @@
 
 ## 2026-04-07
 
-### wow3-renderer: Implement CLI orchestration
+### wow3-renderer: CLI tool for rendering presentations to MP4
 
-Replaced the placeholder `index.js` with the full CLI entry point that ties
-together server, recorder, and audio modules. The flow: validate input file and
-prerequisites (FFmpeg, wow3-animation build), start local HTTP server, record
-the presentation with Puppeteer, extract and mix audio with FFmpeg, clean up.
+New app `@wow/wow3-renderer` — a Node.js CLI that renders `.wow3a` presentations
+to MP4 video using headless Puppeteer + puppeteer-screen-recorder at 24fps,
+with FFmpeg audio mixing.
+
+Usage: `pnpm render -- /path/to/presentation.wow3a`
+
+**New files:**
+- `apps/wow3-renderer/package.json` — package with puppeteer, jszip, sirv deps
+- `apps/wow3-renderer/src/index.js` — CLI entry point with validation and orchestration
+- `apps/wow3-renderer/src/server.js` — local HTTP server (serves dist/ + .wow3a)
+- `apps/wow3-renderer/src/recorder.js` — Puppeteer screen recording at 24fps
+- `apps/wow3-renderer/src/audio.js` — audio extraction from ZIP + FFmpeg mixing
 
 **Modified files:**
-- `apps/wow3-renderer/src/index.js` — full CLI orchestration with validation,
-  server startup, recording, audio mixing, and cleanup
-
-### wow3-renderer: Add audio extraction and FFmpeg mixing
-
-Created the audio module for extracting audio clips from `.wow3a` ZIP files and
-mixing them with recorded video using FFmpeg.
-
-**New files:**
-- `apps/wow3-renderer/src/audio.js` — `extractAudio()` reads audio tracks from
-  `.wow3a`, extracts assets to temp files; `mergeAudioVideo()` builds an FFmpeg
-  `filter_complex` pipeline with trim, volume, fade in/out, and delay per clip;
-  `copyVideoOnly()` passes through when no audio is present
-
-### wow3-renderer: Add Puppeteer screen recorder
-
-Created the Puppeteer-based recorder module that opens a headless browser,
-navigates to the wow3-animation player mode, loads a `.wow3a` presentation,
-and records playback at 24fps using `puppeteer-screen-recorder`.
-
-**New files:**
-- `apps/wow3-renderer/src/recorder.js` — `record()` function with browser
-  lifecycle, viewport setup, player API interaction, and screen recording
-
-### wow3-renderer: Add local HTTP server for dist and .wow3a
-
-Added `startServer()` function that spins up a local HTTP server on a random
-port. It serves the pre-built wow3-animation app from `apps/wow3-animation/dist/`
-as static files via `sirv`, and exposes the input `.wow3a` file at `/input.wow3a`
-so the headless browser can fetch it.
-
-**New files:**
-- `apps/wow3-renderer/src/server.js` — HTTP server with sirv static serving and
-  .wow3a endpoint
-
-### wow3-animation: Add player mode for headless rendering
-
-Added a "player mode" to the animation editor, triggered by `?mode=player` URL
-parameter. In player mode all editor UI is hidden and only the presentation
-canvas is shown at native resolution. A control API is exposed on `window.__wow3`
-for external automation (e.g. Puppeteer-driven video capture).
-
-**Modified files:**
-- `apps/wow3-animation/css/main.css` — added player-mode CSS rules that hide
-  editor chrome and display the canvas full-viewport
-- `apps/wow3-animation/js/app.js` — added `isPlayerMode` static getter,
-  conditional init flow, and `_exposePlayerAPI()` method
-
-### wow3-renderer: Scaffold package
-
-Created the `wow3-renderer` app in the monorepo. This CLI tool will render
-wow3-animation presentations to MP4.
-
-**New files:**
-- `apps/wow3-renderer/package.json` — package config with puppeteer, jszip, sirv, puppeteer-screen-recorder dependencies
-- `apps/wow3-renderer/src/index.js` — placeholder CLI entry point
-
-**Modified files:**
+- `apps/wow3-animation/js/app.js` — added player mode (`?mode=player`) with `window.__wow3` API
+- `apps/wow3-animation/css/main.css` — added player-mode CSS (hide UI, canvas full-screen)
 - `package.json` — added `render` script to root workspace
 
 ## 2026-04-06
