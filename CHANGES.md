@@ -2,6 +2,20 @@
 
 ## 2026-04-07
 
+### wow3-renderer: preload all media assets before playback
+
+Added `preloadAssets()` to the `__wow3` player API — pre-fetches all images,
+videos, audio, and SRT files (both external URLs and MediaDB entries) before
+playback starts, so the headless recorder never renders blank/missing frames.
+
+**Modified files:**
+- `apps/wow3-animation/js/app.js` — added `_resolveMediaUrl()`, `_preloadMedia()`,
+  `_preloadFetch()` helpers and `preloadAssets()` method on `window.__wow3`.
+- `apps/wow3-renderer/src/recorder.js` — calls `preloadAssets()` after `loadFile()`
+  and before starting recording.
+
+---
+
 ### wow3-renderer: per-second rendering progress log
 
 The recorder now logs `Rendering: N/Ts` for each second of playback, enabling

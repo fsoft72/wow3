@@ -44,6 +44,12 @@ export async function record({ port, width, height, outputPath, onProgress }) {
       await window.__wow3.loadFile('/input.wow3a');
     });
 
+    // Pre-fetch all media assets before playback
+    log('Preloading assets...');
+    await page.evaluate(async () => {
+      await window.__wow3.preloadAssets();
+    });
+
     // Read duration and resolution from the loaded project
     const duration = await page.evaluate(() => window.__wow3.duration);
     log(`Presentation duration: ${(duration / 1000).toFixed(1)}s`);

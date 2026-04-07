@@ -688,6 +688,56 @@ class WOW3AnimationApp {
       }
     });
 
+    /**
+     * Resolve a media source to a fetchable URL.
+     * Media IDs (media_xxx) are resolved via MediaDB, others returned as-is.
+     * @param {string} src
+     * @returns {Promise<string|null>}
+     */
+    async function _resolveMediaUrl(src) {
+      if (src.startsWith('media_') && window.MediaDB) {
+        const dataURL = await window.MediaDB.getMediaDataURL(src);
+        return dataURL || null;
+      }
+      return src;
+    }
+
+    /**
+     * Preload an image or video into the browser cache.
+     * @param {string} src - media ID or URL
+     * @param {'image'|'video'} type
+     * @returns {Promise<void>}
+     */
+    async function _preloadMedia(src, type) {
+      const url = await _resolveMediaUrl(src);
+      if (!url) return;
+
+      if (type === 'image') {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = url;
+        });
+      }
+
+      // video: fetch the data so the browser has it cached
+      const resp = await fetch(url);
+      await resp.arrayBuffer();
+    }
+
+    /**
+     * Fetch a resource (audio, SRT, etc.) so it's in browser/network cache.
+     * @param {string} src - media ID or URL
+     * @returns {Promise<void>}
+     */
+    async function _preloadFetch(src) {
+      const url = await _resolveMediaUrl(src);
+      if (!url) return;
+      const resp = await fetch(url);
+      await resp.arrayBuffer();
+    }
+
     window.__wow3 = {
       /** @returns {boolean} */
       get ready() { return true; },
@@ -726,6 +776,48 @@ class WOW3AnimationApp {
         self.canvasRenderer.clear();
         self.timeline.seekTo(0);
         self.canvasRenderer.renderAtCurrentTime();
+      },
+
+      /**
+       * Pre-fetch all media assets (images, videos, audio) so playback
+       * doesn't stall waiting for network. Call after loadFile().
+       * @returns {Promise<void>}
+       */
+      async preloadAssets() {
+        const project = self.project;
+        const promises = [];
+
+        for (const track of project.tracks) {
+          for (const clip of track.clips) {
+            // ── Visual clips: images & videos ──
+            if (track.type === 'visual') {
+              const url = clip.properties?.url;
+              if (url) {
+                if (clip.elementType === 'image' || clip.elementType === 'video') {
+                  promises.push(_preloadMedia(url, clip.elementType));
+                }
+              }
+              // Text background images
+              const bgUrl = clip.properties?.backgroundImage?.url;
+              if (bgUrl) promises.push(_preloadMedia(bgUrl, 'image'));
+              // Karaoke SRT
+              if (clip.elementType === 'karaoke' && clip.properties?.srtMediaId) {
+                promises.push(_preloadFetch(clip.properties.srtMediaId));
+              }
+            }
+
+            // ── Audio clips ──
+            if (track.type === 'audio') {
+              const src = clip.mediaId || clip.src;
+              if (src) promises.push(_preloadFetch(src));
+            }
+          }
+        }
+
+        const results = await Promise.allSettled(promises);
+        const ok = results.filter(r => r.status === 'fulfilled').length;
+        const fail = results.filter(r => r.status === 'rejected').length;
+        console.log(`[preload] ${ok} assets loaded, ${fail} failed`);
       },
 
       /**
