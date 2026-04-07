@@ -2,6 +2,19 @@
 
 ## 2026-04-07
 
+### wow3-renderer: support external URL audio assets
+
+Audio clips can now reference external URLs (e.g. `https://easyshare.os3.services/d/...`)
+instead of only ZIP-embedded files. The renderer downloads them to a temp file before
+passing to FFmpeg.
+
+**Modified files:**
+- `apps/wow3-renderer/src/audio.js` — added URL detection, download, and extension
+  extraction helpers; `extractAudio()` now fetches remote audio when the asset path
+  is an HTTP(S) URL.
+
+---
+
 ### wow3-animation: add media source input to audio clip properties
 
 Added `ImageSelector` (URL / media ID / file upload) to the audio clip properties

@@ -50,15 +50,31 @@ export async function extractAudio(wow3aPath) {
 
   for (let i = 0; i < audioClips.length; i++) {
     const ac = audioClips[i];
-    const zipEntry = zip.file(ac.assetPath);
-    if (!zipEntry) {
-      console.warn(`Audio asset not found in ZIP: ${ac.assetPath}`);
-      continue;
+    let buffer;
+    let ext;
+
+    if (_isUrl(ac.assetPath)) {
+      // Download external audio asset
+      console.log(`Downloading external audio: ${ac.assetPath}`);
+      try {
+        buffer = await _downloadAsBuffer(ac.assetPath);
+        ext = _extFromUrl(ac.assetPath) || 'mp3';
+      } catch (err) {
+        console.warn(`Failed to download audio: ${ac.assetPath} — ${err.message}`);
+        continue;
+      }
+    } else {
+      // Look for asset inside the ZIP
+      const zipEntry = zip.file(ac.assetPath);
+      if (!zipEntry) {
+        console.warn(`Audio asset not found in ZIP: ${ac.assetPath}`);
+        continue;
+      }
+      ext = ac.assetPath.split('.').pop() || 'mp3';
+      buffer = await zipEntry.async('nodebuffer');
     }
 
-    const ext = ac.assetPath.split('.').pop() || 'mp3';
     const tmpFile = join(tmpDir, `audio_${i}.${ext}`);
-    const buffer = await zipEntry.async('nodebuffer');
     await writeFile(tmpFile, buffer);
 
     clips.push({
@@ -165,6 +181,42 @@ export async function copyVideoOnly(videoPath, outputPath) {
     '-y',
     outputPath,
   ]);
+}
+
+/**
+ * Check if a string is an HTTP(S) URL.
+ * @param {string} str
+ * @returns {boolean}
+ */
+function _isUrl(str) {
+  return /^https?:\/\//i.test(str);
+}
+
+/**
+ * Extract file extension from a URL path, ignoring query string.
+ * @param {string} url
+ * @returns {string}
+ */
+function _extFromUrl(url) {
+  try {
+    const pathname = new URL(url).pathname;
+    const dot = pathname.lastIndexOf('.');
+    if (dot !== -1) return pathname.slice(dot + 1).toLowerCase();
+  } catch {}
+  return '';
+}
+
+/**
+ * Download a URL and return its contents as a Node.js Buffer.
+ * Follows redirects automatically (native fetch).
+ * @param {string} url
+ * @returns {Promise<Buffer>}
+ */
+async function _downloadAsBuffer(url) {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+  const ab = await resp.arrayBuffer();
+  return Buffer.from(ab);
 }
 
 /**
