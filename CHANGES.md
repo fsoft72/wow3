@@ -1,5 +1,19 @@
 # Changes
 
+## 2026-04-07
+
+### wow3-renderer: Scaffold package
+
+Created the `wow3-renderer` app in the monorepo. This CLI tool will render
+wow3-animation presentations to MP4.
+
+**New files:**
+- `apps/wow3-renderer/package.json` — package config with puppeteer, jszip, sirv, puppeteer-screen-recorder dependencies
+- `apps/wow3-renderer/src/index.js` — placeholder CLI entry point
+
+**Modified files:**
+- `package.json` — added `render` script to root workspace
+
 ## 2026-04-06
 
 ### wow3-animation: Full Timeline Editor implementation

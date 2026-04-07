@@ -1,0 +1,19 @@
+{
+  "name": "@wow/wow3-renderer",
+  "version": "0.1.0",
+  "description": "CLI tool to render wow3-animation presentations to MP4",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "wow3-render": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "puppeteer": "^24.0.0",
+    "puppeteer-screen-recorder": "^3.0.6",
+    "sirv": "^3.0.1"
+  }
+}
