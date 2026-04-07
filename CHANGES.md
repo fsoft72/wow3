@@ -2,6 +2,19 @@
 
 ## 2026-04-07
 
+### wow3-animation: Add player mode for headless rendering
+
+Added a "player mode" to the animation editor, triggered by `?mode=player` URL
+parameter. In player mode all editor UI is hidden and only the presentation
+canvas is shown at native resolution. A control API is exposed on `window.__wow3`
+for external automation (e.g. Puppeteer-driven video capture).
+
+**Modified files:**
+- `apps/wow3-animation/css/main.css` — added player-mode CSS rules that hide
+  editor chrome and display the canvas full-viewport
+- `apps/wow3-animation/js/app.js` — added `isPlayerMode` static getter,
+  conditional init flow, and `_exposePlayerAPI()` method
+
 ### wow3-renderer: Scaffold package
 
 Created the `wow3-renderer` app in the monorepo. This CLI tool will render

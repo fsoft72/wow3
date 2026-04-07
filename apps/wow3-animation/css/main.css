@@ -500,3 +500,30 @@ select.props-select:focus { outline: none !important; border-color: var(--color-
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
 }
+
+/* ── Player mode (headless renderer) ── */
+body.player-mode {
+  grid-template-rows: 1fr;
+  grid-template-areas: "workspace";
+}
+body.player-mode #top-bar,
+body.player-mode #playback-bar,
+body.player-mode #timeline-area,
+body.player-mode #properties-panel { display: none !important; }
+body.player-mode #workspace {
+  grid-template-columns: 1fr;
+}
+body.player-mode #canvas-area {
+  display: block;
+  background: #000;
+  overflow: hidden;
+}
+body.player-mode #canvas-wrapper {
+  transform: none !important;
+  box-shadow: none;
+}
+body.player-mode #slide-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}

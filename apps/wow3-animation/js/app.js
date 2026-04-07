@@ -43,19 +43,41 @@ class WOW3AnimationApp {
     this.exportController = null;
   }
 
+  /**
+   * Detect if running in player mode via URL parameter.
+   * @returns {boolean}
+   */
+  static get isPlayerMode() {
+    return new URLSearchParams(window.location.search).has('mode', 'player');
+  }
+
   async init() {
+    this._playerMode = WOW3AnimationApp.isPlayerMode;
+
     this._initProject();
     this._initControllers();
     this._initCanvas();
-    this._initUI();
-    this._setupGlobals();
-    this._bindKeyboard();
-    this._initMediaManager();
-    this._initJsonEditor();
-    this._initImportExport();
-    this._startAutoSave();
+
+    if (!this._playerMode) {
+      this._initUI();
+      this._setupGlobals();
+      this._bindKeyboard();
+      this._initMediaManager();
+      this._initJsonEditor();
+      this._initImportExport();
+      this._startAutoSave();
+    } else {
+      document.body.classList.add('player-mode');
+      this._initMediaManager();
+    }
+
     this.canvasRenderer.renderAtCurrentTime();
-    console.log('WOW3 Animation Editor initialized');
+
+    if (this._playerMode) {
+      this._exposePlayerAPI();
+    }
+
+    console.log(this._playerMode ? 'WOW3 Player mode initialized' : 'WOW3 Animation Editor initialized');
   }
 
   /** @private */
@@ -648,6 +670,76 @@ class WOW3AnimationApp {
    */
   _findClip(clipId) {
     return this.project.findClip(clipId).clip;
+  }
+
+  /**
+   * Expose a control API on window.__wow3 for external automation (headless renderer).
+   * @private
+   */
+  _exposePlayerAPI() {
+    const self = this;
+    let endResolve = null;
+
+    // Listen for playback end
+    appEvents.on(AppEvents.PLAYBACK_STOPPED, () => {
+      if (endResolve && self.timeline.currentTimeMs >= self.project.getEffectiveDuration()) {
+        endResolve();
+        endResolve = null;
+      }
+    });
+
+    window.__wow3 = {
+      /** @returns {boolean} */
+      get ready() { return true; },
+
+      /** @returns {number} Total project duration in ms */
+      get duration() { return self.project.getEffectiveDuration(); },
+
+      /** @returns {number} Current playback position in ms */
+      get currentTime() { return self.timeline.currentTimeMs; },
+
+      /** @returns {{width: number, height: number}} Project resolution */
+      get resolution() { return { width: self.project.width, height: self.project.height }; },
+
+      /**
+       * Load a .wow3a file from a URL.
+       * @param {string} url
+       * @returns {Promise<void>}
+       */
+      async loadFile(url) {
+        const resp = await fetch(url);
+        const blob = await resp.blob();
+        const file = new File([blob], 'input.wow3a', { type: 'application/zip' });
+
+        const { importProjectZip } = await import('./utils/projectStorage.js');
+        const jsonData = await importProjectZip(file);
+        const newProject = Project.fromJSON(jsonData);
+
+        self.timeline.project = newProject;
+        self.project = newProject;
+
+        // Set canvas to exact project dimensions
+        const canvas = document.getElementById('slide-canvas');
+        canvas.style.width = newProject.width + 'px';
+        canvas.style.height = newProject.height + 'px';
+
+        self.canvasRenderer.clear();
+        self.timeline.seekTo(0);
+        self.canvasRenderer.renderAtCurrentTime();
+      },
+
+      /**
+       * Start playback from the beginning. Returns a Promise that resolves when playback ends.
+       * @returns {Promise<void>}
+       */
+      play() {
+        self.timeline.seekTo(0);
+        return new Promise((resolve) => {
+          endResolve = resolve;
+          self.playback.play();
+        });
+      }
+    };
   }
 }
 
