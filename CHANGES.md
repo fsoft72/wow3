@@ -2,6 +2,16 @@
 
 ## 2026-04-07
 
+### wow3-animation: add media source input to audio clip properties
+
+Added `ImageSelector` (URL / media ID / file upload) to the audio clip properties
+panel, matching the pattern used by image and video elements.
+
+**Modified files:**
+- `apps/wow3-animation/js/views/PropertiesPanel.js` — added `<div id="audio-media-selector">` container in the audio section HTML and instantiated `ImageSelector` in `_bindAudioInputs()` with proper handling for File uploads, media IDs, and URLs.
+
+---
+
 ### wow3-renderer: CLI tool for rendering presentations to MP4
 
 New app `@wow/wow3-renderer` — a Node.js CLI that renders `.wow3a` presentations

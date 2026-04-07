@@ -101,6 +101,7 @@ export class PropertiesPanel {
       const hasMedia = !!(clip.mediaId || clip.src);
       html += `<div class="props-section">
         <div class="props-section-title">Audio</div>
+        <div id="audio-media-selector"></div>
         <div class="props-row">
           <label>Volume</label>
           <input type="range" id="prop-volume" min="0" max="1" step="0.01" value="${clip.volume}">
@@ -227,6 +228,36 @@ export class PropertiesPanel {
 
   /** @private */
   _bindAudioInputs(clip) {
+    // Audio source selector
+    const selectorContainer = document.getElementById('audio-media-selector');
+    if (selectorContainer) {
+      new ImageSelector('audio-media-selector', {
+        label: 'Audio Source',
+        accept: 'audio/*',
+        mediaType: 'audio',
+        placeholder: 'Enter URL or media ID',
+        value: clip.mediaId || clip.src || '',
+        onMediaChange: async (value) => {
+          if (value instanceof File) {
+            if (typeof MediaDB !== 'undefined') {
+              const mediaId = await MediaDB.addMedia(value);
+              clip.mediaId = mediaId;
+              clip.src = '';
+            }
+          } else if (typeof value === 'string' && value.startsWith('media_')) {
+            clip.mediaId = value;
+            clip.src = '';
+          } else {
+            clip.src = value;
+            clip.mediaId = null;
+          }
+          this.timeline.project.touch();
+          appEvents.emit(AppEvents.SLIDE_UPDATED);
+          this.show(clip.id, null);
+        }
+      });
+    }
+
     const vol = document.getElementById('prop-volume');
     vol?.addEventListener('input', () => { clip.volume = parseFloat(vol.value); });
     const fi = document.getElementById('prop-fadein');
