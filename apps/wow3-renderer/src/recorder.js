@@ -30,6 +30,12 @@ export async function record({ port, width, height, outputPath, onProgress }) {
     const page = await browser.newPage();
     await page.setViewport({ width, height });
 
+    // Forward browser console to Node.js stdout
+    page.on('console', (msg) => {
+      const text = msg.text();
+      if (text.startsWith('[preload]')) log(text);
+    });
+
     log('Loading player...');
     await page.goto(`http://127.0.0.1:${port}/?mode=player`, {
       waitUntil: 'networkidle0',
