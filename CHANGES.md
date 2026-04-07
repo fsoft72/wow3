@@ -2,6 +2,17 @@
 
 ## 2026-04-07
 
+### wow3-renderer: Add audio extraction and FFmpeg mixing
+
+Created the audio module for extracting audio clips from `.wow3a` ZIP files and
+mixing them with recorded video using FFmpeg.
+
+**New files:**
+- `apps/wow3-renderer/src/audio.js` — `extractAudio()` reads audio tracks from
+  `.wow3a`, extracts assets to temp files; `mergeAudioVideo()` builds an FFmpeg
+  `filter_complex` pipeline with trim, volume, fade in/out, and delay per clip;
+  `copyVideoOnly()` passes through when no audio is present
+
 ### wow3-renderer: Add Puppeteer screen recorder
 
 Created the Puppeteer-based recorder module that opens a headless browser,
