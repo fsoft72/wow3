@@ -164,6 +164,10 @@ All paths relative to `apps/wow3-animation/`.
 - `js/panels/KaraokePanel.js` — add mode dropdown, conditional sections
 - `css/main.css` — styles for subtitle-line, block-container, block-line, transitions
 
+## Renderer Compatibility
+
+The `wow3-renderer` CLI renders video by launching Puppeteer against the `wow3-animation` app in `?mode=player`. Karaoke elements are rendered by the same `KaraokeElement` code running in the headless browser's DOM. No renderer-specific changes are needed — all display mode strategies will work identically in both the editor and the rendered MP4 output.
+
 ## Backward Compatibility
 
 - `displayMode` defaults to `'karaoke'`
