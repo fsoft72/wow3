@@ -1,6 +1,7 @@
 /**
  * Karaoke Element Property Panel.
  * Style-only panel: font settings, text color (solid), highlight color (gradient).
+ * Display mode selector with mode-specific configuration sections.
  */
 export class KaraokePanel {
   /**
@@ -12,11 +13,25 @@ export class KaraokePanel {
     const font = element.properties.font || {};
     const colorPrev = element.properties.colorPrev || '#888888';
     const colorCurrent = element.properties.colorCurrent || '#ff9800';
+    const displayMode = element.properties.displayMode || 'karaoke';
+    const subtitlePos = element.properties.subtitle?.position ?? 'bottom';
+    const subtitleFade = element.properties.subtitle?.fadeDuration ?? 200;
+    const blockLines = element.properties.block?.visibleLines ?? 5;
+    const blockHighlightBg = element.properties.block?.highlightBg ?? 'transparent';
 
     // srtMediaId lives on the clip, not the element
     const srtValue = clip?.properties?.srtMediaId || clip?.properties?.srtUrl || '';
 
     return `
+      <div class="control-group">
+        <label>Display Mode</label>
+        <select id="karaoke-display-mode" class="panel-select">
+          <option value="karaoke" ${displayMode === 'karaoke' ? 'selected' : ''}>Karaoke</option>
+          <option value="subtitle" ${displayMode === 'subtitle' ? 'selected' : ''}>Subtitle</option>
+          <option value="block" ${displayMode === 'block' ? 'selected' : ''}>Block</option>
+        </select>
+      </div>
+
       <div id="karaoke-srt-selector"></div>
 
       <div class="control-group">
@@ -93,6 +108,29 @@ export class KaraokePanel {
           ${PanelUtils.renderSlider('Width', 'stroke-width', font.stroke?.width ?? 1, 0.5, 10, 0.5, 'px')}
         </div>
       </div>
+
+      <!-- Karaoke-only: gradient animation (handled by gradient picker above) -->
+      <div id="mode-karaoke-options" style="display:${displayMode === 'karaoke' ? 'block' : 'none'};">
+      </div>
+
+      <!-- Subtitle-only options -->
+      <div id="mode-subtitle-options" style="display:${displayMode === 'subtitle' ? 'block' : 'none'};">
+        <div class="control-group">
+          <label>Vertical Position</label>
+          <div class="icon-toggle-group" id="subtitle-position">
+            <button class="icon-toggle-btn ${subtitlePos === 'top' ? 'active' : ''}" data-value="top">Top</button>
+            <button class="icon-toggle-btn ${subtitlePos === 'center' ? 'active' : ''}" data-value="center">Center</button>
+            <button class="icon-toggle-btn ${subtitlePos === 'bottom' ? 'active' : ''}" data-value="bottom">Bottom</button>
+          </div>
+        </div>
+        ${PanelUtils.renderSlider('Fade Duration', 'subtitle-fade-duration', subtitleFade, 100, 500, 10, 'ms')}
+      </div>
+
+      <!-- Block-only options -->
+      <div id="mode-block-options" style="display:${displayMode === 'block' ? 'block' : 'none'};">
+        ${PanelUtils.renderSlider('Visible Lines', 'block-visible-lines', blockLines, 3, 15, 1, '')}
+        ${PanelUtils.renderColorPicker('Highlight Background', 'block-highlight-bg', blockHighlightBg)}
+      </div>
     `;
   }
 
@@ -118,6 +156,22 @@ export class KaraokePanel {
         ? window.app.editor.externalMediaImporter.importSource(value, options)
         : Promise.resolve(value);
     };
+
+    // Display mode dropdown
+    const modeSelect = document.getElementById('karaoke-display-mode');
+    const modeKaraoke = document.getElementById('mode-karaoke-options');
+    const modeSubtitle = document.getElementById('mode-subtitle-options');
+    const modeBlock = document.getElementById('mode-block-options');
+
+    modeSelect?.addEventListener('change', () => {
+      const mode = modeSelect.value;
+      updateProperty('properties.displayMode', mode);
+
+      // Toggle mode-specific sections
+      if (modeKaraoke) modeKaraoke.style.display = mode === 'karaoke' ? 'block' : 'none';
+      if (modeSubtitle) modeSubtitle.style.display = mode === 'subtitle' ? 'block' : 'none';
+      if (modeBlock) modeBlock.style.display = mode === 'block' ? 'block' : 'none';
+    });
 
     // SRT source — read from clip (the source of truth), update clip directly
     const srtValue = clip?.properties?.srtMediaId || clip?.properties?.srtUrl || '';
@@ -223,5 +277,29 @@ export class KaraokePanel {
     });
     PanelUtils.bindColorPicker('stroke-color', (v) => updateProperty('properties.font.stroke.color', v));
     PanelUtils.bindSlider('stroke-width', (v) => updateProperty('properties.font.stroke.width', parseFloat(v)));
+
+    // Subtitle-only: vertical position
+    document.querySelectorAll('#subtitle-position .icon-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#subtitle-position .icon-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateProperty('properties.subtitle.position', btn.dataset.value);
+      });
+    });
+
+    // Subtitle-only: fade duration
+    PanelUtils.bindSlider('subtitle-fade-duration', (v) => {
+      updateProperty('properties.subtitle.fadeDuration', parseInt(v));
+    });
+
+    // Block-only: visible lines
+    PanelUtils.bindSlider('block-visible-lines', (v) => {
+      updateProperty('properties.block.visibleLines', parseInt(v));
+    });
+
+    // Block-only: highlight background
+    PanelUtils.bindColorPicker('block-highlight-bg', (v) => {
+      updateProperty('properties.block.highlightBg', v);
+    });
   }
 }
