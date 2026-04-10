@@ -80,9 +80,12 @@ export class VisualClip extends Clip {
         position: { x: 100, y: 600, width: 800, height: 200, rotation: 0 },
         properties: {
           srtMediaId: null, srtUrl: '',
+          displayMode: 'karaoke',
           colorPrev: '#888888', colorCurrent: '#ff9800', colorNext: '#888888',
           highlightAnimationSpeed: 0, highlightAnimationType: 'pingpong',
-          font: { family: 'Roboto', size: 36, weight: 'bold', alignment: 'center' }
+          font: { family: 'Roboto', size: 36, weight: 'bold', alignment: 'center' },
+          subtitle: { position: 'bottom', fadeDuration: 200 },
+          block: { visibleLines: 5, highlightBg: 'transparent' }
         }
       }
     };
