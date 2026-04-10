@@ -2,6 +2,34 @@
 
 ## 2026-04-10
 
+### wow3-renderer: HTTP API with SQLite persistence and Docker deployment
+
+Added a production-ready HTTP API for rendering presentations asynchronously:
+- **Fastify HTTP API** in `apps/wow3-renderer/src/api/` with REST endpoints for job submission, status polling, and MP4 download
+- **SQLite job persistence** with single-slot async render queue (one render at a time)
+- **API key authentication** for render submissions; **JWT admin sessions** for web UI access
+- **WoxGUI 0.2.2 admin web UI** (`src/ui/`) for job management, API key rotation, and settings
+- **Auto-cleanup** of expired jobs and MP4 files (48h retention)
+- **Docker deployment**: `Dockerfile`, `docker-compose.yml`, and root `.dockerignore` for efficient build context
+
+Usage: `pnpm render:api` starts the server on port 3000 with in-memory SQLite (configurable via `DATABASE_URL`).
+
+**New files:**
+- `apps/wow3-renderer/src/api/server.js` — Fastify HTTP API server with middleware (auth, rate limiting, logging)
+- `apps/wow3-renderer/src/api/routes/` — REST route handlers for `/render`, `/status`, `/download`, `/admin/*`
+- `apps/wow3-renderer/src/db.js` — SQLite schema (jobs, api_keys, admin_sessions, queue state)
+- `apps/wow3-renderer/src/queue.js` — single-slot job queue with persistence
+- `apps/wow3-renderer/src/ui/` — WoxGUI admin dashboard (job list, API key mgmt)
+- `apps/wow3-renderer/Dockerfile` — multi-stage build (node deps, build, production image)
+- `apps/wow3-renderer/docker-compose.yml` — postgres/redis optional, SQLite primary
+- `.dockerignore` at project root — excludes node_modules, dist, .git, test files (hundreds of MB reduction)
+
+**Modified files:**
+- `apps/wow3-renderer/src/index.js` — CLI entry point delegates to API server or one-off render
+- `apps/wow3-renderer/package.json` — added fastify, sqlite3, jsonwebtoken, bcrypt, axios, pino deps
+
+---
+
 ### wow3-animation: Karaoke Player display modes
 
 Added three selectable display modes to the Karaoke Player via a Strategy Pattern:

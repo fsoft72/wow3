@@ -1,0 +1,27 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build output
+dist
+**/dist
+
+# Development
+.git
+.claude
+.worktrees
+.superpowers
+
+# Test files
+test
+**/*.test.js
+
+# Secrets and local config
+.env
+**/.env
+
+# Editor artifacts
+*.swp
+*.swo
+*~
+.DS_Store
