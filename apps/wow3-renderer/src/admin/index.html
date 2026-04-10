@@ -205,6 +205,15 @@ async function api(method, path, body) {
   return json;
 }
 
+/** Escape HTML to prevent XSS from user-supplied strings in innerHTML */
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 // ── State ────────────────────────────────────────────────────────────────────
 
 let refreshTimer = null;
@@ -240,7 +249,7 @@ document.getElementById('loginBtn').addEventListener('wox-click', async () => {
 });
 
 // Allow Enter key on password field
-document.getElementById('loginPass').addEventListener('wox-change', () => {
+document.getElementById('loginPass').addEventListener('wox-enter', () => {
   document.getElementById('loginBtn').dispatchEvent(new CustomEvent('wox-click'));
 });
 
@@ -272,17 +281,17 @@ function renderJobs(jobs) {
   for (const j of jobs) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td style="font-family:var(--wox-font-mono);font-size:var(--wox-font-size-sm)">${j.id.slice(0, 8)}</td>
-      <td>${j.wow3a_name}</td>
+      <td style="font-family:var(--wox-font-mono);font-size:var(--wox-font-size-sm)">${esc(j.id.slice(0, 8))}</td>
+      <td>${esc(j.wow3a_name)}</td>
       <td><span class="badge-status s-${j.status}">${j.status}</span></td>
       <td>${j.status === 'running' ? j.progress + '%' : '—'}</td>
       <td style="color:var(--wox-text-secondary)">${fmtDate(j.created_at)}</td>
       <td>${fmtDuration(j.started_at, j.completed_at)}</td>
       <td style="display:flex;gap:4px;flex-wrap:wrap">
         ${j.status === 'completed'
-          ? `<button class="btn-action" data-action="download" data-id="${j.id}" data-name="${j.wow3a_name}">Download</button>`
+          ? `<button class="btn-action" data-action="download" data-id="${esc(j.id)}" data-name="${esc(j.wow3a_name)}">Download</button>`
           : ''}
-        <button class="btn-action btn-danger" data-action="delete-job" data-id="${j.id}">Delete</button>
+        <button class="btn-action btn-danger" data-action="delete-job" data-id="${esc(j.id)}">Delete</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -295,7 +304,7 @@ async function onJobAction(e) {
   if (!btn) return;
   if (btn.dataset.action === 'download') {
     const a = document.createElement('a');
-    a.href = `/jobs/${btn.dataset.id}/result`;
+    a.href = `/admin/jobs/${btn.dataset.id}/result`;
     a.download = btn.dataset.name.replace('.wow3a', '.mp4');
     a.click();
   }
@@ -331,10 +340,10 @@ function renderKeys(keys) {
   for (const k of keys) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${k.label}</td>
+      <td>${esc(k.label)}</td>
       <td style="color:var(--wox-text-secondary)">${fmtDate(k.created_at)}</td>
       <td>
-        <button class="btn-action btn-danger" data-action="delete-key" data-id="${k.id}" data-label="${k.label}">Delete</button>
+        <button class="btn-action btn-danger" data-action="delete-key" data-id="${esc(k.id)}" data-label="${esc(k.label)}">Delete</button>
       </td>
     `;
     tbody.appendChild(tr);
