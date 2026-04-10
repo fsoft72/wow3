@@ -24,12 +24,16 @@ export class KaraokePanel {
 
     return `
       <div class="control-group">
-        <label>Display Mode</label>
-        <select id="karaoke-display-mode" class="panel-select">
-          <option value="karaoke" ${displayMode === 'karaoke' ? 'selected' : ''}>Karaoke</option>
-          <option value="subtitle" ${displayMode === 'subtitle' ? 'selected' : ''}>Subtitle</option>
-          <option value="block" ${displayMode === 'block' ? 'selected' : ''}>Block</option>
-        </select>
+        <wox-select
+          id="karaoke-display-mode"
+          label="Display Mode"
+          value="${displayMode}"
+          options='${JSON.stringify([
+            { value: "karaoke", label: "Karaoke" },
+            { value: "subtitle", label: "Subtitle" },
+            { value: "block", label: "Block" }
+          ])}'
+        ></wox-select>
       </div>
 
       <div id="karaoke-srt-selector"></div>
@@ -157,14 +161,14 @@ export class KaraokePanel {
         : Promise.resolve(value);
     };
 
-    // Display mode dropdown
+    // Display mode dropdown (wox-select)
     const modeSelect = document.getElementById('karaoke-display-mode');
     const modeKaraoke = document.getElementById('mode-karaoke-options');
     const modeSubtitle = document.getElementById('mode-subtitle-options');
     const modeBlock = document.getElementById('mode-block-options');
 
-    modeSelect?.addEventListener('change', () => {
-      const mode = modeSelect.value;
+    modeSelect?.addEventListener('wox-change', (e) => {
+      const mode = e.detail.value;
       updateProperty('properties.displayMode', mode);
 
       // Toggle mode-specific sections

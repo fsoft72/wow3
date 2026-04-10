@@ -316,11 +316,6 @@ body {
 .subtitle-line { padding: 2px 8px; word-wrap: break-word; overflow-wrap: break-word; }
 .block-container { overflow: hidden; }
 .block-line { padding: 2px 8px; word-wrap: break-word; overflow-wrap: break-word; border-radius: 2px; }
-.panel-select {
-  width: 100%; padding: 6px 8px; border: 1px solid var(--border-color, #444);
-  background: var(--input-bg, #2a2a2a); color: var(--text-color, #e0e0e0);
-  border-radius: 4px; font-size: 13px;
-}
 
 /* ── Canvas element selection ── */
 #slide-canvas .element { position: absolute; cursor: move; }
