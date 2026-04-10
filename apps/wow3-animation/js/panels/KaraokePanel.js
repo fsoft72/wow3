@@ -31,6 +31,29 @@ export class KaraokePanel {
         ></wox-select>
       </div>
 
+      <!-- Karaoke-only: gradient animation (handled by gradient picker below) -->
+      <div id="mode-karaoke-options" style="display:${displayMode === 'karaoke' ? 'block' : 'none'};">
+      </div>
+
+      <!-- Subtitle-only options -->
+      <div id="mode-subtitle-options" style="display:${displayMode === 'subtitle' ? 'block' : 'none'};">
+        <div class="control-group">
+          <label>Vertical Position</label>
+          <div class="icon-toggle-group" id="subtitle-position">
+            <button class="icon-toggle-btn ${subtitlePos === 'top' ? 'active' : ''}" data-value="top">Top</button>
+            <button class="icon-toggle-btn ${subtitlePos === 'center' ? 'active' : ''}" data-value="center">Center</button>
+            <button class="icon-toggle-btn ${subtitlePos === 'bottom' ? 'active' : ''}" data-value="bottom">Bottom</button>
+          </div>
+        </div>
+        ${PanelUtils.renderSlider('Fade Duration', 'subtitle-fade-duration', subtitleFade, 100, 500, 10, 'ms')}
+      </div>
+
+      <!-- Block-only options -->
+      <div id="mode-block-options" style="display:${displayMode === 'block' ? 'block' : 'none'};">
+        ${PanelUtils.renderSlider('Visible Lines', 'block-visible-lines', blockLines, 3, 15, 1, '')}
+        ${PanelUtils.renderColorPicker('Highlight Background', 'block-highlight-bg', blockHighlightBg)}
+      </div>
+
       <div id="karaoke-srt-selector"></div>
 
       <div class="control-group">
@@ -106,29 +129,6 @@ export class KaraokePanel {
           ${PanelUtils.renderColorPicker('Color', 'stroke-color', font.stroke?.color || '#000000')}
           ${PanelUtils.renderSlider('Width', 'stroke-width', font.stroke?.width ?? 1, 0.5, 10, 0.5, 'px')}
         </div>
-      </div>
-
-      <!-- Karaoke-only: gradient animation (handled by gradient picker above) -->
-      <div id="mode-karaoke-options" style="display:${displayMode === 'karaoke' ? 'block' : 'none'};">
-      </div>
-
-      <!-- Subtitle-only options -->
-      <div id="mode-subtitle-options" style="display:${displayMode === 'subtitle' ? 'block' : 'none'};">
-        <div class="control-group">
-          <label>Vertical Position</label>
-          <div class="icon-toggle-group" id="subtitle-position">
-            <button class="icon-toggle-btn ${subtitlePos === 'top' ? 'active' : ''}" data-value="top">Top</button>
-            <button class="icon-toggle-btn ${subtitlePos === 'center' ? 'active' : ''}" data-value="center">Center</button>
-            <button class="icon-toggle-btn ${subtitlePos === 'bottom' ? 'active' : ''}" data-value="bottom">Bottom</button>
-          </div>
-        </div>
-        ${PanelUtils.renderSlider('Fade Duration', 'subtitle-fade-duration', subtitleFade, 100, 500, 10, 'ms')}
-      </div>
-
-      <!-- Block-only options -->
-      <div id="mode-block-options" style="display:${displayMode === 'block' ? 'block' : 'none'};">
-        ${PanelUtils.renderSlider('Visible Lines', 'block-visible-lines', blockLines, 3, 15, 1, '')}
-        ${PanelUtils.renderColorPicker('Highlight Background', 'block-highlight-bg', blockHighlightBg)}
       </div>
     `;
   }
