@@ -123,6 +123,11 @@ export class VisualClip extends Clip {
    * @returns {VisualClip}
    */
   static fromJSON(data) {
+    // Normalize: merge top-level font into properties.font.
+    // External generators may place font at the clip level instead of inside properties.
+    if (data.font && data.properties) {
+      data.properties.font = { ...data.font, ...(data.properties.font || {}) };
+    }
     return new VisualClip(data.elementType, data);
   }
 }
