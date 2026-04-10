@@ -13,7 +13,7 @@ REMOTE_DATA_DIR="$REMOTE_VOLUMES_DIR/wow3-data"
 
 IMAGE_NAME="wow3-renderer"
 IMAGE_TAG="latest"
-IMAGE_ARCHIVE="/tmp/wow3-renderer.tar.gz"
+IMAGE_ARCHIVE="/ramdisk/wow3-renderer.tar.gz"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
