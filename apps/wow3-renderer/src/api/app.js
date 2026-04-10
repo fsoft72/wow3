@@ -56,6 +56,9 @@ export async function buildApp({ dbPath, dataDir, jwtSecret, adminUser, adminPas
     decorateReply: false,
   });
 
+  // Redirect bare /admin to /admin/ so the SPA loads correctly
+  app.get('/admin', (req, reply) => reply.redirect('/admin/'));
+
   const apiKeyAuth = createApiKeyAuth(db);
 
   // Public job routes — protected by API key

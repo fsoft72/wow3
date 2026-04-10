@@ -1,4 +1,6 @@
 import { rm } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { stat } from 'node:fs/promises';
 import { randomBytes, randomUUID } from 'node:crypto';
 import {
   listApiKeys, insertApiKey, deleteApiKey,
@@ -71,6 +73,24 @@ export async function adminRoutes(fastify, { db, jwtSecret, adminUser, adminPass
 
     /** GET /jobs */
     instance.get('/jobs', async () => listJobs(db));
+
+    /** GET /jobs/:id/result — stream the MP4 file for completed jobs */
+    instance.get('/jobs/:id/result', async (request, reply) => {
+      const job = getJob(db, request.params.id);
+      if (!job) return reply.code(404).send({ error: 'Job not found' });
+      if (job.status !== 'completed') {
+        return reply.code(404).send({ error: `Job is not completed (status: ${job.status})` });
+      }
+
+      let accessible = false;
+      try { await stat(job.output_path); accessible = true; } catch {}
+      if (!accessible) return reply.code(410).send({ error: 'Output file has been deleted' });
+
+      const filename = job.wow3a_name.replace(/\.wow3a$/, '.mp4');
+      reply.header('Content-Disposition', `attachment; filename="${filename}"`);
+      reply.header('Content-Type', 'video/mp4');
+      return reply.send(createReadStream(job.output_path));
+    });
 
     /** DELETE /jobs/:id */
     instance.delete('/jobs/:id', async (request, reply) => {

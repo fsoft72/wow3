@@ -209,4 +209,15 @@ describe('admin routes — jobs (authenticated)', () => {
     const res = await app.inject({ method: 'DELETE', url: '/admin/jobs/nope', headers: { cookie } });
     expect(res.statusCode).toBe(404);
   });
+
+  it('GET /admin/jobs/:id/result streams the MP4 when completed', async () => {
+    const mp4 = join(dataDir, 'output', 'j2.mp4');
+    await writeFile(mp4, Buffer.from('fake-mp4'));
+    insertJob(db, { id: 'j2', wow3aName: 'b.wow3a' });
+    updateJobStatus(db, 'j2', 'completed', { outputPath: mp4 });
+
+    const res = await app.inject({ method: 'GET', url: '/admin/jobs/j2/result', headers: { cookie } });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toContain('video/mp4');
+  });
 });
