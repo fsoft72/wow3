@@ -25,6 +25,7 @@ export function createApiKeyAuth(db) {
     const row = findApiKeyByHash(db, hashKey(raw));
     if (!row) {
       reply.code(401).send({ error: 'Invalid API key' });
+      return;
     }
   };
 }
