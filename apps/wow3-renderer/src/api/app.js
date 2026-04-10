@@ -43,7 +43,8 @@ export async function buildApp({ dbPath, dataDir, jwtSecret, adminUser, adminPas
   if (getPendingJobs(db).length > 0) queue.enqueue();
 
   const cleanup = createCleanup(db);
-  cleanup.start();
+  const cleanupInterval = cleanup.start();
+  cleanupInterval.unref();
 
   const app = Fastify({ logger: true });
 

@@ -25,6 +25,7 @@ export function createAdminAuth(jwtSecret) {
       jwt.verify(token, jwtSecret);
     } catch {
       reply.code(401).send({ error: 'Invalid or expired session' });
+      return;
     }
   };
 }
