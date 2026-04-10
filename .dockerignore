@@ -2,9 +2,10 @@
 node_modules
 **/node_modules
 
-# Build output
+# Build output (but keep animation dist — required by Dockerfile)
 dist
 **/dist
+!apps/wow3-animation/dist
 
 # Development
 .git
