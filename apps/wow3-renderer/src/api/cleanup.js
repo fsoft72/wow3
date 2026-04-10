@@ -33,8 +33,11 @@ export function createCleanup(db) {
    * @returns {NodeJS.Timeout} interval handle (call clearInterval to stop)
    */
   function start() {
-    runCleanup();
-    return setInterval(runCleanup, 60 * 60 * 1000);
+    runCleanup().catch(err => console.error('[cleanup] initial run failed:', err.message));
+    return setInterval(
+      () => runCleanup().catch(err => console.error('[cleanup] scheduled run failed:', err.message)),
+      60 * 60 * 1000
+    );
   }
 
   return { start, runCleanup };
