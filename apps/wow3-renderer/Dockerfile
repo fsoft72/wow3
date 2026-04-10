@@ -19,8 +19,12 @@ COPY apps/wow3-renderer/package.json ./apps/wow3-renderer/
 # Only package.json needed — renderer does not import @wow/core source
 COPY packages/wow-core/package.json ./packages/wow-core/package.json
 
+RUN apt-get update && apt-get install -y python3 make g++ --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN npm install -g pnpm@10.32.1 && \
-    pnpm install --frozen-lockfile --filter @wow/wow3-renderer
+    pnpm install --frozen-lockfile --filter @wow/wow3-renderer && \
+    pnpm --filter @wow/wow3-renderer rebuild better-sqlite3
 
 # Copy renderer source
 COPY apps/wow3-renderer/src ./apps/wow3-renderer/src
