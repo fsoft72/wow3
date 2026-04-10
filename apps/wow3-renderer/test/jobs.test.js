@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, rm, writeFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import Fastify from 'fastify';
 import fastifyMultipart from '@fastify/multipart';
 import fastifyCookie from '@fastify/cookie';
+import JSZip from 'jszip';
 import { createDb, insertApiKey, insertJob, updateJobStatus } from '../src/api/db.js';
 import { hashKey } from '../src/api/middleware/auth.js';
 import { createApiKeyAuth } from '../src/api/middleware/auth.js';
@@ -72,6 +73,58 @@ describe('jobs routes', () => {
       payload: body,
     });
     expect(res.statusCode).toBe(400);
+  });
+
+  it('POST /jobs accepts a .json file upload and wraps it in .wow3a', async () => {
+    const projectJson = JSON.stringify({ title: 'Test Project', tracks: [] });
+    const boundary = 'bj';
+    const body = [
+      `--${boundary}`,
+      'Content-Disposition: form-data; name="file"; filename="project.json"',
+      'Content-Type: application/json',
+      '',
+      projectJson,
+      `--${boundary}--`,
+    ].join('\r\n');
+
+    const res = await app.inject({
+      method: 'POST', url: '/jobs',
+      headers: { ...AUTH, 'content-type': `multipart/form-data; boundary=${boundary}` },
+      payload: body,
+    });
+
+    expect(res.statusCode).toBe(202);
+    const json = res.json();
+    expect(json.jobId).toBeTruthy();
+    expect(json.status).toBe('pending');
+
+    // Verify the saved file is a valid ZIP containing project.json
+    const savedPath = join(dataDir, 'uploads', `${json.jobId}.wow3a`);
+    const zipBuf = await readFile(savedPath);
+    const zip = await JSZip.loadAsync(zipBuf);
+    const pj = JSON.parse(await zip.file('project.json').async('string'));
+    expect(pj.title).toBe('Test Project');
+  });
+
+  it('POST /jobs accepts a JSON body (application/json)', async () => {
+    const projectData = { title: 'JSON Body Test', tracks: [] };
+
+    const res = await app.inject({
+      method: 'POST', url: '/jobs',
+      headers: { ...AUTH, 'content-type': 'application/json' },
+      payload: JSON.stringify(projectData),
+    });
+
+    expect(res.statusCode).toBe(202);
+    const json = res.json();
+    expect(json.jobId).toBeTruthy();
+
+    // Verify the saved file is a valid ZIP
+    const savedPath = join(dataDir, 'uploads', `${json.jobId}.wow3a`);
+    const zipBuf = await readFile(savedPath);
+    const zip = await JSZip.loadAsync(zipBuf);
+    const pj = JSON.parse(await zip.file('project.json').async('string'));
+    expect(pj.title).toBe('JSON Body Test');
   });
 
   it('POST /jobs creates a job, saves file, enqueues, returns 202', async () => {

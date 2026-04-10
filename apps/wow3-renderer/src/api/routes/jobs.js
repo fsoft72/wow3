@@ -2,7 +2,19 @@ import { createReadStream } from 'node:fs';
 import { stat, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import JSZip from 'jszip';
 import { insertJob, getJob } from '../db.js';
+
+/**
+ * Wrap a project JSON object into a minimal .wow3a ZIP buffer (project.json only).
+ * @param {object} jsonData
+ * @returns {Promise<Buffer>}
+ */
+async function jsonToWow3a(jsonData) {
+  const zip = new JSZip();
+  zip.file('project.json', JSON.stringify(jsonData));
+  return zip.generateAsync({ type: 'nodebuffer' });
+}
 
 /**
  * Register public job endpoints on the Fastify instance.
@@ -13,22 +25,50 @@ import { insertJob, getJob } from '../db.js';
 export async function jobsRoutes(fastify, { db, queue, dataDir }) {
   /**
    * POST /jobs
-   * Accepts a .wow3a file upload, creates a job, enqueues it.
+   * Accepts a .wow3a file (multipart), a .json file (multipart),
+   * or a JSON body (application/json). Creates a job and enqueues it.
    * Requires X-API-Key header.
    */
   fastify.post('/jobs', async (request, reply) => {
-    const data = await request.file();
-    if (!data) return reply.code(400).send({ error: 'No file uploaded' });
-    if (!data.filename.endsWith('.wow3a')) {
-      return reply.code(400).send({ error: 'File must have .wow3a extension' });
+    let fileBuffer, originalName;
+
+    const contentType = request.headers['content-type'] || '';
+
+    if (contentType.startsWith('application/json')) {
+      // JSON body — wrap into a .wow3a
+      const jsonData = request.body;
+      if (!jsonData || typeof jsonData !== 'object') {
+        return reply.code(400).send({ error: 'Invalid JSON body' });
+      }
+      fileBuffer = await jsonToWow3a(jsonData);
+      originalName = (jsonData.title || 'project').replace(/[^a-zA-Z0-9_.-]/g, '_') + '.wow3a';
+    } else if (contentType.startsWith('multipart/form-data')) {
+      // Multipart file upload — .wow3a or .json
+      const data = await request.file();
+      if (!data) return reply.code(400).send({ error: 'No file uploaded' });
+
+      const buffer = await data.toBuffer();
+
+      if (data.filename.endsWith('.json')) {
+        const jsonData = JSON.parse(buffer.toString('utf-8'));
+        fileBuffer = await jsonToWow3a(jsonData);
+        originalName = data.filename.replace(/\.json$/, '.wow3a');
+      } else if (data.filename.endsWith('.wow3a')) {
+        fileBuffer = buffer;
+        originalName = data.filename;
+      } else {
+        return reply.code(400).send({ error: 'File must have .wow3a or .json extension' });
+      }
+    } else {
+      return reply.code(400).send({ error: 'Expected multipart/form-data or application/json' });
     }
 
     const id = randomUUID();
     const uploadDir = join(dataDir, 'uploads');
     await mkdir(uploadDir, { recursive: true });
-    await writeFile(join(uploadDir, `${id}.wow3a`), await data.toBuffer());
+    await writeFile(join(uploadDir, `${id}.wow3a`), fileBuffer);
 
-    insertJob(db, { id, wow3aName: data.filename });
+    insertJob(db, { id, wow3aName: originalName });
     queue.enqueue();
 
     return reply.code(202).send({ jobId: id, status: 'pending' });
