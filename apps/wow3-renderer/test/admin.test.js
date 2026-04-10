@@ -72,8 +72,24 @@ describe('admin routes — login', () => {
       payload: JSON.stringify({ username: ADMIN_USER, password: ADMIN_PASS }),
     });
     expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ ok: true });
     expect(res.headers['set-cookie']).toMatch(/admin_session=/);
     expect(res.headers['set-cookie']).toMatch(/HttpOnly/i);
+  });
+
+  it('POST /admin/logout clears the session cookie', async () => {
+    const loginRes = await app.inject({
+      method: 'POST', url: '/admin/login',
+      headers: { 'content-type': 'application/json' },
+      payload: JSON.stringify({ username: ADMIN_USER, password: ADMIN_PASS }),
+    });
+    const cookie = loginRes.headers['set-cookie'];
+    const res = await app.inject({
+      method: 'POST', url: '/admin/logout',
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['set-cookie']).toMatch(/admin_session=;/);
   });
 });
 
@@ -98,6 +114,18 @@ describe('admin routes — api-keys (authenticated)', () => {
     });
     expect(res.statusCode).toBe(200);
     expect(res.json()).toEqual([]);
+  });
+
+  it('GET /admin/api-keys does not expose key_hash', async () => {
+    insertApiKey(db, { id: 'k1', label: 'test', keyHash: hashKey('rawkey') });
+    const res = await app.inject({
+      method: 'GET', url: '/admin/api-keys',
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(200);
+    const keys = res.json();
+    expect(keys).toHaveLength(1);
+    expect(keys[0].key_hash).toBeUndefined();
   });
 
   it('POST /admin/api-keys creates key and returns raw key once', async () => {
