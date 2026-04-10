@@ -83,7 +83,11 @@ export class VisualClip extends Clip {
           displayMode: 'karaoke',
           colorPrev: '#888888', colorCurrent: '#ff9800', colorNext: '#888888',
           highlightAnimationSpeed: 0, highlightAnimationType: 'pingpong',
-          font: { family: 'Roboto', size: 36, weight: 'bold', alignment: 'center' },
+          font: {
+            family: 'Roboto', size: 36, weight: 'bold', style: 'normal', alignment: 'center',
+            shadow: { enabled: false, color: '#000000', offsetX: 2, offsetY: 2, blur: 4 },
+            stroke: { enabled: false, color: '#000000', width: 1 }
+          },
           subtitle: { position: 'bottom', fadeDuration: 200 },
           block: { visibleLines: 5, highlightBg: 'transparent' }
         }
