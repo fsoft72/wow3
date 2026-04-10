@@ -25,8 +25,15 @@ COPY apps/wow3-renderer/package.json ./apps/wow3-renderer/
 # Only package.json needed — renderer does not import @wow/core source
 COPY packages/wow-core/package.json ./packages/wow-core/package.json
 
-RUN npm install -g pnpm@10.32.1 && \
+RUN npm install -g pnpm@10.32.1 node-gyp && \
     pnpm install --frozen-lockfile --filter @wow/wow3-renderer
+
+# Compile better-sqlite3 native bindings for this exact Node.js version.
+# pnpm's content-addressable store does not always produce the .node file
+# in the right location, so we build it explicitly with node-gyp.
+RUN cd /app/node_modules/.pnpm/better-sqlite3@*/node_modules/better-sqlite3 && \
+    node-gyp rebuild --release && \
+    ls build/Release/better_sqlite3.node
 
 # Copy renderer source
 COPY apps/wow3-renderer/src ./apps/wow3-renderer/src
