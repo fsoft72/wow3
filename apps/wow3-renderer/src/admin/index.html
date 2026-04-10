@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>wow3-renderer — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script type="module" src="https://cdn.jsdelivr.net/npm/wox-gui@0.2.2/dist/wox-gui.cdn.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--wox-font);
+      background: var(--wox-bg-app);
+      color: var(--wox-text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #main { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+    #main.visible { display: flex; }
+
+    /* Table styles */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--wox-font-size-base);
+    }
+    .data-table th {
+      background: var(--wox-bg-section-header);
+      color: var(--wox-text-secondary);
+      font-weight: 500;
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--wox-border);
+      white-space: nowrap;
+    }
+    .data-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--wox-border-section);
+      color: var(--wox-text-primary);
+      vertical-align: middle;
+    }
+    .data-table tr:hover td { background: var(--wox-bg-hover); }
+    .table-wrap { overflow-y: auto; flex: 1; }
+    .tab-content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: 12px;
+      padding: 16px;
+      overflow: hidden;
+    }
+    .toolbar { display: flex; align-items: center; gap: 8px; }
+    .badge-status {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--wox-radius-sm);
+      font-size: var(--wox-font-size-sm);
+      font-weight: 500;
+    }
+    .s-pending  { background: #333; color: #aaa; }
+    .s-running  { background: #1a3a5c; color: var(--wox-accent); }
+    .s-completed { background: #1a3c2a; color: #4cc9f0; }
+    .s-failed   { background: #3c1a1a; color: var(--wox-danger); }
+    .btn-action {
+      background: none; border: 1px solid var(--wox-border);
+      color: var(--wox-text-secondary); padding: 3px 8px;
+      border-radius: var(--wox-radius-sm); cursor: pointer;
+      font-size: var(--wox-font-size-sm);
+    }
+    .btn-action:hover { border-color: var(--wox-accent); color: var(--wox-accent); }
+    .btn-danger:hover { border-color: var(--wox-danger); color: var(--wox-danger); }
+    .key-mask { font-family: var(--wox-font-mono); color: var(--wox-text-secondary); }
+  </style>
+</head>
+<body>
+
+<!-- Login modal (shown until authenticated) -->
+<wox-modal id="loginModal" open title="wow3-renderer Admin" closable="false" width="340px">
+  <div style="display:flex; flex-direction:column; gap:12px; padding:4px 0">
+    <wox-input id="loginUser" type="text" label="Username" placeholder="admin"></wox-input>
+    <wox-input id="loginPass" type="password" label="Password" placeholder="Password"></wox-input>
+    <wox-button id="loginBtn" variant="text" icon="login" label="Sign In" style="align-self:flex-end"></wox-button>
+  </div>
+</wox-modal>
+
+<!-- Main interface (hidden until logged in) -->
+<div id="main">
+  <wox-menubar>
+    <span style="font-weight:600; color:var(--wox-text-hi); padding:0 16px; font-size:var(--wox-font-size-lg)">
+      wow3-renderer
+    </span>
+    <div style="flex:1"></div>
+    <wox-button id="logoutBtn" variant="text" icon="logout" label="Logout"
+      style="margin-right:8px"></wox-button>
+  </wox-menubar>
+
+  <div style="flex:1; overflow:hidden; display:flex; flex-direction:column;">
+    <wox-tabs id="tabs" active="jobs" style="flex:1; overflow:hidden;">
+
+      <!-- Jobs tab -->
+      <wox-tab name="jobs" label="Jobs" icon="video_file">
+        <div class="tab-content">
+          <div class="toolbar">
+            <span style="color:var(--wox-text-secondary); font-size:var(--wox-font-size-sm)" id="jobsStatus">
+              Loading...
+            </span>
+            <div style="flex:1"></div>
+            <wox-button id="refreshBtn" variant="icon" icon="refresh"></wox-button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>File</th>
+                  <th>Status</th>
+                  <th>Progress</th>
+                  <th>Created</th>
+                  <th>Duration</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="jobsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </wox-tab>
+
+      <!-- API Keys tab -->
+      <wox-tab name="keys" label="API Keys" icon="key">
+        <div class="tab-content">
+          <div class="toolbar">
+            <wox-button id="newKeyBtn" variant="text" icon="add" label="New API Key"></wox-button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Label</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="keysBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </wox-tab>
+
+    </wox-tabs>
+  </div>
+
+  <wox-statusbar>
+    <span slot="left" id="statusLeft">Ready</span>
+  </wox-statusbar>
+</div>
+
+<!-- New API Key modal -->
+<wox-modal id="newKeyModal" title="New API Key" width="360px">
+  <div style="display:flex; flex-direction:column; gap:12px; padding:4px 0">
+    <wox-input id="keyLabel" type="text" label="Label" placeholder="e.g. n8n production"></wox-input>
+  </div>
+  <div slot="footer" style="display:flex; gap:8px; justify-content:flex-end">
+    <wox-button id="newKeyCancel" variant="text" label="Cancel"></wox-button>
+    <wox-button id="newKeyConfirm" variant="text" icon="add" label="Create"></wox-button>
+  </div>
+</wox-modal>
+
+<!-- Created key display modal -->
+<wox-modal id="createdKeyModal" title="API Key Created" width="480px" closable="false">
+  <div style="display:flex; flex-direction:column; gap:12px; padding:4px 0">
+    <p style="color:var(--wox-text-secondary); font-size:var(--wox-font-size-base)">
+      Copy this key now — it will not be shown again.
+    </p>
+    <div style="display:flex; gap:8px; align-items:center">
+      <wox-input id="createdKeyValue" type="text" style="flex:1"></wox-input>
+      <wox-button id="copyKeyBtn" variant="icon" icon="content_copy"></wox-button>
+    </div>
+  </div>
+  <div slot="footer" style="display:flex; justify-content:flex-end">
+    <wox-button id="createdKeyClose" variant="text" label="Done"></wox-button>
+  </div>
+</wox-modal>
+
+<!-- Delete confirmation modal -->
+<wox-modal id="confirmModal" title="Confirm Delete" width="340px">
+  <p id="confirmMsg" style="color:var(--wox-text-secondary)"></p>
+</wox-modal>
+
+<script type="module">
+// ── API helpers ──────────────────────────────────────────────────────────────
+
+async function api(method, path, body) {
+  const opts = { method, headers: {} };
+  if (body) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  }
+  const res = await fetch(path, opts);
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
+  return json;
+}
+
+// ── State ────────────────────────────────────────────────────────────────────
+
+let refreshTimer = null;
+
+// ── Formatting helpers ───────────────────────────────────────────────────────
+
+function fmtDate(ms) {
+  if (!ms) return '—';
+  return new Date(ms).toLocaleString();
+}
+
+function fmtDuration(startMs, endMs) {
+  if (!startMs || !endMs) return '—';
+  const s = Math.round((endMs - startMs) / 1000);
+  const m = Math.floor(s / 60);
+  return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
+}
+
+// ── Login ────────────────────────────────────────────────────────────────────
+
+document.getElementById('loginBtn').addEventListener('wox-click', async () => {
+  const username = document.getElementById('loginUser').value;
+  const password = document.getElementById('loginPass').value;
+  try {
+    await api('POST', '/admin/login', { username, password });
+    document.getElementById('loginModal').removeAttribute('open');
+    document.getElementById('main').classList.add('visible');
+    loadJobs();
+    startAutoRefresh();
+  } catch {
+    WoxToast.error('Invalid credentials');
+  }
+});
+
+// Allow Enter key on password field
+document.getElementById('loginPass').addEventListener('wox-change', () => {
+  document.getElementById('loginBtn').dispatchEvent(new CustomEvent('wox-click'));
+});
+
+document.getElementById('logoutBtn').addEventListener('wox-click', async () => {
+  await api('POST', '/admin/logout');
+  location.reload();
+});
+
+// ── Jobs ─────────────────────────────────────────────────────────────────────
+
+async function loadJobs() {
+  try {
+    const jobs = await api('GET', '/admin/jobs');
+    renderJobs(jobs);
+    const running = jobs.filter(j => j.status === 'running').length;
+    const pending = jobs.filter(j => j.status === 'pending').length;
+    document.getElementById('jobsStatus').textContent =
+      `${jobs.length} total · ${running} running · ${pending} queued`;
+    document.getElementById('statusLeft').textContent =
+      `${jobs.length} jobs`;
+  } catch (e) {
+    WoxToast.error(`Failed to load jobs: ${e.message}`);
+  }
+}
+
+function renderJobs(jobs) {
+  const tbody = document.getElementById('jobsBody');
+  tbody.innerHTML = '';
+  for (const j of jobs) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-family:var(--wox-font-mono);font-size:var(--wox-font-size-sm)">${j.id.slice(0, 8)}</td>
+      <td>${j.wow3a_name}</td>
+      <td><span class="badge-status s-${j.status}">${j.status}</span></td>
+      <td>${j.status === 'running' ? j.progress + '%' : '—'}</td>
+      <td style="color:var(--wox-text-secondary)">${fmtDate(j.created_at)}</td>
+      <td>${fmtDuration(j.started_at, j.completed_at)}</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        ${j.status === 'completed'
+          ? `<button class="btn-action" data-action="download" data-id="${j.id}" data-name="${j.wow3a_name}">Download</button>`
+          : ''}
+        <button class="btn-action btn-danger" data-action="delete-job" data-id="${j.id}">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+  tbody.addEventListener('click', onJobAction);
+}
+
+async function onJobAction(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  if (btn.dataset.action === 'download') {
+    const a = document.createElement('a');
+    a.href = `/jobs/${btn.dataset.id}/result`;
+    a.download = btn.dataset.name.replace('.wow3a', '.mp4');
+    a.click();
+  }
+  if (btn.dataset.action === 'delete-job') {
+    const confirmed = await confirm(`Delete job ${btn.dataset.id.slice(0, 8)}?`);
+    if (!confirmed) return;
+    try {
+      await api('DELETE', `/admin/jobs/${btn.dataset.id}`);
+      WoxToast.success('Job deleted');
+      loadJobs();
+    } catch (err) {
+      WoxToast.error(err.message);
+    }
+  }
+}
+
+document.getElementById('refreshBtn').addEventListener('wox-click', loadJobs);
+
+// ── API Keys ─────────────────────────────────────────────────────────────────
+
+async function loadKeys() {
+  try {
+    const keys = await api('GET', '/admin/api-keys');
+    renderKeys(keys);
+  } catch (e) {
+    WoxToast.error(`Failed to load API keys: ${e.message}`);
+  }
+}
+
+function renderKeys(keys) {
+  const tbody = document.getElementById('keysBody');
+  tbody.innerHTML = '';
+  for (const k of keys) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${k.label}</td>
+      <td style="color:var(--wox-text-secondary)">${fmtDate(k.created_at)}</td>
+      <td>
+        <button class="btn-action btn-danger" data-action="delete-key" data-id="${k.id}" data-label="${k.label}">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+  tbody.addEventListener('click', onKeyAction);
+}
+
+async function onKeyAction(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn || btn.dataset.action !== 'delete-key') return;
+  const confirmed = await confirm(`Delete API key "${btn.dataset.label}"?`);
+  if (!confirmed) return;
+  try {
+    await api('DELETE', `/admin/api-keys/${btn.dataset.id}`);
+    WoxToast.success('API key deleted');
+    loadKeys();
+  } catch (err) {
+    WoxToast.error(err.message);
+  }
+}
+
+// New key flow
+document.getElementById('newKeyBtn').addEventListener('wox-click', () => {
+  document.getElementById('keyLabel').value = '';
+  document.getElementById('newKeyModal').setAttribute('open', '');
+});
+
+document.getElementById('newKeyCancel').addEventListener('wox-click', () => {
+  document.getElementById('newKeyModal').removeAttribute('open');
+});
+
+document.getElementById('newKeyConfirm').addEventListener('wox-click', async () => {
+  const label = document.getElementById('keyLabel').value.trim();
+  if (!label) { WoxToast.warning('Label is required'); return; }
+  try {
+    const { key } = await api('POST', '/admin/api-keys', { label });
+    document.getElementById('newKeyModal').removeAttribute('open');
+    document.getElementById('createdKeyValue').value = key;
+    document.getElementById('createdKeyModal').setAttribute('open', '');
+    loadKeys();
+  } catch (err) {
+    WoxToast.error(err.message);
+  }
+});
+
+document.getElementById('copyKeyBtn').addEventListener('wox-click', () => {
+  const val = document.getElementById('createdKeyValue').value;
+  navigator.clipboard.writeText(val).then(() => WoxToast.success('Key copied to clipboard!'));
+});
+
+document.getElementById('createdKeyClose').addEventListener('wox-click', () => {
+  document.getElementById('createdKeyModal').removeAttribute('open');
+});
+
+// ── Tab switching ────────────────────────────────────────────────────────────
+
+document.getElementById('tabs').addEventListener('wox-tab-change', (e) => {
+  if (e.detail.name === 'keys') loadKeys();
+  if (e.detail.name === 'jobs') loadJobs();
+});
+
+// ── Auto refresh ─────────────────────────────────────────────────────────────
+
+function startAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => {
+    if (document.getElementById('tabs').getAttribute('active') === 'jobs') {
+      loadJobs();
+    }
+  }, 10000);
+}
+</script>
+</body>
+</html>
