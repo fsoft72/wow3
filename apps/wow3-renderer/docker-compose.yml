@@ -1,0 +1,15 @@
+services:
+  wow3-renderer:
+    build:
+      context: ../..
+      dockerfile: apps/wow3-renderer/Dockerfile
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - renderer-data:/data
+    env_file:
+      - .env
+    restart: unless-stopped
+
+volumes:
+  renderer-data:
