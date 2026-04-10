@@ -27,12 +27,7 @@ export class KaraokePanel {
         <wox-select
           id="karaoke-display-mode"
           label="Display Mode"
-          value="${displayMode}"
-          options='${JSON.stringify([
-            { value: "karaoke", label: "Karaoke" },
-            { value: "subtitle", label: "Subtitle" },
-            { value: "block", label: "Block" }
-          ])}'
+          options='[{"value":"karaoke","label":"Karaoke"},{"value":"subtitle","label":"Subtitle"},{"value":"block","label":"Block"}]'
         ></wox-select>
       </div>
 
@@ -167,15 +162,23 @@ export class KaraokePanel {
     const modeSubtitle = document.getElementById('mode-subtitle-options');
     const modeBlock = document.getElementById('mode-block-options');
 
-    modeSelect?.addEventListener('wox-change', (e) => {
-      const mode = e.detail.value;
-      updateProperty('properties.displayMode', mode);
-
-      // Toggle mode-specific sections
+    const _toggleModeSections = (mode) => {
       if (modeKaraoke) modeKaraoke.style.display = mode === 'karaoke' ? 'block' : 'none';
       if (modeSubtitle) modeSubtitle.style.display = mode === 'subtitle' ? 'block' : 'none';
       if (modeBlock) modeBlock.style.display = mode === 'block' ? 'block' : 'none';
-    });
+    };
+
+    if (modeSelect) {
+      // Set initial value via JS property (wox-select value is a JS property)
+      const currentMode = element.properties.displayMode || 'karaoke';
+      modeSelect.selectOption(currentMode);
+
+      modeSelect.addEventListener('wox-change', (e) => {
+        const mode = e.detail.value;
+        updateProperty('properties.displayMode', mode);
+        _toggleModeSections(mode);
+      });
+    }
 
     // SRT source — read from clip (the source of truth), update clip directly
     const srtValue = clip?.properties?.srtMediaId || clip?.properties?.srtUrl || '';
