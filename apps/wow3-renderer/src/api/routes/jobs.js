@@ -1,6 +1,7 @@
 import { createReadStream } from 'node:fs';
 import { stat, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { insertJob, getJob } from '../db.js';
 
 /**
@@ -22,7 +23,7 @@ export async function jobsRoutes(fastify, { db, queue, dataDir }) {
       return reply.code(400).send({ error: 'File must have .wow3a extension' });
     }
 
-    const id = crypto.randomUUID();
+    const id = randomUUID();
     const uploadDir = join(dataDir, 'uploads');
     await mkdir(uploadDir, { recursive: true });
     await writeFile(join(uploadDir, `${id}.wow3a`), await data.toBuffer());

@@ -1,5 +1,5 @@
 import { rm } from 'node:fs/promises';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import {
   listApiKeys, insertApiKey, deleteApiKey,
   listJobs, getJob, deleteJob,
@@ -55,7 +55,7 @@ export async function adminRoutes(fastify, { db, jwtSecret, adminUser, adminPass
       const { label } = request.body ?? {};
       if (!label) return reply.code(400).send({ error: 'label is required' });
 
-      const id = crypto.randomUUID();
+      const id = randomUUID();
       const rawKey = randomBytes(16).toString('hex'); // 32-char hex string
       insertApiKey(db, { id, label, keyHash: hashKey(rawKey) });
 
