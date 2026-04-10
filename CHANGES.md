@@ -1,5 +1,31 @@
 # Changes
 
+## 2026-04-10
+
+### wow3-animation: Karaoke Player display modes
+
+Added three selectable display modes to the Karaoke Player via a Strategy Pattern:
+- **Karaoke** (default): 3-line display (prev/current/next) with fade transitions between lines
+- **Subtitle**: single-line cinematic display with fade in/out and cross-fade between cues
+- **Block**: multi-line display with configurable visible lines and highlighted current line
+
+KaraokePanel now includes a display mode dropdown with mode-specific configuration sections.
+New properties: `displayMode`, `subtitle.position`, `subtitle.fadeDuration`, `block.visibleLines`, `block.highlightBg`.
+Full backward compatibility: existing projects default to karaoke mode.
+
+**New files:**
+- `apps/wow3-animation/js/strategies/DisplayStrategy.js` — base class with shared font/color/highlight logic
+- `apps/wow3-animation/js/strategies/KaraokeStrategy.js` — 3-line karaoke mode
+- `apps/wow3-animation/js/strategies/SubtitleStrategy.js` — single-line cinematic subtitle mode
+- `apps/wow3-animation/js/strategies/BlockStrategy.js` — multi-line block mode
+- `apps/wow3-animation/js/strategies/index.js` — strategy registry and factory
+
+**Modified files:**
+- `apps/wow3-animation/js/models/KaraokeElement.js` — delegates rendering to strategy
+- `apps/wow3-animation/js/models/VisualClip.js` — added display mode defaults
+- `apps/wow3-animation/js/panels/KaraokePanel.js` — mode dropdown and conditional sections
+- `apps/wow3-animation/css/main.css` — styles for new display modes
+
 ## 2026-04-07
 
 ### wow3-animation: import external asset URLs into the project media folder
