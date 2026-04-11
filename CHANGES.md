@@ -1,5 +1,21 @@
 # Changes
 
+## 2026-04-11
+
+### wow3-renderer: fix Docker port binding (0.0.0.0:4000)
+
+Fixed Docker container not reachable from outside: the port mapping had a
+mismatch — the host port was set via `PORT` env var but the container port was
+hardcoded to 3000, so when `PORT=4000` the mapping `4000:3000` missed the app
+listening on 4000. Now both sides use `${PORT:-4000}` and bind explicitly to
+`0.0.0.0`.
+
+**Modified files:**
+- `apps/wow3-renderer/Dockerfile` — default PORT changed to 4000, EXPOSE 4000
+- `apps/wow3-renderer/docker-compose.yml` — explicit `0.0.0.0` bind, both sides use PORT
+- `apps/wow3-renderer/.env.example` — default PORT=4000
+- `scripts/deploy.sh` — same port fix in remote docker-compose template, updated URLs
+
 ## 2026-04-10
 
 ### wow3-renderer: HTTP API with SQLite persistence and Docker deployment

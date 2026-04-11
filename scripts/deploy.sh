@@ -55,7 +55,7 @@ services:
   wow3-renderer:
     image: wow3-renderer:latest
     ports:
-      - "${PORT:-3000}:3000"
+      - "0.0.0.0:${PORT:-4000}:${PORT:-4000}"
     volumes:
       - /home/wow3-renderer/volumes/wow3-data:/data
     env_file:
@@ -86,8 +86,8 @@ rm -f "$IMAGE_ARCHIVE"
 
 echo ""
 echo "==> Deploy complete!"
-echo "    Admin UI: http://$REMOTE_HOST:3000/admin/"
-echo "    API:      http://$REMOTE_HOST:3000/jobs"
+echo "    Admin UI: http://$REMOTE_HOST:4000/admin/"
+echo "    API:      http://$REMOTE_HOST:4000/jobs"
 echo ""
 echo "    IMPORTANT: On first deploy, edit the .env on the server:"
 echo "    ssh $REMOTE 'nano $REMOTE_DOCKER_DIR/.env'"
