@@ -9,6 +9,7 @@
   <script type="module" src="https://cdn.jsdelivr.net/npm/wox-gui@0.2.2/dist/wox-gui.cdn.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { zoom: 1.2; }
     body {
       font-family: var(--wox-font);
       background: var(--wox-bg-app);
@@ -72,7 +73,33 @@
     }
     .btn-action:hover { border-color: var(--wox-accent); color: var(--wox-accent); }
     .btn-danger:hover { border-color: var(--wox-danger); color: var(--wox-danger); }
+    .btn-action:disabled {
+      opacity: 0.4; cursor: not-allowed;
+      border-color: var(--wox-border); color: var(--wox-text-secondary);
+    }
     .key-mask { font-family: var(--wox-font-mono); color: var(--wox-text-secondary); }
+    .page-select {
+      background: var(--wox-bg-input);
+      border: 1px solid var(--wox-border);
+      color: var(--wox-text-primary);
+      padding: 3px 6px;
+      border-radius: var(--wox-radius-sm);
+      font-size: var(--wox-font-size-sm);
+      font-family: var(--wox-font);
+    }
+    .page-info {
+      color: var(--wox-text-secondary);
+      font-size: var(--wox-font-size-sm);
+      min-width: 90px;
+      text-align: center;
+    }
+    .row-check, .col-check {
+      width: 14px; height: 14px;
+      accent-color: var(--wox-accent);
+      cursor: pointer;
+      vertical-align: middle;
+    }
+    .col-check-cell { width: 32px; text-align: center; }
   </style>
 </head>
 <body>
@@ -109,18 +136,36 @@
             <span style="color:var(--wox-text-secondary); font-size:var(--wox-font-size-sm)" id="jobsStatus">
               Loading...
             </span>
+            <button id="bulkDeleteBtn" class="btn-action btn-danger" disabled>
+              Delete Selected (<span id="bulkCount">0</span>)
+            </button>
             <div style="flex:1"></div>
+            <label style="color:var(--wox-text-secondary); font-size:var(--wox-font-size-sm)">
+              Per page:
+              <select id="pageSize" class="page-select">
+                <option value="10">10</option>
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="0">All</option>
+              </select>
+            </label>
+            <wox-button id="prevPageBtn" variant="icon" icon="chevron_left"></wox-button>
+            <span class="page-info" id="pageInfo">1 / 1</span>
+            <wox-button id="nextPageBtn" variant="icon" icon="chevron_right"></wox-button>
             <wox-button id="refreshBtn" variant="icon" icon="refresh"></wox-button>
           </div>
           <div class="table-wrap">
             <table class="data-table">
               <thead>
                 <tr>
+                  <th class="col-check-cell"><input type="checkbox" id="selectAll" class="col-check"></th>
                   <th>ID</th>
                   <th>File</th>
                   <th>Status</th>
                   <th>Progress</th>
                   <th>Created</th>
+                  <th>Running Time</th>
                   <th>Duration</th>
                   <th>Actions</th>
                 </tr>
@@ -219,6 +264,10 @@ function esc(s) {
 // ── State ────────────────────────────────────────────────────────────────────
 
 let refreshTimer = null;
+let allJobs = [];
+let selectedIds = new Set();
+let currentPage = 1;
+let pageSize = Number(localStorage.getItem('wow3_pageSize') ?? 25);
 
 // ── Formatting helpers ───────────────────────────────────────────────────────
 
@@ -232,6 +281,17 @@ function fmtDuration(startMs, endMs) {
   const s = Math.round((endMs - startMs) / 1000);
   const m = Math.floor(s / 60);
   return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
+}
+
+/**
+ * Format elapsed running time for a job.
+ * Shows live elapsed time for running jobs, dash otherwise.
+ * @param {Object} j - job record
+ * @returns {string}
+ */
+function fmtRunningTime(j) {
+  if (j.status !== 'running' || !j.started_at) return '—';
+  return fmtDuration(j.started_at, Date.now());
 }
 
 // ── Login ────────────────────────────────────────────────────────────────────
@@ -264,30 +324,50 @@ document.getElementById('logoutBtn').addEventListener('wox-click', async () => {
 
 async function loadJobs() {
   try {
-    const jobs = await api('GET', '/admin/jobs');
-    renderJobs(jobs);
-    const running = jobs.filter(j => j.status === 'running').length;
-    const pending = jobs.filter(j => j.status === 'pending').length;
+    allJobs = await api('GET', '/admin/jobs');
+    // Drop selections that refer to jobs no longer present
+    const ids = new Set(allJobs.map(j => j.id));
+    for (const id of selectedIds) if (!ids.has(id)) selectedIds.delete(id);
+    renderJobs();
+    const running = allJobs.filter(j => j.status === 'running').length;
+    const pending = allJobs.filter(j => j.status === 'pending').length;
     document.getElementById('jobsStatus').textContent =
-      `${jobs.length} total · ${running} running · ${pending} queued`;
+      `${allJobs.length} total · ${running} running · ${pending} queued`;
     document.getElementById('statusLeft').textContent =
-      `${jobs.length} jobs`;
+      `${allJobs.length} jobs`;
   } catch (e) {
     WoxToast.error(`Failed to load jobs: ${e.message}`);
   }
 }
 
-function renderJobs(jobs) {
+/**
+ * Returns the slice of jobs for the current page, clamping page bounds.
+ * pageSize === 0 means "show all".
+ */
+function getPagedJobs() {
+  if (pageSize === 0) return { jobs: allJobs, totalPages: 1 };
+  const totalPages = Math.max(1, Math.ceil(allJobs.length / pageSize));
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  const start = (currentPage - 1) * pageSize;
+  return { jobs: allJobs.slice(start, start + pageSize), totalPages };
+}
+
+function renderJobs() {
+  const { jobs, totalPages } = getPagedJobs();
   const tbody = document.getElementById('jobsBody');
   tbody.innerHTML = '';
   for (const j of jobs) {
     const tr = document.createElement('tr');
+    const checked = selectedIds.has(j.id) ? 'checked' : '';
     tr.innerHTML = `
+      <td class="col-check-cell"><input type="checkbox" class="row-check" data-id="${esc(j.id)}" ${checked}></td>
       <td style="font-family:var(--wox-font-mono);font-size:var(--wox-font-size-sm)">${esc(j.id.slice(0, 8))}</td>
       <td>${esc(j.wow3a_name)}</td>
       <td><span class="badge-status s-${j.status}">${j.status}</span></td>
       <td>${j.status === 'running' ? j.progress + '%' : '—'}</td>
       <td style="color:var(--wox-text-secondary)">${fmtDate(j.created_at)}</td>
+      <td>${fmtRunningTime(j)}</td>
       <td>${fmtDuration(j.started_at, j.completed_at)}</td>
       <td style="display:flex;gap:4px;flex-wrap:wrap">
         ${j.status === 'completed'
@@ -298,7 +378,28 @@ function renderJobs(jobs) {
     `;
     tbody.appendChild(tr);
   }
-  tbody.addEventListener('click', onJobAction);
+  document.getElementById('pageInfo').textContent =
+    pageSize === 0 ? `All (${allJobs.length})` : `${currentPage} / ${totalPages}`;
+  document.getElementById('prevPageBtn').toggleAttribute('disabled', pageSize === 0 || currentPage <= 1);
+  document.getElementById('nextPageBtn').toggleAttribute('disabled', pageSize === 0 || currentPage >= totalPages);
+  updateSelectionUI();
+}
+
+/** Sync the master checkbox + bulk delete button with current selection */
+function updateSelectionUI() {
+  const { jobs } = getPagedJobs();
+  const btn = document.getElementById('bulkDeleteBtn');
+  document.getElementById('bulkCount').textContent = selectedIds.size;
+  btn.disabled = selectedIds.size === 0;
+  const master = document.getElementById('selectAll');
+  if (jobs.length === 0) {
+    master.checked = false;
+    master.indeterminate = false;
+    return;
+  }
+  const selectedOnPage = jobs.filter(j => selectedIds.has(j.id)).length;
+  master.checked = selectedOnPage === jobs.length;
+  master.indeterminate = selectedOnPage > 0 && selectedOnPage < jobs.length;
 }
 
 async function onJobAction(e) {
@@ -324,6 +425,61 @@ async function onJobAction(e) {
 }
 
 document.getElementById('refreshBtn').addEventListener('wox-click', loadJobs);
+
+// ── Pagination & bulk selection ──────────────────────────────────────────────
+
+// Checkbox clicks (delegated, attached once)
+document.getElementById('jobsBody').addEventListener('click', onJobAction);
+document.getElementById('jobsBody').addEventListener('change', (e) => {
+  const cb = e.target.closest('.row-check');
+  if (!cb) return;
+  if (cb.checked) selectedIds.add(cb.dataset.id);
+  else selectedIds.delete(cb.dataset.id);
+  updateSelectionUI();
+});
+
+// Master checkbox: toggle all rows on current page
+document.getElementById('selectAll').addEventListener('change', (e) => {
+  const { jobs } = getPagedJobs();
+  if (e.target.checked) for (const j of jobs) selectedIds.add(j.id);
+  else for (const j of jobs) selectedIds.delete(j.id);
+  renderJobs();
+});
+
+// Page size selector — persist to localStorage
+const pageSizeSel = document.getElementById('pageSize');
+pageSizeSel.value = String(pageSize);
+pageSizeSel.addEventListener('change', (e) => {
+  pageSize = Number(e.target.value);
+  localStorage.setItem('wow3_pageSize', String(pageSize));
+  currentPage = 1;
+  renderJobs();
+});
+
+document.getElementById('prevPageBtn').addEventListener('wox-click', () => {
+  if (currentPage > 1) { currentPage--; renderJobs(); }
+});
+document.getElementById('nextPageBtn').addEventListener('wox-click', () => {
+  const { totalPages } = getPagedJobs();
+  if (currentPage < totalPages) { currentPage++; renderJobs(); }
+});
+
+// Bulk delete
+document.getElementById('bulkDeleteBtn').addEventListener('click', async () => {
+  if (selectedIds.size === 0) return;
+  const confirmed = await confirm(`Delete ${selectedIds.size} selected job(s)? This cannot be undone.`);
+  if (!confirmed) return;
+  const ids = [...selectedIds];
+  const results = await Promise.allSettled(
+    ids.map(id => api('DELETE', `/admin/jobs/${id}`))
+  );
+  const failed = results.filter(r => r.status === 'rejected').length;
+  const ok = results.length - failed;
+  selectedIds.clear();
+  if (failed === 0) WoxToast.success(`Deleted ${ok} job(s)`);
+  else WoxToast.warning(`Deleted ${ok}, failed ${failed}`);
+  loadJobs();
+});
 
 // ── API Keys ─────────────────────────────────────────────────────────────────
 

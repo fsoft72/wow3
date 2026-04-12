@@ -2,6 +2,7 @@
 *.swp
 *.swo
 .env
+.n8n-key
 *~
 .DS_Store
 node_modules/

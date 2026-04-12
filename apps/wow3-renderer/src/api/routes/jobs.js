@@ -40,6 +40,7 @@ export async function jobsRoutes(fastify, { db, queue, dataDir }) {
       if (!jsonData || typeof jsonData !== 'object') {
         return reply.code(400).send({ error: 'Invalid JSON body' });
       }
+      request.log.info({ project: jsonData }, 'Received JSON project');
       fileBuffer = await jsonToWow3a(jsonData);
       originalName = (jsonData.title || 'project').replace(/[^a-zA-Z0-9_.-]/g, '_') + '.wow3a';
     } else if (contentType.startsWith('multipart/form-data')) {
@@ -51,6 +52,7 @@ export async function jobsRoutes(fastify, { db, queue, dataDir }) {
 
       if (data.filename.endsWith('.json')) {
         const jsonData = JSON.parse(buffer.toString('utf-8'));
+        request.log.info({ project: jsonData }, 'Received JSON project (multipart)');
         fileBuffer = await jsonToWow3a(jsonData);
         originalName = data.filename.replace(/\.json$/, '.wow3a');
       } else if (data.filename.endsWith('.wow3a')) {

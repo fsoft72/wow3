@@ -18,6 +18,7 @@ export async function record({ port, width, height, outputPath, onProgress }) {
   log('Launching browser...');
   const browser = await puppeteer.launch({
     headless: true,
+    protocolTimeout: 0,
     args: [
       `--window-size=${width},${height}`,
       '--no-sandbox',
@@ -28,6 +29,8 @@ export async function record({ port, width, height, outputPath, onProgress }) {
 
   try {
     const page = await browser.newPage();
+    page.setDefaultTimeout(0);
+    page.setDefaultNavigationTimeout(0);
     await page.setViewport({ width, height });
 
     // Forward browser console to Node.js stdout
@@ -39,11 +42,11 @@ export async function record({ port, width, height, outputPath, onProgress }) {
     log('Loading player...');
     await page.goto(`http://127.0.0.1:${port}/?mode=player`, {
       waitUntil: 'networkidle0',
-      timeout: 30000,
+      timeout: 0,
     });
 
     // Wait for the player API to be available
-    await page.waitForFunction(() => window.__wow3?.ready === true, { timeout: 15000 });
+    await page.waitForFunction(() => window.__wow3?.ready === true, { timeout: 0 });
 
     log('Loading presentation...');
     await page.evaluate(async () => {
