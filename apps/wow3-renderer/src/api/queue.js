@@ -1,7 +1,7 @@
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
-  getPendingJobs,
+  getJob, getPendingJobs,
   updateJobStatus, updateJobProgress,
 } from './db.js';
 
@@ -10,12 +10,14 @@ import {
  *
  * @param {Object} opts
  * @param {import('better-sqlite3').Database} opts.db
- * @param {Function} opts.renderFn - async ({ inputPath, outputPath, onProgress }) => void
+ * @param {Function} opts.renderFn - async ({ inputPath, outputPath, signal, onProgress }) => void
  * @param {string} opts.dataDir - Base directory for uploads/ and output/
- * @returns {{ enqueue: () => void }}
+ * @returns {{ enqueue: () => void, kill: (id: string) => boolean }}
  */
 export function createQueue({ db, renderFn, dataDir }) {
   let running = false;
+  /** @type {{ id: string, controller: AbortController } | null} */
+  let current = null;
 
   async function runNext() {
     if (running) return;
@@ -25,6 +27,8 @@ export function createQueue({ db, renderFn, dataDir }) {
 
     running = true;
     const { id } = next;
+    const controller = new AbortController();
+    current = { id, controller };
     const inputPath = join(dataDir, 'uploads', `${id}.wow3a`);
     const outputPath = join(dataDir, 'output', `${id}.mp4`);
 
@@ -34,6 +38,7 @@ export function createQueue({ db, renderFn, dataDir }) {
       await renderFn({
         inputPath,
         outputPath,
+        signal: controller.signal,
         onProgress: (msg) => {
           const m = msg.match(/Rendering:\s*(\d+)\/(\d+)s/);
           if (m) {
@@ -45,9 +50,13 @@ export function createQueue({ db, renderFn, dataDir }) {
 
       updateJobStatus(db, id, 'completed', { outputPath });
     } catch (err) {
-      updateJobStatus(db, id, 'failed', { error: err.message });
+      const msg = controller.signal.aborted ? 'cancelled by user' : err.message;
+      updateJobStatus(db, id, 'failed', { error: msg });
+      // Partial output (if any) is unusable — remove it so it doesn't show as downloadable
+      try { await rm(outputPath, { force: true }); } catch {}
     } finally {
       try { await rm(inputPath, { force: true }); } catch {}
+      current = null;
       running = false;
       // Immediately process the next queued job if any
       runNext();
@@ -62,5 +71,26 @@ export function createQueue({ db, renderFn, dataDir }) {
     runNext();
   }
 
-  return { enqueue };
+  /**
+   * Abort a job.
+   * - If it's the running job, aborts the in-flight render via AbortSignal.
+   * - If it's a pending job, marks it failed so runNext() will skip it.
+   *
+   * @param {string} id
+   * @returns {boolean} true when the job was killed or marked cancelled
+   */
+  function kill(id) {
+    if (current && current.id === id) {
+      current.controller.abort();
+      return true;
+    }
+    const job = getJob(db, id);
+    if (job && job.status === 'pending') {
+      updateJobStatus(db, id, 'failed', { error: 'cancelled by user' });
+      return true;
+    }
+    return false;
+  }
+
+  return { enqueue, kill };
 }

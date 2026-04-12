@@ -10,10 +10,14 @@ import { PuppeteerScreenRecorder } from 'puppeteer-screen-recorder';
  * @param {number} opts.height - Project height in px
  * @param {string} opts.outputPath - Temp path for the video file
  * @param {(msg: string) => void} [opts.onProgress] - Progress callback
+ * @param {AbortSignal} [opts.signal] - Optional abort signal — closing the browser
+ *   unblocks every pending Puppeteer call.
  * @returns {Promise<void>}
  */
-export async function record({ port, width, height, outputPath, onProgress }) {
+export async function record({ port, width, height, outputPath, onProgress, signal }) {
   const log = onProgress || (() => {});
+
+  if (signal?.aborted) throw new Error('cancelled by user');
 
   log('Launching browser...');
   const browser = await puppeteer.launch({
@@ -26,6 +30,12 @@ export async function record({ port, width, height, outputPath, onProgress }) {
       '--autoplay-policy=no-user-gesture-required',
     ],
   });
+
+  // Closing the browser unblocks any in-flight page.evaluate / goto / waitForFunction
+  // by rejecting them with a ProtocolError. The outer try/catch + signal check
+  // translates that back into a clean "cancelled by user" error.
+  const onAbort = () => { browser.close().catch(() => {}); };
+  if (signal) signal.addEventListener('abort', onAbort);
 
   try {
     const page = await browser.newPage();
@@ -88,26 +98,40 @@ export async function record({ port, width, height, outputPath, onProgress }) {
     let lastSec = -1;
     let finished = false;
 
-    const playPromise = page.evaluate(() => window.__wow3.play()).then(() => { finished = true; });
+    // Swallow rejection so abort doesn't surface as unhandledRejection
+    const playPromise = page.evaluate(() => window.__wow3.play())
+      .then(() => { finished = true; })
+      .catch(() => { finished = true; });
 
-    // Poll until playback ends
+    // Poll until playback ends, aborts, or the browser is closed
     while (!finished) {
-      const currentMs = await page.evaluate(() => window.__wow3.currentTime);
-      const currentSec = Math.floor(currentMs / 1000);
+      if (signal?.aborted) break;
+      try {
+        const currentMs = await page.evaluate(() => window.__wow3.currentTime);
+        const currentSec = Math.floor(currentMs / 1000);
 
-      if (currentSec > lastSec) {
-        lastSec = currentSec;
-        log(`Rendering: ${currentSec}/${totalSec}s`);
+        if (currentSec > lastSec) {
+          lastSec = currentSec;
+          log(`Rendering: ${currentSec}/${totalSec}s`);
+        }
+      } catch (err) {
+        if (signal?.aborted) break;
+        throw err;
       }
 
       await new Promise(r => setTimeout(r, 250));
     }
 
-    await playPromise;
+    if (signal?.aborted) {
+      try { await recorder.stop(); } catch {}
+      throw new Error('cancelled by user');
+    }
 
+    await playPromise;
     log('Recording complete.');
     await recorder.stop();
   } finally {
-    await browser.close();
+    if (signal) signal.removeEventListener('abort', onAbort);
+    try { await browser.close(); } catch {}
   }
 }

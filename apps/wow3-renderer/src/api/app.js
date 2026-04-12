@@ -70,7 +70,7 @@ export async function buildApp({ dbPath, dataDir, jwtSecret, adminUser, adminPas
   // Admin routes — login is open, everything else requires session
   await app.register(
     async (instance) => {
-      await adminRoutes(instance, { db, jwtSecret, adminUser, adminPass });
+      await adminRoutes(instance, { db, queue, jwtSecret, adminUser, adminPass });
     },
     { prefix: '/admin' }
   );

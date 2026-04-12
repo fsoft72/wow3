@@ -104,7 +104,7 @@ export async function extractAudio(wow3aPath) {
  * @param {string} opts.outputPath - Final output .mp4 path
  * @returns {Promise<void>}
  */
-export async function mergeAudioVideo({ videoPath, clips, outputPath }) {
+export async function mergeAudioVideo({ videoPath, clips, outputPath, signal }) {
   // Build FFmpeg command with filter_complex
   const inputs = ['-i', videoPath];
   const filterParts = [];
@@ -164,7 +164,7 @@ export async function mergeAudioVideo({ videoPath, clips, outputPath }) {
     outputPath,
   ];
 
-  await execFileAsync('ffmpeg', args);
+  await execFileAsync('ffmpeg', args, { signal });
 }
 
 /**
@@ -172,15 +172,16 @@ export async function mergeAudioVideo({ videoPath, clips, outputPath }) {
  *
  * @param {string} videoPath
  * @param {string} outputPath
+ * @param {AbortSignal} [signal] - Optional abort signal to kill ffmpeg early.
  * @returns {Promise<void>}
  */
-export async function copyVideoOnly(videoPath, outputPath) {
+export async function copyVideoOnly(videoPath, outputPath, signal) {
   await execFileAsync('ffmpeg', [
     '-i', videoPath,
     '-c', 'copy',
     '-y',
     outputPath,
-  ]);
+  ], { signal });
 }
 
 /**

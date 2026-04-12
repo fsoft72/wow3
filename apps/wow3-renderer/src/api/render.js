@@ -42,9 +42,11 @@ async function _readProjectInfo(inputPath) {
  * @param {string} opts.inputPath  - Absolute path to the .wow3a file
  * @param {string} opts.outputPath - Absolute path for the output .mp4
  * @param {(msg: string) => void} [opts.onProgress] - Progress callback (receives log strings)
+ * @param {AbortSignal} [opts.signal] - Optional abort signal — when triggered the render
+ *   is cancelled at the next safe point (browser closed, ffmpeg killed).
  * @returns {Promise<void>}
  */
-export async function renderJob({ inputPath, outputPath, onProgress = () => {} }) {
+export async function renderJob({ inputPath, outputPath, onProgress = () => {}, signal }) {
   const tmpVideoPath = join(tmpdir(), `wow3-video-${Date.now()}.mp4`);
   let server;
 
@@ -55,17 +57,19 @@ export async function renderJob({ inputPath, outputPath, onProgress = () => {} }
 
     server = await startServer(inputPath);
 
-    await record({ port: server.port, width, height, outputPath: tmpVideoPath, onProgress });
+    await record({ port: server.port, width, height, outputPath: tmpVideoPath, onProgress, signal });
+
+    if (signal?.aborted) throw new Error('cancelled by user');
 
     const audioData = await extractAudio(inputPath);
     if (audioData) {
       try {
-        await mergeAudioVideo({ videoPath: tmpVideoPath, clips: audioData.clips, outputPath });
+        await mergeAudioVideo({ videoPath: tmpVideoPath, clips: audioData.clips, outputPath, signal });
       } finally {
         await rm(audioData.tmpDir, { recursive: true, force: true });
       }
     } else {
-      await copyVideoOnly(tmpVideoPath, outputPath);
+      await copyVideoOnly(tmpVideoPath, outputPath, signal);
     }
   } finally {
     if (server) await server.close();

@@ -14,9 +14,9 @@ import { signAdminToken, createAdminAuth } from '../middleware/admin-auth.js';
  * Login/logout are open routes; all others require a valid admin session cookie.
  *
  * @param {import('fastify').FastifyInstance} fastify
- * @param {{ db: object, jwtSecret: string, adminUser: string, adminPass: string, dataDir?: string }} opts
+ * @param {{ db: object, queue: { kill: (id: string) => boolean }, jwtSecret: string, adminUser: string, adminPass: string, dataDir?: string }} opts
  */
-export async function adminRoutes(fastify, { db, jwtSecret, adminUser, adminPass }) {
+export async function adminRoutes(fastify, { db, queue, jwtSecret, adminUser, adminPass }) {
   const adminAuth = createAdminAuth(jwtSecret);
 
   // ── Open routes (no auth required) ───────────────────────────────────────
@@ -97,10 +97,28 @@ export async function adminRoutes(fastify, { db, jwtSecret, adminUser, adminPass
       const job = getJob(db, request.params.id);
       if (!job) return reply.code(404).send({ error: 'Job not found' });
 
+      // If the job is still in flight, abort it first so we don't leave
+      // orphan browser/ffmpeg processes running after the row is gone.
+      if (job.status === 'running' || job.status === 'pending') {
+        queue.kill(request.params.id);
+      }
+
       if (job.output_path) {
         try { await rm(job.output_path, { force: true }); } catch {}
       }
       deleteJob(db, request.params.id);
+      return { ok: true };
+    });
+
+    /** POST /jobs/:id/kill — abort a running or pending job */
+    instance.post('/jobs/:id/kill', async (request, reply) => {
+      const job = getJob(db, request.params.id);
+      if (!job) return reply.code(404).send({ error: 'Job not found' });
+      if (job.status !== 'running' && job.status !== 'pending') {
+        return reply.code(409).send({ error: `Job is not running (status: ${job.status})` });
+      }
+      const killed = queue.kill(request.params.id);
+      if (!killed) return reply.code(409).send({ error: 'Job could not be cancelled' });
       return { ok: true };
     });
   });

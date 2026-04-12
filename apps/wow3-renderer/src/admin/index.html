@@ -373,6 +373,9 @@ function renderJobs() {
         ${j.status === 'completed'
           ? `<button class="btn-action" data-action="download" data-id="${esc(j.id)}" data-name="${esc(j.wow3a_name)}">Download</button>`
           : ''}
+        ${j.status === 'running' || j.status === 'pending'
+          ? `<button class="btn-action btn-danger" data-action="kill-job" data-id="${esc(j.id)}">Kill</button>`
+          : ''}
         <button class="btn-action btn-danger" data-action="delete-job" data-id="${esc(j.id)}">Delete</button>
       </td>
     `;
@@ -417,6 +420,17 @@ async function onJobAction(e) {
     try {
       await api('DELETE', `/admin/jobs/${btn.dataset.id}`);
       WoxToast.success('Job deleted');
+      loadJobs();
+    } catch (err) {
+      WoxToast.error(err.message);
+    }
+  }
+  if (btn.dataset.action === 'kill-job') {
+    const confirmed = await confirm(`Kill job ${btn.dataset.id.slice(0, 8)}? The render will be aborted.`);
+    if (!confirmed) return;
+    try {
+      await api('POST', `/admin/jobs/${btn.dataset.id}/kill`);
+      WoxToast.success('Job aborted');
       loadJobs();
     } catch (err) {
       WoxToast.error(err.message);
