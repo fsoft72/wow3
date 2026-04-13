@@ -122,7 +122,11 @@ export async function adminRoutes(fastify, { db, queue, jwtSecret, adminUser, ad
       }
 
       if (job.output_path) {
-        try { await rm(job.output_path, { force: true }); } catch {}
+        try { await rm(job.output_path, { force: true }); } catch (err) {
+          if (err.code !== 'ENOENT') {
+            console.warn(`[admin] failed to delete output for ${request.params.id}:`, err.message);
+          }
+        }
       }
       try {
         await rm(join(dataDir, 'logs', `${request.params.id}.log`), { force: true });
