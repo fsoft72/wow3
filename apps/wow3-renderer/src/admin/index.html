@@ -332,14 +332,14 @@ async function fetchLog(jobId) {
   try {
     const res = await fetch(`/admin/jobs/${jobId}/log`);
     if (res.status === 404) {
-      pre.textContent = 'Nessun log disponibile.';
+      pre.textContent = 'No log available.';
       return;
     }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     pre.textContent = await res.text();
     pre.scrollTop = pre.scrollHeight;
   } catch (err) {
-    pre.textContent = `Errore nel caricamento del log: ${err.message}`;
+    pre.textContent = `Error loading log: ${err.message}`;
   }
 }
 
@@ -360,6 +360,8 @@ async function openLogModal(jobId) {
   if (job && job.status === 'running') {
     logAutoRefreshTimer = setInterval(() => {
       const j = allJobs.find(j => j.id === currentLogJobId);
+      // allJobs is updated by the background 10s refresh; the interval
+      // may fire a few extra times after job completion — harmless.
       if (!j || (j.status !== 'running' && j.status !== 'pending')) {
         clearInterval(logAutoRefreshTimer);
         logAutoRefreshTimer = null;
@@ -503,6 +505,7 @@ async function onJobAction(e) {
   }
   if (btn.dataset.action === 'view-log') {
     await openLogModal(btn.dataset.id);
+    return;
   }
   if (btn.dataset.action === 'delete-job') {
     const confirmed = await confirm(`Delete job ${btn.dataset.id.slice(0, 8)}?`);
