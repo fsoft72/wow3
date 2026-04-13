@@ -21,7 +21,12 @@ export class VisualClip extends Clip {
 
     /**
      * For image clips: Ken Burns effect config.
-     * @type {{zoom?: {from: number, to: number}, pan?: {fromX: number, fromY: number, toX: number, toY: number}, bokeh?: {from: number, to: number}}|null}
+     * Each sub-effect is null (disabled) or { preset, intensity }.
+     * @type {{
+     *   zoom?:  null | { preset: 'in'|'out',           intensity: number },
+     *   pan?:   null | { preset: 'lr'|'rl'|'tb'|'bt', intensity: number },
+     *   bokeh?: null | { preset: 'in'|'out',           intensity: number }
+     * }|null}
      */
     this.kenBurns = props.kenBurns ?? null;
 
