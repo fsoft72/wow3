@@ -31,22 +31,19 @@ export class ImagePanel {
 
       <div class="panel-tab-content" data-tab-content="style">
         <div class="control-group">
-          <label>Object Fit</label>
-          <select id="image-fit" class="panel-select">
-            <option value="cover" ${props.fit === 'cover' ? 'selected' : ''}>Cover</option>
-            <option value="contain" ${props.fit === 'contain' ? 'selected' : ''}>Contain</option>
-            <option value="fill" ${props.fit === 'fill' ? 'selected' : ''}>Fill</option>
-            <option value="none" ${props.fit === 'none' ? 'selected' : ''}>None</option>
-          </select>
+          <wox-select
+            id="image-fit"
+            label="Object Fit"
+            options='[{"value":"cover","label":"Cover"},{"value":"contain","label":"Contain"},{"value":"fill","label":"Fill"},{"value":"none","label":"None"}]'
+          ></wox-select>
         </div>
 
         <div class="control-group">
-          <label>Clip Shape</label>
-          <select id="clip-shape" class="panel-select">
-            <option value="none" ${(props.clipShape || 'none') === 'none' ? 'selected' : ''}>None</option>
-            <option value="circle" ${props.clipShape === 'circle' ? 'selected' : ''}>Circle</option>
-            <option value="rectangle" ${props.clipShape === 'rectangle' ? 'selected' : ''}>Rectangle</option>
-          </select>
+          <wox-select
+            id="clip-shape"
+            label="Clip Shape"
+            options='[{"value":"none","label":"None"},{"value":"circle","label":"Circle"},{"value":"rectangle","label":"Rectangle"}]'
+          ></wox-select>
         </div>
 
         ${props.clipShape && props.clipShape !== 'none' ? `
@@ -112,16 +109,18 @@ export class ImagePanel {
     // Object fit
     const imageFit = document.getElementById('image-fit');
     if (imageFit) {
-      imageFit.addEventListener('change', (e) => {
-        updateProperty('properties.fit', e.target.value);
+      imageFit.value = element.properties.fit || 'cover';
+      imageFit.addEventListener('wox-change', (e) => {
+        updateProperty('properties.fit', e.detail.value);
       });
     }
 
     // Clip shape
     const clipShapeSelect = document.getElementById('clip-shape');
     if (clipShapeSelect) {
-      clipShapeSelect.addEventListener('change', (e) => {
-        const newShape = e.target.value;
+      clipShapeSelect.value = element.properties.clipShape || 'none';
+      clipShapeSelect.addEventListener('wox-change', (e) => {
+        const newShape = e.detail.value;
 
         updateProperty('properties.clipShape', newShape);
 
