@@ -1,14 +1,17 @@
 import { rm } from 'node:fs/promises';
+import { join } from 'node:path';
 import { getExpiredJobs, deleteJob } from './db.js';
 
 const FORTY_EIGHT_HOURS_MS = 48 * 60 * 60 * 1000;
 
 /**
- * Create a cleanup handler that deletes expired jobs and their MP4 files.
+ * Create a cleanup handler that deletes expired jobs, their MP4 files, and log files.
+ *
  * @param {import('better-sqlite3').Database} db
+ * @param {string} dataDir - Base directory (used to locate logs/)
  * @returns {{ start: () => NodeJS.Timeout, runCleanup: () => Promise<number> }}
  */
-export function createCleanup(db) {
+export function createCleanup(db, dataDir) {
   /**
    * Run one cleanup pass.
    * @returns {Promise<number>} Number of jobs deleted
@@ -21,6 +24,7 @@ export function createCleanup(db) {
       if (job.output_path) {
         try { await rm(job.output_path, { force: true }); } catch {}
       }
+      try { await rm(join(dataDir, 'logs', `${job.id}.log`), { force: true }); } catch {}
       deleteJob(db, job.id);
     }
 
