@@ -1,5 +1,27 @@
 # Changes
 
+## 2026-04-13
+
+### wow3-animation: Ken Burns effects for image clips
+
+Implemented zoom, pan, and bokeh (focus) effects on image clips with real-time playback and video export support.
+
+- `apps/wow3-animation/js/utils/ken_burns_engine.js` — new pure module: preset+intensity → CSS transform/filter at progress t
+- `apps/wow3-animation/js/models/VisualClip.js` — updated JSDoc for kenBurns shape
+- `apps/wow3-animation/js/views/PropertiesPanel.js` — Ken Burns section (Zoom/Pan/Bokeh preset+intensity) for image clips
+- `apps/wow3-animation/js/views/CanvasRenderer.js` — playback: `_applyKenBurnsEffects`; export: Ken Burns inline styles in `_syncExportEffects`
+- `apps/wow3-animation/css/main.css` — added `.kb-hidden` utility class
+
+### wow3 + wow-core: replace native `<select>` with `wox-select` in ImagePanel
+
+The "Object Fit" and "Clip Shape" dropdowns in the Image properties panel
+were invisible because the `wow3` app did not load WoxGUI and used a native
+`<select>` styled for light mode in a dark-themed UI.
+
+**Changes:**
+- `apps/wow3/index.html` — added WoxGUI CDN (`wox-gui@0.2.2`) before MaterializeCSS JS
+- `packages/wow-core/src/panels/ImagePanel.js` — replaced both `<select class="panel-select">` with `<wox-select>` components; updated `bindEvents` to set initial `.value` property and listen for `wox-change` instead of `change`
+
 ## 2026-04-11
 
 ### wow3-renderer: fix Docker port binding (0.0.0.0:4000)
