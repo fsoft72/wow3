@@ -1,6 +1,6 @@
-import { rm } from 'node:fs/promises';
+import { rm, readFile, stat } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
-import { stat } from 'node:fs/promises';
+import { join } from 'node:path';
 import { randomBytes, randomUUID } from 'node:crypto';
 import {
   listApiKeys, insertApiKey, deleteApiKey,
@@ -11,12 +11,11 @@ import { signAdminToken, createAdminAuth } from '../middleware/admin-auth.js';
 
 /**
  * Register admin endpoints.
- * Login/logout are open routes; all others require a valid admin session cookie.
  *
  * @param {import('fastify').FastifyInstance} fastify
- * @param {{ db: object, queue: { kill: (id: string) => boolean }, jwtSecret: string, adminUser: string, adminPass: string, dataDir?: string }} opts
+ * @param {{ db: object, queue: object, jwtSecret: string, adminUser: string, adminPass: string, dataDir: string }} opts
  */
-export async function adminRoutes(fastify, { db, queue, jwtSecret, adminUser, adminPass }) {
+export async function adminRoutes(fastify, { db, queue, jwtSecret, adminUser, adminPass, dataDir }) {
   const adminAuth = createAdminAuth(jwtSecret);
 
   // ── Open routes (no auth required) ───────────────────────────────────────
@@ -92,19 +91,43 @@ export async function adminRoutes(fastify, { db, queue, jwtSecret, adminUser, ad
       return reply.send(createReadStream(job.output_path));
     });
 
+    /** GET /jobs/:id/log — return the plain-text log file for a job */
+    instance.get('/jobs/:id/log', async (request, reply) => {
+      const job = getJob(db, request.params.id);
+      if (!job) return reply.code(404).send({ error: 'Job not found' });
+
+      const logPath = join(dataDir, 'logs', `${request.params.id}.log`);
+      let content;
+      try {
+        content = await readFile(logPath, 'utf-8');
+      } catch (err) {
+        if (err.code === 'ENOENT') {
+          return reply.code(404).send({ error: 'no log available' });
+        }
+        throw err;
+      }
+      reply.header('Content-Type', 'text/plain; charset=utf-8');
+      return reply.send(content);
+    });
+
     /** DELETE /jobs/:id */
     instance.delete('/jobs/:id', async (request, reply) => {
       const job = getJob(db, request.params.id);
       if (!job) return reply.code(404).send({ error: 'Job not found' });
 
-      // If the job is still in flight, abort it first so we don't leave
-      // orphan browser/ffmpeg processes running after the row is gone.
       if (job.status === 'running' || job.status === 'pending') {
         queue.kill(request.params.id);
       }
 
       if (job.output_path) {
         try { await rm(job.output_path, { force: true }); } catch {}
+      }
+      try {
+        await rm(join(dataDir, 'logs', `${request.params.id}.log`), { force: true });
+      } catch (err) {
+        if (err.code !== 'ENOENT') {
+          console.warn(`[admin] failed to delete log for ${request.params.id}:`, err.message);
+        }
       }
       deleteJob(db, request.params.id);
       return { ok: true };
