@@ -466,6 +466,7 @@ body {
 .fx-unit { font-size: 11px; color: var(--color-text-muted); margin-left: 4px; }
 .fx-subopts { padding-left: 8px; border-left: 2px solid var(--color-border); margin: 2px 0 6px; }
 .fx-hidden { display: none !important; }
+.kb-hidden { display: none !important; }
 /* Override Materialize's global `select { display: none }` for our selects */
 select.props-select {
   display: block !important;

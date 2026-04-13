@@ -5,6 +5,7 @@ import { KaraokePanel } from '../panels/KaraokePanel.js';
 import { formatTime, parseTime } from '../utils/time.js';
 import { ingestProjectMediaSource } from '../utils/externalMedia.js';
 import { fetchMediaArrayBuffer } from '../utils/media.js';
+import { computeKenBurns } from '../utils/ken_burns_engine.js';
 
 const IN_EFFECTS  = [{ key: '', label: 'None' }, ...getDefinitionsForCategory(ANIMATION_CATEGORY.BUILD_IN)];
 const OUT_EFFECTS = [{ key: '', label: 'None' }, ...getDefinitionsForCategory(ANIMATION_CATEGORY.BUILD_OUT)];
@@ -94,6 +95,11 @@ export class PropertiesPanel {
         </div>` : ''}
       </div>`;
 
+      // ── Ken Burns section (image clips only) ──
+      if (clip.elementType === 'image') {
+        html += this._renderKenBurnsSection(clip);
+      }
+
       // ── FX section ──
       html += this._renderFxSection(clip);
     }
@@ -141,6 +147,7 @@ export class PropertiesPanel {
     this._bindPositionInputs(clip);
     this._bindAudioInputs(clip);
     this._bindFxInputs(clip);
+    this._bindKenBurnsInputs(clip);
   }
 
   /**
@@ -359,6 +366,155 @@ export class PropertiesPanel {
         </div>
       </div>
     </div>`;
+  }
+
+  /**
+   * Render the Ken Burns section HTML for an image clip.
+   * @param {import('../models/VisualClip.js').VisualClip} clip
+   * @returns {string}
+   * @private
+   */
+  _renderKenBurnsSection(clip) {
+    if (clip.elementType !== 'image') return '';
+
+    const kb = clip.kenBurns || {};
+    const zoomPreset     = kb.zoom?.preset    ?? '';
+    const zoomIntensity  = kb.zoom?.intensity  ?? 0.2;
+    const panPreset      = kb.pan?.preset     ?? '';
+    const panIntensity   = kb.pan?.intensity   ?? 8;
+    const bokehPreset    = kb.bokeh?.preset   ?? '';
+    const bokehIntensity = kb.bokeh?.intensity ?? 10;
+
+    const zoomPct = Math.round(zoomIntensity * 100);
+
+    return `<div class="props-section">
+      <div class="props-section-title">Ken Burns</div>
+
+      <div class="props-row">
+        <label class="fx-label">Zoom</label>
+        <select id="kb-zoom-preset" class="props-select fx-select">
+          <option value="">— Off —</option>
+          <option value="in"  ${zoomPreset === 'in'  ? 'selected' : ''}>Zoom In</option>
+          <option value="out" ${zoomPreset === 'out' ? 'selected' : ''}>Zoom Out</option>
+        </select>
+      </div>
+      <div id="kb-zoom-opts" class="${zoomPreset ? '' : 'kb-hidden'} fx-subopts">
+        <div class="props-row">
+          <label>Intensity</label>
+          <input type="range" id="kb-zoom-intensity" class="props-range"
+            min="5" max="50" step="5" value="${zoomPct}">
+          <span class="fx-unit" id="kb-zoom-label">${zoomPct}%</span>
+        </div>
+      </div>
+
+      <div class="props-row">
+        <label class="fx-label">Pan</label>
+        <select id="kb-pan-preset" class="props-select fx-select">
+          <option value="">— Off —</option>
+          <option value="lr" ${panPreset === 'lr' ? 'selected' : ''}>Left → Right</option>
+          <option value="rl" ${panPreset === 'rl' ? 'selected' : ''}>Right → Left</option>
+          <option value="tb" ${panPreset === 'tb' ? 'selected' : ''}>Top → Bottom</option>
+          <option value="bt" ${panPreset === 'bt' ? 'selected' : ''}>Bottom → Top</option>
+        </select>
+      </div>
+      <div id="kb-pan-opts" class="${panPreset ? '' : 'kb-hidden'} fx-subopts">
+        <div class="props-row">
+          <label>Intensity</label>
+          <input type="range" id="kb-pan-intensity" class="props-range"
+            min="2" max="20" step="1" value="${panIntensity}">
+          <span class="fx-unit" id="kb-pan-label">${panIntensity}%</span>
+        </div>
+      </div>
+
+      <div class="props-row">
+        <label class="fx-label">Bokeh</label>
+        <select id="kb-bokeh-preset" class="props-select fx-select">
+          <option value="">— Off —</option>
+          <option value="in"  ${bokehPreset === 'in'  ? 'selected' : ''}>Focus In</option>
+          <option value="out" ${bokehPreset === 'out' ? 'selected' : ''}>Focus Out</option>
+        </select>
+      </div>
+      <div id="kb-bokeh-opts" class="${bokehPreset ? '' : 'kb-hidden'} fx-subopts">
+        <div class="props-row">
+          <label>Intensity</label>
+          <input type="range" id="kb-bokeh-intensity" class="props-range"
+            min="2" max="20" step="1" value="${bokehIntensity}">
+          <span class="fx-unit" id="kb-bokeh-label">${bokehIntensity}px</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  /**
+   * Bind Ken Burns input events for an image clip.
+   * @param {import('../models/VisualClip.js').VisualClip} clip
+   * @private
+   */
+  _bindKenBurnsInputs(clip) {
+    if (clip.elementType !== 'image') return;
+
+    const _getKb = () => clip.kenBurns || {};
+    const _save  = () => {
+      this.timeline.project.touch();
+      appEvents.emit(AppEvents.SLIDE_UPDATED);
+    };
+
+    // ── Zoom ──
+    const zoomPresetEl    = document.getElementById('kb-zoom-preset');
+    const zoomIntensityEl = document.getElementById('kb-zoom-intensity');
+    const zoomOptsEl      = document.getElementById('kb-zoom-opts');
+    const zoomLabelEl     = document.getElementById('kb-zoom-label');
+
+    const updateZoom = () => {
+      const preset = zoomPresetEl.value;
+      const intensity = parseFloat(zoomIntensityEl?.value ?? 20) / 100;
+      clip.kenBurns = { ..._getKb(), zoom: preset ? { preset, intensity } : null };
+      zoomOptsEl?.classList.toggle('kb-hidden', !preset);
+      _save();
+    };
+    zoomPresetEl?.addEventListener('change', updateZoom);
+    zoomIntensityEl?.addEventListener('input', () => {
+      if (zoomLabelEl) zoomLabelEl.textContent = `${zoomIntensityEl.value}%`;
+      updateZoom();
+    });
+
+    // ── Pan ──
+    const panPresetEl    = document.getElementById('kb-pan-preset');
+    const panIntensityEl = document.getElementById('kb-pan-intensity');
+    const panOptsEl      = document.getElementById('kb-pan-opts');
+    const panLabelEl     = document.getElementById('kb-pan-label');
+
+    const updatePan = () => {
+      const preset = panPresetEl.value;
+      const intensity = parseFloat(panIntensityEl?.value ?? 8);
+      clip.kenBurns = { ..._getKb(), pan: preset ? { preset, intensity } : null };
+      panOptsEl?.classList.toggle('kb-hidden', !preset);
+      _save();
+    };
+    panPresetEl?.addEventListener('change', updatePan);
+    panIntensityEl?.addEventListener('input', () => {
+      if (panLabelEl) panLabelEl.textContent = `${panIntensityEl.value}%`;
+      updatePan();
+    });
+
+    // ── Bokeh ──
+    const bokehPresetEl    = document.getElementById('kb-bokeh-preset');
+    const bokehIntensityEl = document.getElementById('kb-bokeh-intensity');
+    const bokehOptsEl      = document.getElementById('kb-bokeh-opts');
+    const bokehLabelEl     = document.getElementById('kb-bokeh-label');
+
+    const updateBokeh = () => {
+      const preset = bokehPresetEl.value;
+      const intensity = parseFloat(bokehIntensityEl?.value ?? 10);
+      clip.kenBurns = { ..._getKb(), bokeh: preset ? { preset, intensity } : null };
+      bokehOptsEl?.classList.toggle('kb-hidden', !preset);
+      _save();
+    };
+    bokehPresetEl?.addEventListener('change', updateBokeh);
+    bokehIntensityEl?.addEventListener('input', () => {
+      if (bokehLabelEl) bokehLabelEl.textContent = `${bokehIntensityEl.value}px`;
+      updateBokeh();
+    });
   }
 
   /** @private */
