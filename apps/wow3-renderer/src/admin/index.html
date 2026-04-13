@@ -237,6 +237,31 @@
   <p id="confirmMsg" style="color:var(--wox-text-secondary)"></p>
 </wox-modal>
 
+<!-- Job log modal -->
+<wox-modal id="logModal" title="Job Log" width="720px">
+  <div style="padding:4px 0">
+    <pre id="logContent" style="
+      font-family: var(--wox-font-mono);
+      font-size: 12px;
+      line-height: 1.5;
+      background: var(--wox-bg-app);
+      border: 1px solid var(--wox-border);
+      border-radius: var(--wox-radius-sm);
+      padding: 12px;
+      max-height: 420px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: var(--wox-text-primary);
+      margin: 0;
+    ">Loading...</pre>
+  </div>
+  <div slot="footer" style="display:flex; gap:8px; justify-content:flex-end">
+    <wox-button id="logRefreshBtn" variant="text" icon="refresh" label="Refresh"></wox-button>
+    <wox-button id="logCloseBtn" variant="text" label="Close"></wox-button>
+  </div>
+</wox-modal>
+
 <script type="module">
 // ── API helpers ──────────────────────────────────────────────────────────────
 
@@ -268,6 +293,8 @@ let allJobs = [];
 let selectedIds = new Set();
 let currentPage = 1;
 let pageSize = Number(localStorage.getItem('wow3_pageSize') ?? 25);
+let logAutoRefreshTimer = null;
+let currentLogJobId = null;
 
 // ── Formatting helpers ───────────────────────────────────────────────────────
 
@@ -293,6 +320,65 @@ function fmtRunningTime(j) {
   if (j.status !== 'running' || !j.started_at) return '—';
   return fmtDuration(j.started_at, Date.now());
 }
+
+// ── Job log modal ─────────────────────────────────────────────────────────────
+
+/**
+ * Fetch and display the log for a given job.
+ * @param {string} jobId
+ */
+async function fetchLog(jobId) {
+  const pre = document.getElementById('logContent');
+  try {
+    const res = await fetch(`/admin/jobs/${jobId}/log`);
+    if (res.status === 404) {
+      pre.textContent = 'Nessun log disponibile.';
+      return;
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    pre.textContent = await res.text();
+    pre.scrollTop = pre.scrollHeight;
+  } catch (err) {
+    pre.textContent = `Errore nel caricamento del log: ${err.message}`;
+  }
+}
+
+/**
+ * Open the log modal for the given job, starting auto-refresh if running.
+ * @param {string} jobId
+ */
+async function openLogModal(jobId) {
+  currentLogJobId = jobId;
+  document.getElementById('logModal').setAttribute('title', `Log — ${jobId.slice(0, 8)}`);
+  document.getElementById('logContent').textContent = 'Loading...';
+  document.getElementById('logModal').setAttribute('open', '');
+  await fetchLog(jobId);
+
+  // Auto-refresh every 3s while the job is running
+  if (logAutoRefreshTimer) clearInterval(logAutoRefreshTimer);
+  const job = allJobs.find(j => j.id === jobId);
+  if (job && job.status === 'running') {
+    logAutoRefreshTimer = setInterval(() => {
+      const j = allJobs.find(j => j.id === currentLogJobId);
+      if (!j || (j.status !== 'running' && j.status !== 'pending')) {
+        clearInterval(logAutoRefreshTimer);
+        logAutoRefreshTimer = null;
+        return;
+      }
+      fetchLog(currentLogJobId);
+    }, 3000);
+  }
+}
+
+document.getElementById('logRefreshBtn').addEventListener('wox-click', () => {
+  if (currentLogJobId) fetchLog(currentLogJobId);
+});
+
+document.getElementById('logCloseBtn').addEventListener('wox-click', () => {
+  document.getElementById('logModal').removeAttribute('open');
+  if (logAutoRefreshTimer) { clearInterval(logAutoRefreshTimer); logAutoRefreshTimer = null; }
+  currentLogJobId = null;
+});
 
 // ── Login ────────────────────────────────────────────────────────────────────
 
@@ -376,6 +462,7 @@ function renderJobs() {
         ${j.status === 'running' || j.status === 'pending'
           ? `<button class="btn-action btn-danger" data-action="kill-job" data-id="${esc(j.id)}">Kill</button>`
           : ''}
+        <button class="btn-action" data-action="view-log" data-id="${esc(j.id)}">Log</button>
         <button class="btn-action btn-danger" data-action="delete-job" data-id="${esc(j.id)}">Delete</button>
       </td>
     `;
@@ -413,6 +500,9 @@ async function onJobAction(e) {
     a.href = `/admin/jobs/${btn.dataset.id}/result`;
     a.download = btn.dataset.name.replace('.wow3a', '.mp4');
     a.click();
+  }
+  if (btn.dataset.action === 'view-log') {
+    await openLogModal(btn.dataset.id);
   }
   if (btn.dataset.action === 'delete-job') {
     const confirmed = await confirm(`Delete job ${btn.dataset.id.slice(0, 8)}?`);
