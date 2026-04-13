@@ -4,6 +4,7 @@ import { ANIMATION_DEFINITIONS, EASING_MAP } from '@wow/core/animations';
 import { KaraokeElement } from '../models/KaraokeElement.js';
 import { parseSRT } from '../utils/srt-parser.js';
 import { fetchMediaText } from '../utils/media.js';
+import { computeKenBurns } from '../utils/ken_burns_engine.js';
 
 const ELEMENT_CLASS_MAP = {
   text: TextElement,
@@ -132,6 +133,11 @@ export class CanvasRenderer {
     // Update karaoke elements at current time
     this._updateKaraokeElements(timeMs, project);
 
+    // Apply Ken Burns effects to image clips (playback mode only)
+    if (!this._exportMode) {
+      this._applyKenBurnsEffects(timeMs, project);
+    }
+
     if (this._exportMode) {
       this._syncExportEffects(timeMs, project);
     } else {
@@ -187,6 +193,53 @@ export class CanvasRenderer {
           element.updateAtTime(relativeMs, parsed);
         }
       });
+    }
+  }
+
+  /**
+   * Apply Ken Burns transform/filter to active image clip DOM elements.
+   * Only runs in normal (non-export) mode; export mode is handled by _syncExportEffects.
+   * Targets the first child element of the clip's DOM to avoid overwriting
+   * the outer element's rotation transform.
+   * @param {number} timeMs
+   * @param {import('../models/Project.js').Project} project
+   * @private
+   */
+  _applyKenBurnsEffects(timeMs, project) {
+    for (const track of project.tracks) {
+      if (track.type !== 'visual' || !track.visible) continue;
+      for (const clip of track.clips) {
+        if (clip.elementType !== 'image') continue;
+
+        const element = this._activeElements.get(clip.id);
+        if (!element) continue;
+        const dom = document.getElementById(element.id);
+        if (!dom) continue;
+
+        // Clear previous Ken Burns styles if effect was removed
+        if (!clip.kenBurns) {
+          const target = dom.firstElementChild;
+          if (target) { target.style.transform = ''; target.style.filter = ''; }
+          dom.style.overflow = '';
+          continue;
+        }
+
+        const clipDuration = clip.endMs !== null ? clip.endMs - clip.startMs : 0;
+        if (clipDuration <= 0) continue;
+
+        const t = Math.max(0, Math.min(1, (timeMs - clip.startMs) / clipDuration));
+        const { transform, filter } = computeKenBurns(clip.kenBurns, t);
+
+        // Apply to the first child (img / crop-clipper / clip-shape-wrapper)
+        // to leave the outer element's rotate() transform untouched.
+        const target = dom.firstElementChild;
+        if (target) {
+          target.style.transform = transform;
+          target.style.filter = filter;
+        }
+        // Clip any zoom/pan overflow at the outer element boundary
+        dom.style.overflow = 'hidden';
+      }
     }
   }
 
@@ -426,8 +479,9 @@ export class CanvasRenderer {
    */
   _syncExportEffects(timeMs, project) {
     // Restore inline styles that were committed on the previous frame
-    for (const [, { dom, savedCssText }] of this._exportStyleBackups) {
-      if (dom) dom.style.cssText = savedCssText;
+    for (const [, backup] of this._exportStyleBackups) {
+      if (backup.dom) backup.dom.style.cssText = backup.savedCssText;
+      if (backup.kbTarget) backup.kbTarget.style.cssText = backup.kbSavedCssText;
     }
     this._exportStyleBackups.clear();
 
@@ -435,36 +489,58 @@ export class CanvasRenderer {
       if (track.type !== 'visual' || !track.visible) continue;
 
       for (const clip of track.clips) {
-        const effect = this._getExportEffectForClip(clip, timeMs);
-        if (!effect) continue;
-
         const element = this._activeElements.get(clip.id);
         if (!element) continue;
         const dom = document.getElementById(element.id);
         if (!dom) continue;
 
-        // Save original inline styles before mutation
-        this._exportStyleBackups.set(clip.id, { dom, savedCssText: dom.style.cssText });
-
-        // Create a paused animation at the target time, commit its
-        // computed values to the element's inline style, then discard it.
-        const anim = dom.animate(effect.keyframes, {
-          duration: effect.duration,
-          easing: effect.easing,
-          fill: 'both',
+        // Save original inline styles before mutation (outer dom + first child for Ken Burns)
+        const kbTarget = dom.firstElementChild;
+        this._exportStyleBackups.set(clip.id, {
+          dom,
+          savedCssText: dom.style.cssText,
+          kbTarget,
+          kbSavedCssText: kbTarget ? kbTarget.style.cssText : ''
         });
-        anim.pause();
-        anim.currentTime = effect.currentTime;
-        try { anim.commitStyles(); } catch { /* ignore */ }
-        anim.cancel();
+
+        // ── In/Out animation via WAAPI commitStyles ──
+        const effect = this._getExportEffectForClip(clip, timeMs);
+        if (effect) {
+          // Create a paused animation at the target time, commit its
+          // computed values to the element's inline style, then discard it.
+          const anim = dom.animate(effect.keyframes, {
+            duration: effect.duration,
+            easing: effect.easing,
+            fill: 'both',
+          });
+          anim.pause();
+          anim.currentTime = effect.currentTime;
+          try { anim.commitStyles(); } catch { /* ignore */ }
+          anim.cancel();
+        }
+
+        // ── Ken Burns: applied directly to first child ──
+        if (clip.elementType === 'image' && clip.kenBurns) {
+          const clipDuration = clip.endMs !== null ? clip.endMs - clip.startMs : 0;
+          if (clipDuration > 0) {
+            const t = Math.max(0, Math.min(1, (timeMs - clip.startMs) / clipDuration));
+            const { transform, filter } = computeKenBurns(clip.kenBurns, t);
+            if (kbTarget) {
+              kbTarget.style.transform = transform;
+              kbTarget.style.filter = filter;
+            }
+            dom.style.overflow = 'hidden';
+          }
+        }
       }
     }
   }
 
   /** @private */
   _clearExportEffects() {
-    for (const [, { dom, savedCssText }] of this._exportStyleBackups) {
-      if (dom) dom.style.cssText = savedCssText;
+    for (const [, backup] of this._exportStyleBackups) {
+      if (backup.dom) backup.dom.style.cssText = backup.savedCssText;
+      if (backup.kbTarget) backup.kbTarget.style.cssText = backup.kbSavedCssText;
     }
     this._exportStyleBackups.clear();
   }
