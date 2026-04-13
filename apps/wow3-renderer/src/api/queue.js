@@ -1,4 +1,5 @@
-import { rm } from 'node:fs/promises';
+import { rm, mkdir } from 'node:fs/promises';
+import { createWriteStream } from 'node:fs';
 import { join } from 'node:path';
 import {
   getJob, getPendingJobs,
@@ -31,8 +32,19 @@ export function createQueue({ db, renderFn, dataDir }) {
     current = { id, controller };
     const inputPath = join(dataDir, 'uploads', `${id}.wow3a`);
     const outputPath = join(dataDir, 'output', `${id}.mp4`);
+    const logPath = join(dataDir, 'logs', `${id}.log`);
+
+    await mkdir(join(dataDir, 'logs'), { recursive: true });
+    const logStream = createWriteStream(logPath);
+    logStream.on('error', (err) =>
+      console.error(`[queue] log stream error for ${id}:`, err.message)
+    );
+
+    /** Write a timestamped line to the job log. */
+    const log = (msg) => logStream.write(`[${new Date().toISOString()}] ${msg}\n`);
 
     updateJobStatus(db, id, 'running');
+    log('Job started');
 
     try {
       await renderFn({
@@ -40,6 +52,7 @@ export function createQueue({ db, renderFn, dataDir }) {
         outputPath,
         signal: controller.signal,
         onProgress: (msg) => {
+          log(msg);
           const m = msg.match(/Rendering:\s*(\d+)\/(\d+)s/);
           if (m) {
             const pct = Math.round((parseInt(m[1], 10) / parseInt(m[2], 10)) * 100);
@@ -48,17 +61,23 @@ export function createQueue({ db, renderFn, dataDir }) {
         },
       });
 
+      log('Job completed');
       updateJobStatus(db, id, 'completed', { outputPath });
     } catch (err) {
       const msg = controller.signal.aborted ? 'cancelled by user' : err.message;
+      log(`ERROR: ${msg}`);
+      if (!controller.signal.aborted && err.stack) {
+        // Write stack lines (skip the first "Error: msg" line, already logged above)
+        const stackLines = err.stack.split('\n').slice(1).join('\n');
+        if (stackLines) logStream.write(stackLines + '\n');
+      }
       updateJobStatus(db, id, 'failed', { error: msg });
-      // Partial output (if any) is unusable — remove it so it doesn't show as downloadable
       try { await rm(outputPath, { force: true }); } catch {}
     } finally {
+      await new Promise(resolve => logStream.end(resolve));
       try { await rm(inputPath, { force: true }); } catch {}
       current = null;
       running = false;
-      // Immediately process the next queued job if any
       runNext();
     }
   }
