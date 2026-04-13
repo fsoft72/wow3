@@ -31,6 +31,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export async function buildApp({ dbPath, dataDir, jwtSecret, adminUser, adminPass }) {
   await mkdir(join(dataDir, 'uploads'), { recursive: true });
   await mkdir(join(dataDir, 'output'), { recursive: true });
+  await mkdir(join(dataDir, 'logs'), { recursive: true });
 
   const db = createDb(dbPath);
 
@@ -42,7 +43,7 @@ export async function buildApp({ dbPath, dataDir, jwtSecret, adminUser, adminPas
   // Re-trigger queue for any jobs that survived restart
   if (getPendingJobs(db).length > 0) queue.enqueue();
 
-  const cleanup = createCleanup(db);
+  const cleanup = createCleanup(db, dataDir);
   const cleanupInterval = cleanup.start();
   cleanupInterval.unref();
 
@@ -70,7 +71,7 @@ export async function buildApp({ dbPath, dataDir, jwtSecret, adminUser, adminPas
   // Admin routes — login is open, everything else requires session
   await app.register(
     async (instance) => {
-      await adminRoutes(instance, { db, queue, jwtSecret, adminUser, adminPass });
+      await adminRoutes(instance, { db, queue, jwtSecret, adminUser, adminPass, dataDir });
     },
     { prefix: '/admin' }
   );
