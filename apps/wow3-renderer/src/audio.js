@@ -152,6 +152,7 @@ export async function mergeAudioVideo({ videoPath, clips, outputPath, signal }) 
   const filterComplex = filterParts.join(';');
 
   const args = [
+    '-threads', '0',
     ...inputs,
     '-filter_complex', filterComplex,
     '-map', '0:v',

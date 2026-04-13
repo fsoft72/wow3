@@ -86,7 +86,7 @@ export async function record({ port, width, height, outputPath, onProgress, sign
       videoFrame: { width, height },
       videoCrf: 18,
       videoCodec: 'libx264',
-      videoPreset: 'ultrafast',
+      videoPreset: 'superfast',
       videoBitrate: 8000,
     });
 
