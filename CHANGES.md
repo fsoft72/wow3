@@ -2,6 +2,16 @@
 
 ## 2026-04-13
 
+### wow3-renderer: per-job log files with dashboard viewer
+
+Each render job now writes a timestamped log file to `$DATA_DIR/logs/<job-id>.log`. The admin dashboard exposes a **Log** button per job that opens an inline modal with the log contents, with a Refresh button and auto-refresh for running jobs. Log files are deleted alongside the MP4 on manual deletion and on the 48-hour automatic cleanup.
+
+- `apps/wow3-renderer/src/api/app.js` — create `logs/` directory on startup; pass `dataDir` to cleanup and adminRoutes
+- `apps/wow3-renderer/src/api/queue.js` — open write stream per job; write timestamped progress lines and error+stack on failure; flush in `finally`
+- `apps/wow3-renderer/src/api/routes/admin.js` — new `GET /admin/jobs/:id/log` endpoint (returns log as `text/plain`, 404 if missing); `DELETE /admin/jobs/:id` now also deletes the log file
+- `apps/wow3-renderer/src/api/cleanup.js` — accept `dataDir`; delete log file for each expired job
+- `apps/wow3-renderer/src/admin/index.html` — Log button in jobs table; log modal with Refresh + 3s auto-refresh for running jobs
+
 ### wow3-animation: Ken Burns effects for image clips
 
 Implemented zoom, pan, and bokeh (focus) effects on image clips with real-time playback and video export support.
