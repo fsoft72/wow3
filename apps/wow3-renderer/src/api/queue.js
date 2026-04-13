@@ -72,12 +72,14 @@ export function createQueue({ db, renderFn, dataDir }) {
         if (stackLines) logStream.write(stackLines + '\n');
       }
       updateJobStatus(db, id, 'failed', { error: msg });
+      // Partial output (if any) is unusable — remove it so it doesn't show as downloadable
       try { await rm(outputPath, { force: true }); } catch {}
     } finally {
       await new Promise(resolve => logStream.end(resolve));
       try { await rm(inputPath, { force: true }); } catch {}
       current = null;
       running = false;
+      // Kick off the next queued job; intentionally not awaited — fire-and-forget.
       runNext();
     }
   }
