@@ -115,6 +115,8 @@ export async function adminRoutes(fastify, { db, queue, jwtSecret, adminUser, ad
       const job = getJob(db, request.params.id);
       if (!job) return reply.code(404).send({ error: 'Job not found' });
 
+      // If the job is still in flight, abort it first so we don't leave
+      // orphan browser/ffmpeg processes running after the row is gone.
       if (job.status === 'running' || job.status === 'pending') {
         queue.kill(request.params.id);
       }
