@@ -4,9 +4,9 @@
 
 ## Critical
 
-- [ ] **Path traversal in Content-Disposition** — `apps/wow3-renderer/src/api/routes/jobs.js:110` uses `job.wow3a_name` (user-controlled) directly in header without sanitization
-- [ ] **Timing attack on admin credentials** — `apps/wow3-renderer/src/api/routes/admin.js:27` uses plain string comparison for username/password, vulnerable to timing attacks
-- [ ] **Missing rate limiting** — No rate limiting on job creation endpoint allows abuse and resource exhaustion
+- [x] **Path traversal in Content-Disposition** — `apps/wow3-renderer/src/api/routes/jobs.js:110` uses `job.wow3a_name` (user-controlled) directly in header without sanitization
+- [x] **Timing attack on admin credentials** — `apps/wow3-renderer/src/api/routes/admin.js:27` uses plain string comparison for username/password, vulnerable to timing attacks
+- [x] **Missing rate limiting** — No rate limiting on job creation endpoint allows abuse and resource exhaustion
 
 ## High
 
