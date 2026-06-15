@@ -43,6 +43,9 @@ export class ElementController {
 
     /** @type {{ elements: Object[], boundingBox: { x: number, y: number, width: number, height: number } } | null} */
     this.clipboard = null;
+
+    /** @type {Map<string, HTMLElement>} Cached DOM references for selected elements */
+    this._domCache = new Map();
   }
 
   /**
@@ -218,6 +221,7 @@ export class ElementController {
     const elementDOM = document.getElementById(element.id);
 
     if (elementDOM) {
+      this._domCache.set(element.id, elementDOM);
       elementDOM.classList.add('selected');
       this.addHandles(elementDOM);
 
@@ -244,6 +248,7 @@ export class ElementController {
     const elementDOM = document.getElementById(element.id);
 
     if (elementDOM) {
+      this._domCache.set(element.id, elementDOM);
       elementDOM.classList.add('selected');
     }
 
@@ -258,6 +263,7 @@ export class ElementController {
     if (!this._selectedElements.has(element)) return;
 
     this._selectedElements.delete(element);
+    this._domCache.delete(element.id);
     const elementDOM = document.getElementById(element.id);
 
     if (elementDOM) {
@@ -298,6 +304,7 @@ export class ElementController {
     }
 
     this._selectedElements.clear();
+    this._domCache.clear();
 
     // Clear properties panel
     if (this.editor.uiManager && this.editor.uiManager.rightSidebar) {
@@ -933,8 +940,9 @@ export class ElementController {
       el.position.x += dx;
       el.position.y += dy;
 
-      const dom = document.getElementById(el.id);
+      const dom = this._domCache.get(el.id) || document.getElementById(el.id);
       if (dom) {
+        this._domCache.set(el.id, dom);
         dom.style.left = `${el.position.x}px`;
         dom.style.top = `${el.position.y}px`;
       }
