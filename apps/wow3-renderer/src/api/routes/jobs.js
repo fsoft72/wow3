@@ -5,6 +5,9 @@ import { randomUUID } from 'node:crypto';
 import JSZip from 'jszip';
 import { insertJob, getJob } from '../db.js';
 
+/** UUID v4 format regex */
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 /**
  * Wrap a project JSON object into a minimal .wow3a ZIP buffer (project.json only).
  * @param {object} jsonData
@@ -81,7 +84,12 @@ export async function jobsRoutes(fastify, { db, queue, dataDir }) {
    * Returns the current status and progress of a job.
    */
   fastify.get('/jobs/:id/status', async (request, reply) => {
-    const job = getJob(db, request.params.id);
+    const jobId = request.params.id;
+    if (!UUID_REGEX.test(jobId)) {
+      return reply.code(400).send({ error: 'Invalid job ID format' });
+    }
+
+    const job = getJob(db, jobId);
     if (!job) return reply.code(404).send({ error: 'Job not found' });
 
     const response = { jobId: job.id, status: job.status, progress: job.progress };
@@ -94,7 +102,12 @@ export async function jobsRoutes(fastify, { db, queue, dataDir }) {
    * Streams the rendered MP4. Returns 404 if not completed, 410 if file was deleted.
    */
   fastify.get('/jobs/:id/result', async (request, reply) => {
-    const job = getJob(db, request.params.id);
+    const jobId = request.params.id;
+    if (!UUID_REGEX.test(jobId)) {
+      return reply.code(400).send({ error: 'Invalid job ID format' });
+    }
+
+    const job = getJob(db, jobId);
     if (!job) return reply.code(404).send({ error: 'Job not found' });
     if (job.status !== 'completed') {
       return reply.code(404).send({ error: `Job is not completed (status: ${job.status})` });
