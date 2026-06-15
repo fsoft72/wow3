@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mkdir, rm, writeFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { randomUUID } from 'node:crypto';
 import Fastify from 'fastify';
 import fastifyMultipart from '@fastify/multipart';
 import fastifyCookie from '@fastify/cookie';
@@ -152,17 +153,26 @@ describe('jobs routes', () => {
   });
 
   // GET /jobs/:id/status
-  it('GET /jobs/:id/status returns 404 for unknown job', async () => {
+  it('GET /jobs/:id/status returns 400 for invalid UUID', async () => {
     const res = await app.inject({
       method: 'GET', url: '/jobs/nonexistent/status', headers: AUTH,
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('GET /jobs/:id/status returns 404 for unknown job', async () => {
+    const unknownId = randomUUID();
+    const res = await app.inject({
+      method: 'GET', url: `/jobs/${unknownId}/status`, headers: AUTH,
     });
     expect(res.statusCode).toBe(404);
   });
 
   it('GET /jobs/:id/status returns job status and progress', async () => {
-    insertJob(db, { id: 'j1', wow3aName: 'test.wow3a' });
+    const jobId = randomUUID();
+    insertJob(db, { id: jobId, wow3aName: 'test.wow3a' });
     const res = await app.inject({
-      method: 'GET', url: '/jobs/j1/status', headers: AUTH,
+      method: 'GET', url: `/jobs/${jobId}/status`, headers: AUTH,
     });
     expect(res.statusCode).toBe(200);
     const json = res.json();
@@ -172,31 +182,34 @@ describe('jobs routes', () => {
 
   // GET /jobs/:id/result
   it('GET /jobs/:id/result returns 404 for non-completed job', async () => {
-    insertJob(db, { id: 'j1', wow3aName: 'test.wow3a' });
+    const jobId = randomUUID();
+    insertJob(db, { id: jobId, wow3aName: 'test.wow3a' });
     const res = await app.inject({
-      method: 'GET', url: '/jobs/j1/result', headers: AUTH,
+      method: 'GET', url: `/jobs/${jobId}/result`, headers: AUTH,
     });
     expect(res.statusCode).toBe(404);
   });
 
   it('GET /jobs/:id/result returns 410 when file has been deleted', async () => {
-    insertJob(db, { id: 'j1', wow3aName: 'test.wow3a' });
-    updateJobStatus(db, 'j1', 'completed', { outputPath: '/nonexistent/path.mp4' });
+    const jobId = randomUUID();
+    insertJob(db, { id: jobId, wow3aName: 'test.wow3a' });
+    updateJobStatus(db, jobId, 'completed', { outputPath: '/nonexistent/path.mp4' });
     const res = await app.inject({
-      method: 'GET', url: '/jobs/j1/result', headers: AUTH,
+      method: 'GET', url: `/jobs/${jobId}/result`, headers: AUTH,
     });
     expect(res.statusCode).toBe(410);
   });
 
   it('GET /jobs/:id/result streams the MP4 when completed', async () => {
-    const mp4Path = join(dataDir, 'output', 'j1.mp4');
+    const jobId = randomUUID();
+    const mp4Path = join(dataDir, 'output', `${jobId}.mp4`);
     await writeFile(mp4Path, Buffer.from('fake-mp4-data'));
 
-    insertJob(db, { id: 'j1', wow3aName: 'test.wow3a' });
-    updateJobStatus(db, 'j1', 'completed', { outputPath: mp4Path });
+    insertJob(db, { id: jobId, wow3aName: 'test.wow3a' });
+    updateJobStatus(db, jobId, 'completed', { outputPath: mp4Path });
 
     const res = await app.inject({
-      method: 'GET', url: '/jobs/j1/result', headers: AUTH,
+      method: 'GET', url: `/jobs/${jobId}/result`, headers: AUTH,
     });
     expect(res.statusCode).toBe(200);
     expect(res.headers['content-type']).toContain('video/mp4');
