@@ -8,6 +8,12 @@ import { toast } from '@wow/core/utils/toasts.js';
 import { CountdownTimerElement } from '../models/CountdownTimerElement.js';
 import { AnimationManager } from '../animations/AnimationManager.js';
 
+/** Countdown timer tick interval in milliseconds */
+const COUNTDOWN_TICK_MS = 1000;
+
+/** Auto-play multiplier: seconds to milliseconds */
+const SECONDS_TO_MS = 1000;
+
 export class PlaybackController {
   /**
    * Create playback controller
@@ -646,7 +652,7 @@ export class PlaybackController {
       this._autoPlayTimerId = null;
       this._clearAutoPlay();
       this.nextSlide();
-    }, durationSeconds * 1000);
+    }, durationSeconds * SECONDS_TO_MS);
   }
 
   /**
@@ -724,7 +730,7 @@ export class PlaybackController {
         this._activeCountdown.intervalId = null;
         this._playCompletionSound(element.properties.soundId);
       }
-    }, 1000);
+    }, COUNTDOWN_TICK_MS);
   }
 
   /**
