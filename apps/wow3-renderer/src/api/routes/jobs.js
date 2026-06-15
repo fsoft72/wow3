@@ -1,12 +1,21 @@
 import { createReadStream } from 'node:fs';
 import { stat, writeFile, mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, basename } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import JSZip from 'jszip';
 import { insertJob, getJob } from '../db.js';
 
 /** UUID v4 format regex */
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * Strip path components and non-safe characters from a filename.
+ * @param {string} name
+ * @returns {string}
+ */
+function sanitizeFilename(name) {
+  return basename(name).replace(/[^\w\-. ]/g, '_') || 'output';
+}
 
 /**
  * Wrap a project JSON object into a minimal .wow3a ZIP buffer (project.json only).
@@ -119,7 +128,7 @@ export async function jobsRoutes(fastify, { db, queue, dataDir }) {
       return reply.code(410).send({ error: 'Output file has been deleted' });
     }
 
-    const filename = job.wow3a_name.replace(/\.wow3a$/, '.mp4');
+    const filename = sanitizeFilename(job.wow3a_name).replace(/\.wow3a$/, '.mp4');
     reply.header('Content-Disposition', `attachment; filename="${filename}"`);
     reply.header('Content-Type', 'video/mp4');
     return reply.send(createReadStream(job.output_path));

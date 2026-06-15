@@ -1,7 +1,7 @@
 import { rm, readFile, stat } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
-import { join } from 'node:path';
-import { randomBytes, randomUUID } from 'node:crypto';
+import { join, basename } from 'node:path';
+import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import {
   listApiKeys, insertApiKey, deleteApiKey,
   listJobs, getJob, deleteJob,
@@ -15,6 +15,32 @@ import { signAdminToken, createAdminAuth } from '../middleware/admin-auth.js';
  * @param {import('fastify').FastifyInstance} fastify
  * @param {{ db: object, queue: object, jwtSecret: string, adminUser: string, adminPass: string, dataDir: string }} opts
  */
+/**
+ * Constant-time string comparison to prevent timing attacks.
+ * @param {string} a
+ * @param {string} b
+ * @returns {boolean}
+ */
+function safeStringEqual(a, b) {
+  const aBuf = Buffer.from(String(a));
+  const bBuf = Buffer.from(String(b));
+  if (aBuf.length !== bBuf.length) {
+    // run anyway to avoid length-based timing leak
+    timingSafeEqual(aBuf, Buffer.alloc(aBuf.length));
+    return false;
+  }
+  return timingSafeEqual(aBuf, bBuf);
+}
+
+/**
+ * Strip path components and non-safe characters from a filename.
+ * @param {string} name
+ * @returns {string}
+ */
+function sanitizeFilename(name) {
+  return basename(name).replace(/[^\w\-. ]/g, '_') || 'output';
+}
+
 export async function adminRoutes(fastify, { db, queue, jwtSecret, adminUser, adminPass, dataDir }) {
   const adminAuth = createAdminAuth(jwtSecret);
 
@@ -23,7 +49,7 @@ export async function adminRoutes(fastify, { db, queue, jwtSecret, adminUser, ad
   /** POST /login */
   fastify.post('/login', async (request, reply) => {
     const { username, password } = request.body ?? {};
-    if (username !== adminUser || password !== adminPass) {
+    if (!safeStringEqual(username ?? '', adminUser) || !safeStringEqual(password ?? '', adminPass)) {
       return reply.code(401).send({ error: 'Invalid credentials' });
     }
     const token = signAdminToken(jwtSecret);
@@ -87,7 +113,7 @@ export async function adminRoutes(fastify, { db, queue, jwtSecret, adminUser, ad
       try { await stat(job.output_path); accessible = true; } catch {}
       if (!accessible) return reply.code(410).send({ error: 'Output file has been deleted' });
 
-      const filename = job.wow3a_name.replace(/\.wow3a$/, '.mp4');
+      const filename = sanitizeFilename(job.wow3a_name).replace(/\.wow3a$/, '.mp4');
       reply.header('Content-Disposition', `attachment; filename="${filename}"`);
       reply.header('Content-Type', 'video/mp4');
       return reply.send(createReadStream(job.output_path));
