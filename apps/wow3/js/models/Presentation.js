@@ -261,33 +261,6 @@ export class Presentation {
   }
 
   /**
-   * Get presentation statistics
-   * @returns {Object} Statistics object
-   */
-  getStatistics() {
-    let totalElements = 0;
-    let elementTypes = {};
-
-    this.slides.forEach(slide => {
-      const elements = slide.getAllElements();
-      totalElements += elements.length;
-
-      elements.forEach(element => {
-        elementTypes[element.type] = (elementTypes[element.type] || 0) + 1;
-      });
-    });
-
-    return {
-      slideCount: this.slides.length,
-      totalElements,
-      elementTypes,
-      created: this.metadata.created,
-      modified: this.metadata.modified,
-      author: this.metadata.author
-    };
-  }
-
-  /**
    * Add a new shell and return it
    * @param {string} [name] - Optional display name
    * @returns {Slide} The created shell
