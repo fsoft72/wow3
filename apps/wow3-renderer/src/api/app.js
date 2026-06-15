@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import fastifyMultipart from '@fastify/multipart';
 import fastifyCookie from '@fastify/cookie';
 import fastifyStatic from '@fastify/static';
+import fastifyRateLimit from '@fastify/rate-limit';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mkdir } from 'node:fs/promises';
@@ -62,9 +63,14 @@ export async function buildApp({ dbPath, dataDir, jwtSecret, adminUser, adminPas
 
   const apiKeyAuth = createApiKeyAuth(db);
 
-  // Public job routes — protected by API key
+  // Public job routes — protected by API key, rate-limited on POST /jobs
   await app.register(async (instance) => {
     instance.addHook('preHandler', apiKeyAuth);
+    await instance.register(fastifyRateLimit, {
+      max: 20,
+      timeWindow: '1 minute',
+      keyGenerator: (request) => request.headers['x-api-key'] ?? request.ip,
+    });
     await jobsRoutes(instance, { db, queue, dataDir });
   });
 
