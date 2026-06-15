@@ -24,6 +24,18 @@ export async function startServer(wow3aPath) {
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+    // Content Security Policy for renderer
+    res.setHeader('Content-Security-Policy', [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+      "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+      "img-src 'self' data: blob:",
+      "media-src 'self' data: blob:",
+      "connect-src 'self' ws: wss:",
+      "worker-src 'self' blob:",
+    ].join('; '));
+
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
       res.writeHead(204);
