@@ -8,7 +8,7 @@
  */
 export class EventEmitter {
   constructor() {
-    this.events = {};
+    this.events = new Map();
   }
 
   /**
@@ -18,11 +18,11 @@ export class EventEmitter {
    * @returns {Function} Unsubscribe function
    */
   on(event, callback) {
-    if (!this.events[event]) {
-      this.events[event] = [];
+    if (!this.events.has(event)) {
+      this.events.set(event, new Set());
     }
 
-    this.events[event].push(callback);
+    this.events.get(event).add(callback);
 
     // Return unsubscribe function
     return () => this.off(event, callback);
@@ -49,12 +49,13 @@ export class EventEmitter {
    * @param {Function} callback - Callback function to remove
    */
   off(event, callback) {
-    if (!this.events[event]) return;
+    const listeners = this.events.get(event);
+    if (!listeners) return;
 
-    this.events[event] = this.events[event].filter(cb => cb !== callback);
+    listeners.delete(callback);
 
-    if (this.events[event].length === 0) {
-      delete this.events[event];
+    if (listeners.size === 0) {
+      this.events.delete(event);
     }
   }
 
@@ -64,15 +65,16 @@ export class EventEmitter {
    * @param {...any} args - Arguments to pass to callbacks
    */
   emit(event, ...args) {
-    if (!this.events[event]) return;
+    const listeners = this.events.get(event);
+    if (!listeners) return;
 
-    this.events[event].forEach(callback => {
+    for (const callback of listeners) {
       try {
         callback(...args);
       } catch (error) {
         console.error(`Error in event handler for "${event}":`, error);
       }
-    });
+    }
   }
 
   /**
@@ -81,9 +83,9 @@ export class EventEmitter {
    */
   removeAllListeners(event) {
     if (event) {
-      delete this.events[event];
+      this.events.delete(event);
     } else {
-      this.events = {};
+      this.events.clear();
     }
   }
 
@@ -93,7 +95,18 @@ export class EventEmitter {
    * @returns {number} Number of listeners
    */
   listenerCount(event) {
-    return this.events[event] ? this.events[event].length : 0;
+    const listeners = this.events.get(event);
+    return listeners ? listeners.size : 0;
+  }
+
+  /**
+   * Check if an event has any listeners
+   * @param {string} event - Event name
+   * @returns {boolean} True if event has listeners
+   */
+  hasListeners(event) {
+    const listeners = this.events.get(event);
+    return listeners ? listeners.size > 0 : false;
   }
 }
 
