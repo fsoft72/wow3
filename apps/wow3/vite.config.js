@@ -42,7 +42,8 @@ function serveWowCore() {
     },
 
     // Build: rewrite /__wow_core__/ paths in HTML
-    transformIndexHtml(html) {
+    transformIndexHtml(html, ctx) {
+      if (ctx.server) return html;
       return html
         .replace(/\/__wow_core__\/classic\//g, './js/')
         .replace(/\/__wow_core__\/css\//g, './css/');
