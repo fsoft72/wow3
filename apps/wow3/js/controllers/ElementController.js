@@ -1159,6 +1159,19 @@ export class ElementController {
     element.position.x = Math.max(0, Math.min(element.position.x, CANVAS.WIDTH - width));
     element.position.y = Math.max(0, Math.min(element.position.y, CANVAS.HEIGHT - height));
   }
+
+  /**
+   * Clean up controller resources
+   */
+  destroy() {
+    this._selectedElements.clear();
+    this._domCache.clear();
+    this.clipboard = null;
+    this.dragHandler = null;
+    this.resizeHandler = null;
+    this.rotateHandler = null;
+    this.cropHandler = null;
+  }
 }
 
 export default ElementController;

@@ -339,6 +339,18 @@ class SettingsController {
       if (el) el.style.backgroundColor = color;
     });
   }
+
+  /**
+   * Clean up controller resources
+   */
+  destroy() {
+    this._panel = null;
+    this._toggleBtn = null;
+    this._closeBtn = null;
+    this._tabButtons = null;
+    this._generalContent = null;
+    this._themeContent = null;
+  }
 }
 
 export { SettingsController };

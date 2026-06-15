@@ -1114,6 +1114,19 @@ export class SlideController {
     img.style.cssText = 'width:100%;height:100%;object-fit:fill;display:block;';
     preview.appendChild(img);
   }
+
+  /**
+   * Clean up controller resources
+   */
+  destroy() {
+    if (this._thumbTimer) {
+      clearTimeout(this._thumbTimer);
+      this._thumbTimer = null;
+    }
+    this._thumbCache.clear();
+    this.slideClipboard = null;
+    this.draggedSlide = null;
+  }
 }
 
 export default SlideController;
