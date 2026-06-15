@@ -769,12 +769,21 @@ export class EditorController {
   // ==================== HISTORY MANAGEMENT ====================
 
   /**
+   * Serialize presentation to a compact JSON snapshot
+   * @returns {string} Minified JSON string
+   * @private
+   */
+  _snapshot() {
+    return JSON.stringify(this.presentation.toJSON());
+  }
+
+  /**
    * Record current state in history
    */
   recordHistory() {
     if (!this.presentation) return;
 
-    const state = JSON.stringify(this.presentation.toJSON());
+    const state = this._snapshot();
 
     // Remove future history if we're in the middle
     this.history = this.history.slice(0, this.historyIndex + 1);
@@ -855,7 +864,7 @@ export class EditorController {
    * Reset history
    */
   resetHistory() {
-    this.history = [JSON.stringify(this.presentation.toJSON())];
+    this.history = [this._snapshot()];
     this.historyIndex = 0;
     this.unsavedChanges = false;
   }
