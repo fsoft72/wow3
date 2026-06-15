@@ -201,6 +201,8 @@ export class PlaybackController {
     const slide = this.editor.presentation.slides[index];
     if (!slide) return;
 
+    try {
+
     // Clean up any ongoing animations from the previous slide
     if (this._animationManager) {
       this._animationManager.cleanup();
@@ -365,7 +367,15 @@ export class PlaybackController {
         this.nextSlide();
       }, { once: true });
 
-      await this._animationManager.play();
+      try {
+        await this._animationManager.play();
+      } catch (err) {
+        console.error('Animation playback failed:', err);
+        if (this._animationManager) {
+          this._animationManager.cleanup();
+          this._animationManager = null;
+        }
+      }
     }
 
     // Handle continuing audio: it's currently a direct child of presentationView,
@@ -400,6 +410,11 @@ export class PlaybackController {
     // For slides with click-triggered animations, the user must advance through them first.
     if (slide.autoPlay && slide.autoPlayDuration > 0) {
       this._startAutoPlay(slide.autoPlayDuration);
+    }
+
+    } catch (err) {
+      console.error(`Failed to show slide ${index}:`, err);
+      toast.error('Slide playback error');
     }
   }
 
