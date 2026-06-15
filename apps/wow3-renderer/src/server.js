@@ -19,6 +19,18 @@ export async function startServer(wow3aPath) {
   const wow3aBuffer = readFileSync(wow3aPath);
 
   const server = createServer((req, res) => {
+    // CORS headers for local development
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+
     // Serve the .wow3a file at /input.wow3a
     if (req.url === '/input.wow3a') {
       res.writeHead(200, {
