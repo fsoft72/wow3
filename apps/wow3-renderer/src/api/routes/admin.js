@@ -27,8 +27,10 @@ export async function adminRoutes(fastify, { db, queue, jwtSecret, adminUser, ad
       return reply.code(401).send({ error: 'Invalid credentials' });
     }
     const token = signAdminToken(jwtSecret);
+    const isSecure = process.env.NODE_ENV === 'production';
     reply.setCookie('admin_session', token, {
       httpOnly: true,
+      secure: isSecure,
       sameSite: 'Strict',
       path: '/',
       maxAge: 60 * 60 * 8,
