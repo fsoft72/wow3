@@ -44,6 +44,7 @@ export class ImageElement extends Element {
       const crop = this.properties.crop;
       const img = document.createElement('img');
       img.alt = 'Image';
+      img.loading = 'lazy';
 
       let content;
 
