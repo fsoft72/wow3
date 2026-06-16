@@ -58,6 +58,25 @@ export async function buildApp({ dbPath, dataDir, jwtSecret, adminUser, adminPas
     decorateReply: false,
   });
 
+  // CSP for the admin SPA
+  const ADMIN_CSP = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data:",
+    "connect-src 'self'",
+    "frame-ancestors 'none'",
+  ].join('; ');
+
+  app.addHook('onSend', (request, reply, payload, done) => {
+    if (request.url.startsWith('/admin')) {
+      reply.header('Content-Security-Policy', ADMIN_CSP);
+      reply.header('X-Frame-Options', 'DENY');
+      reply.header('X-Content-Type-Options', 'nosniff');
+    }
+    done(null, payload);
+  });
+
   // Redirect bare /admin to /admin/ so the SPA loads correctly
   app.get('/admin', (req, reply) => reply.redirect('/admin/'));
 
