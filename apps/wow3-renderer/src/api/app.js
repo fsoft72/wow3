@@ -77,6 +77,9 @@ export async function buildApp({ dbPath, dataDir, jwtSecret, adminUser, adminPas
     done(null, payload);
   });
 
+  /** GET /health - liveness probe */
+  app.get('/health', async () => ({ status: 'ok', uptime: process.uptime() }));
+
   // Redirect bare /admin to /admin/ so the SPA loads correctly
   app.get('/admin', (req, reply) => reply.redirect('/admin/'));
 
