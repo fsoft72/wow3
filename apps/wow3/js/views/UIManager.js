@@ -27,7 +27,7 @@ export class UIManager {
 		await this.statusBar.init();
 
 		// Initialize MaterializeCSS tabs
-		this.initTabs();
+		await this.initTabs();
 
 		// Initialize global MediaManager and attach button handler
 		await MediaManager.init();
@@ -131,9 +131,21 @@ export class UIManager {
 	}
 
 	/**
+	 * Wait for MaterializeCSS global M to be available.
+	 * Needed when SW serves local assets faster than CDN scripts load.
+	 * @returns {Promise<void>}
+	 */
+	async waitForMaterialize() {
+		while ( typeof M === 'undefined' ) {
+			await new Promise( r => setTimeout( r, 20 ) );
+		}
+	}
+
+	/**
 	 * Initialize MaterializeCSS tabs
 	 */
-	initTabs() {
+	async initTabs() {
+		await this.waitForMaterialize();
 		const tabs = document.querySelectorAll(".tabs");
 		M.Tabs.init(tabs, {
 			onShow: (tab) => {
