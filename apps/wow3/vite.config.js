@@ -89,6 +89,7 @@ export default defineConfig({
   },
 
   build: {
+    emptyOutDir: true,
     minify: 'terser',
     terserOptions: {
       compress: { drop_console: true, drop_debugger: true }

@@ -25,6 +25,7 @@ import {
   CanvasDropHandler
 } from './interactions/index.js';
 import '@wow/core/managers/AudioManager.js';
+import { loadSnapshot, getAllPresentations, loadPresentation as loadPresentationFromDb, importZip } from './utils/storage.js';
 
 class WOW3App {
   constructor() {
@@ -128,9 +129,6 @@ class WOW3App {
    */
   async loadPresentation() {
     try {
-      // Import storage utilities dynamically
-      const { loadSnapshot, getAllPresentations } = await import('./utils/storage.js');
-
       // Try to load snapshot first (current working presentation)
       const snapshot = loadSnapshot();
       if (snapshot) {
@@ -144,8 +142,7 @@ class WOW3App {
       if (presentations && presentations.length > 0) {
         // Load the most recently modified presentation
         const lastPresentation = presentations[0];
-        const { loadPresentation } = await import('./utils/storage.js');
-        const data = await loadPresentation(lastPresentation.id);
+        const data = await loadPresentationFromDb(lastPresentation.id);
 
         if (data) {
           await this.editor.loadPresentation(data);
@@ -179,7 +176,6 @@ class WOW3App {
       console.log(`📂 Opened file from OS: ${file.name}`);
 
       try {
-        const { importZip } = await import('./utils/storage.js');
         const data = await importZip(file);
         await this.editor.loadPresentation(data);
         toast.success(`Loaded ${file.name}`);
