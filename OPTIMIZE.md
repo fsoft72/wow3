@@ -13,7 +13,7 @@
 - [x] **Cookie missing Secure flag** — `apps/wow3-renderer/src/api/routes/admin.js:31` sets `admin_session` cookie without `secure: true`, transmitting over HTTP
 - [ ] **Full JSON in history stack** — `apps/wow3/js/controllers/EditorController.js:777` stores complete presentation JSON for each undo step; use delta diffs instead
 - [x] **Missing Content-Security-Policy** — `apps/wow3-renderer/src/server.js` serves static files without CSP headers
-- [ ] **Synchronous CDN scripts** — `apps/wow3/index.html:281-296` loads 5 external scripts synchronously, blocking rendering
+- [x] **Synchronous CDN scripts** — `apps/wow3/index.html:281-296` loads 5 external scripts synchronously, blocking rendering
 
 ## Medium
 
