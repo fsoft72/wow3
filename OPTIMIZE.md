@@ -31,9 +31,9 @@
 
 - [ ] **Deprecated animation types** — `packages/wow-core/src/utils/constants.js:7-20` still exports deprecated `AnimationType` enum
 - [ ] **Inconsistent naming** — Mix of `camelCase` and `snake_case` in database columns and model properties
-- [ ] **Missing JSDoc on some functions** — Several utility functions in `packages/wow-core/src/utils/dom.js` lack parameter documentation
+- [x] **Missing JSDoc on some functions** — Several utility functions in `packages/wow-core/src/utils/dom.js` lack parameter documentation (all functions already have JSDoc)
 - [ ] **No TypeScript types** — Entire codebase is plain JavaScript; adding types would prevent many bugs
 - [ ] **Missing tests for renderer API** — `apps/wow3-renderer/test/` exists but coverage is minimal
-- [ ] **Console.log statements** — Debug logging left in production code (`packages/wow-core/src/managers/AudioManager.js:61,174`)
-- [ ] **No connection pooling for SQLite** — `apps/wow3-renderer/src/api/db.js` creates single connection without pooling considerations
-- [ ] **Missing health check endpoint** — No `/health` or `/ready` endpoint for monitoring
+- [x] **Console.log statements** — Debug logging left in production code (`packages/wow-core/src/managers/AudioManager.js:61,174`)
+- [x] **No connection pooling for SQLite** — `apps/wow3-renderer/src/api/db.js` creates single connection without pooling considerations (WAL mode already enabled)
+- [x] **Missing health check endpoint** — No `/health` or `/ready` endpoint for monitoring
